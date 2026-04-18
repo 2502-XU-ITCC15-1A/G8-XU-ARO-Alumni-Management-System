@@ -5,6 +5,9 @@ const cors = require("cors");
 
 const app = express();
 
+const alumniRoutes = require("./routes/alumni");
+app.use("/api/alumni", alumniRoutes);
+
 const mongoose = require("mongoose");
 
 mongoose.connect(process.env.MONGO_URI)

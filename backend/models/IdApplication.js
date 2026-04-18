@@ -7,10 +7,15 @@ const applicationSchema = new mongoose.Schema({
     homeAddress: String,
     universityIdNumber: String,
 
+    receiptImage: String,
+
     status: {
         type: String,
+        enum: ["pending", "under_review", "approved", "rejected"],
         default: "pending"
     },
+
+    remarks: String,
 
     validUntil: Date,
     verifiedBy: String,
