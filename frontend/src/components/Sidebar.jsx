@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
   { path: '/dashboard',          label: 'Dashboard',          icon: 'bi-grid-fill' },
@@ -8,9 +9,25 @@ const navItems = [
 
 export default function Sidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
+  const navigate     = useNavigate();
+  const [showMenu, setShowMenu] = useState(false);
+
+  const user    = JSON.parse(localStorage.getItem('user') || '{}');
+  const name    = user.name  || 'User';
+  const email   = user.email || '';
+  const initial = name.charAt(0).toUpperCase();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
 
   return (
     <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+
+      {/* Brand */}
       <div className="sidebar-brand d-flex align-items-start justify-content-between">
         <div>
           <div className="text-white fw-bold" style={{ fontSize: 20, lineHeight: 1.3 }}>
@@ -20,7 +37,6 @@ export default function Sidebar({ isOpen, onClose }) {
             ARO Staff Portal
           </div>
         </div>
-        {/* Close button — mobile only */}
         <button
           className="d-md-none"
           onClick={onClose}
@@ -30,6 +46,7 @@ export default function Sidebar({ isOpen, onClose }) {
         </button>
       </div>
 
+      {/* Nav */}
       <nav className="sidebar-nav">
         {navItems.map(item => (
           <Link
@@ -44,12 +61,39 @@ export default function Sidebar({ isOpen, onClose }) {
         ))}
       </nav>
 
-      <div className="sidebar-footer">
-        <div className="sidebar-avatar">A</div>
-        <div>
-          <div className="text-white fw-semibold" style={{ fontSize: 13 }}>Admin User</div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>admin@xu.edu.ph</div>
-        </div>
+      {/* User footer */}
+      <div style={{ position: 'relative' }}>
+
+        {/* Logout popup */}
+        {showMenu && (
+          <div className="sidebar-user-menu">
+            <button className="sidebar-logout-btn" onClick={handleLogout}>
+              <i className="bi bi-box-arrow-right" />
+              Log out
+            </button>
+          </div>
+        )}
+
+        {/* Clickable user row */}
+        <button
+          className={`sidebar-footer ${showMenu ? 'sidebar-footer-active' : ''}`}
+          onClick={() => setShowMenu(v => !v)}
+        >
+          <div className="sidebar-avatar">{initial}</div>
+          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+            <div className="text-white fw-semibold text-truncate" style={{ fontSize: 13 }}>
+              {name}
+            </div>
+            <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+              {email}
+            </div>
+          </div>
+          <i
+            className={`bi bi-chevron-${showMenu ? 'down' : 'up'}`}
+            style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, flexShrink: 0 }}
+          />
+        </button>
+
       </div>
     </div>
   );
