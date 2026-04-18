@@ -2,20 +2,18 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db");
 
 const app = express();
 
-const alumniRoutes = require("./routes/alumni");
-app.use("/api/alumni", alumniRoutes);
+connectDB();
 
-const mongoose = require("mongoose");
-
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log ("MongoDB Connected"))
-    .catch(err => console.log(err));
-    
 app.use(cors());
 app.use(express.json());
+
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/alumni", require("./routes/alumniRoutes"));
+app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 
 app.get("/", (req, res) => {
     res.send("Backend Running");

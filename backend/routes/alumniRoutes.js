@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { createProfile, getProfile } = require("../controllers/alumniController");
+const { createProfile, getProfiles } = require("../controllers/alumniController");
 
 router.post("/", createProfile);
 router.get("/", getProfiles);

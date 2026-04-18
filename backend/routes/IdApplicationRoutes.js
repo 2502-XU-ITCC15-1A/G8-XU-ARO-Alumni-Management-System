@@ -1,8 +1,15 @@
 const router = require("express").Router();
-const { createIdApplication, getIdApplication, updateStatus } = require("../controllers/IdApplicationController");
+const upload = require("../middleware/upload");
+const {
+    createIdApplication,
+    getIdApplication,
+    updateStatus,
+    uploadReceipt } = require("../controllers/IdApplicationController");
 
 router.post("/", createIdApplication);
-router.get("/", getIdApplication);
+
+router.post("/upload/:id", upload.single("receipt"), uploadReceipt);
+
 router.put("/:id", updateStatus);
 
 module.exports = router;
