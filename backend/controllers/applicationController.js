@@ -1,7 +1,6 @@
-// controllers/applicationController.js
-import Application from "../../AlumniMS/backend/models/Application.js";
+const Application = require("../models/IdApplication");
 
-export const createApplication = async (req, res) => {
+exports.createApplication = async (req, res) => {
   const app = await Application.create({
     alumni: req.user.id
   });
@@ -9,7 +8,22 @@ export const createApplication = async (req, res) => {
   res.json(app);
 };
 
-export const getMyApplications = async (req, res) => {
+exports.getMyApplications = async (req, res) => {
   const apps = await Application.find({ alumni: req.user.id });
   res.json(apps);
+};
+
+exports.getAllApplications = async (req, res) => {
+  const apps = await Application.find().populate("alumni");
+  res.json(apps);
+};
+
+exports.updateStatus = async (req, res) => {
+  const updated = await Application.findByIdAndUpdate(
+    req.params.id,
+    { status: req.body.status },
+    { new: true }
+  );
+
+  res.json(updated);
 };

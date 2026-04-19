@@ -1,10 +1,15 @@
-// routes/paymentRoutes.js
-import express from "express";
-import multer from "multer";
-import { uploadReceipt } from "../controllers/paymentController.js";
-import { protect } from "../middleware/authMiddleware.js";
-
+const express = require("express");
 const router = express.Router();
+
+const multer = require("multer");
+
+const {
+  uploadReceipt,
+  getPayments,
+  verifyPayment
+} = require("../controllers/paymentController");
+
+const { protect } = require("../middleware/authMiddleware");
 
 const storage = multer.diskStorage({
   destination: "uploads/",
@@ -16,5 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/upload", protect, upload.single("receipt"), uploadReceipt);
+router.get("/", protect, getPayments);
+router.put("/:id", protect, verifyPayment);
 
-export default router;
+module.exports = router;

@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-export const protect = (req, res, next) => {
+exports.protect = (req, res, next) => {
   const token = req.headers.authorization;
 
   if (!token) return res.status(401).json("Not authorized");

@@ -1,11 +1,18 @@
-// routes/applicationRoutes.js
-import express from "express";
-import { createApplication, getMyApplications } from "../controllers/applicationController.js";
-import { protect } from "../middleware/authMiddleware.js";
-
+const express = require("express");
 const router = express.Router();
+
+const {
+  createApplication,
+  getMyApplications,
+  getAllApplications,
+  updateStatus
+} = require("../controllers/applicationController");
+
+const { protect } = require("../middleware/authMiddleware");
 
 router.post("/", protect, createApplication);
 router.get("/my", protect, getMyApplications);
+router.get("/", protect, getAllApplications);
+router.put("/:id", protect, updateStatus);
 
-export default router;
+module.exports = router;

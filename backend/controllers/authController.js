@@ -1,8 +1,8 @@
-import User from "../../AlumniMS/backend/models/User.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-export const register = async (req, res) => {
+exports.register = async (req, res) => {
   const { name, email, password } = req.body;
 
   const hashed = await bcrypt.hash(password, 10);
@@ -17,7 +17,7 @@ export const register = async (req, res) => {
   res.json(user);
 };
 
-export const login = async (req, res) => {
+exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });

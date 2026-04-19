@@ -1,15 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import AlumniDashboard from './pages/Alumni/AlumniDashboard';
+import AlumniRegistration from './pages/Alumni/AlumniRegistration';
 
 function App() {
   return (
-    <div className="container mt-5 text-center">
-      <h1 className="text-primary">Alumni System</h1>
-      <button className="btn btn-success mt-3">Test Button</button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/dashboard" element={<AlumniDashboard />} />
+        <Route path="/register" element={<AlumniRegistration />} />        
+      </Routes>
+    </Router>
   );
 }
 
