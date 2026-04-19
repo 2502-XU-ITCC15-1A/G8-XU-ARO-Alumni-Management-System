@@ -3,22 +3,40 @@ const mongoose = require("mongoose");
 const applicationSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 
-    course: String,
-    homeAddress: String,
-    universityIdNumber: String,
+    // Personal information
+    lastName:   String,
+    firstName:  String,
+    middleName: String,
+    bloodType:  String,
 
-    receiptImage: String,
+    // Graduation years per school level
+    gradGradeSchool: String,
+    gradJHS:         String,
+    gradSHS:         String,
+    gradCollege:     String,
+    gradPostGrad:    String,
+
+    // Course and address
+    course:      String,
+    homeAddress: String,
+
+    // University ID
+    universityIdNumber: String,
+    validUntil:         Date,
+    verifiedBy:         String,
+    signature:          String,
+
+    // Payment
+    receiptImage:    String,
+    paymentVerified: { type: Boolean, default: false },
 
     status: {
         type: String,
-        enum: ["pending", "under_review", "approved", "rejected"],
+        enum: ["pending", "under_review", "approved", "rejected", "printing", "released"],
         default: "pending"
     },
 
     remarks: String,
-
-    validUntil: Date,
-    verifiedBy: String,
 
     createdAt: {
         type: Date,

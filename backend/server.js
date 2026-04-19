@@ -10,6 +10,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', require('express').static('uploads'));
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/alumni", require("./routes/alumniRoutes"));

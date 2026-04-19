@@ -52,17 +52,15 @@ exports.uploadReceipt = async (req, res) => {
 exports.updateStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, remarks } = req.body;
+        const { status, remarks, paymentVerified } = req.body;
 
-        const updated = await IdApplication.findByIdAndUpdate(
-            id,
-            {
-                status,
-                remarks,
-                verifiedBy: "XU_BookCenter"
-            },
-            { new: true }
-        );
+        const fields = {};
+        if (status !== undefined)          fields.status = status;
+        if (remarks !== undefined)         fields.remarks = remarks;
+        if (paymentVerified !== undefined) fields.paymentVerified = paymentVerified;
+        if (status)                        fields.verifiedBy = "XU_BookCenter";
+
+        const updated = await IdApplication.findByIdAndUpdate(id, fields, { new: true });
 
         res.json(updated);
     } catch (err) {
