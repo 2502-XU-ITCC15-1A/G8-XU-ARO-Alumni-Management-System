@@ -4,7 +4,7 @@ const alumniScheme = new mongoose.Schema({
     userId: mongoose.Schema.Types.ObjectId,
 
     surname: String,
-    firtsName: String,
+    firstName: String,
     middleName: String,
     nickname: String,
 
@@ -25,10 +25,10 @@ const alumniScheme = new mongoose.Schema({
         street: String,
         barangay: String,
         city: String,
-        province: Atring,
+        province: String,
         country: String,
         zipCode: String
     }
 });
 
-module.exports = mongoose.model("AlumniProfile", alumniSchema);
+module.exports = mongoose.model("AlumniProfile", alumniScheme);

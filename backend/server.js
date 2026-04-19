@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const connectDB = require("./config/db");
 
 const app = express();
 
@@ -16,6 +17,10 @@ app.use(express.json());
 //routes
 const applicationsRoute = require('./routes/applications');
 app.use('/api/applications', applicationsRoute);
+
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/alumni", require("./routes/alumniRoutes"));
+app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 
 app.get("/", (req, res) => {
     res.send("Backend Running");
