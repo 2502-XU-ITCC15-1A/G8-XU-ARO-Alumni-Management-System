@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { path: '/dashboard',          label: 'Dashboard',          icon: 'bi-grid-fill' },
-  { path: '/alumni-records',     label: 'Alumni Records',     icon: 'bi-people' },
-  { path: '/application-review', label: 'Application Review', icon: 'bi-file-earmark-text' },
+  { path: '/external-portal',              label: 'Dashboard',    icon: 'bi-grid-fill' },
+  { path: '/external-portal/applications', label: 'Applications', icon: 'bi-credit-card-2-front' },
 ];
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function BookCenterSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
   const navigate     = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
@@ -30,10 +29,10 @@ export default function Sidebar({ isOpen, onClose }) {
       <div className="sidebar-brand d-flex align-items-start justify-content-between">
         <div>
           <div className="text-white fw-bold" style={{ fontSize: 20, lineHeight: 1.3 }}>
-            XU Alumni<br />Relations
+            XU Book<br />Center
           </div>
           <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
-            ARO Staff Portal
+            Book Center Staff Portal
           </div>
         </div>
         <button
@@ -60,7 +59,6 @@ export default function Sidebar({ isOpen, onClose }) {
       </nav>
 
       <div style={{ position: 'relative' }}>
-
         {showMenu && (
           <div className="sidebar-user-menu">
             <button className="sidebar-logout-btn" onClick={handleLogout}>
@@ -69,27 +67,22 @@ export default function Sidebar({ isOpen, onClose }) {
             </button>
           </div>
         )}
-
         <button
           className={`sidebar-footer ${showMenu ? 'sidebar-footer-active' : ''}`}
           onClick={() => setShowMenu(v => !v)}
         >
           <div className="sidebar-avatar">{initial}</div>
           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-            <div className="text-white fw-semibold text-truncate" style={{ fontSize: 13 }}>
-              {name}
-            </div>
-            <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
-              {email}
-            </div>
+            <div className="text-white fw-semibold text-truncate" style={{ fontSize: 13 }}>{name}</div>
+            <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{email}</div>
           </div>
           <i
             className={`bi bi-chevron-${showMenu ? 'down' : 'up'}`}
             style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, flexShrink: 0 }}
           />
         </button>
-
       </div>
+
     </div>
   );
 }

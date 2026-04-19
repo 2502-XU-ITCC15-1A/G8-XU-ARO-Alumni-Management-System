@@ -13,6 +13,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', require('express').static('uploads'));
 
 //routes
 const applicationsRoute = require('./routes/applications');
