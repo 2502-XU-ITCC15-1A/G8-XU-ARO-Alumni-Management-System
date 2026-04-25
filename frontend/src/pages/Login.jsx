@@ -15,10 +15,15 @@ const ROLE_REDIRECTS = {
   'external': '/external-portal',
 };
 
+//only the alumni can register
+const CAN_REGISTER = ['alumni'];
+
 export default function Login() {
   const { state }  = useLocation();
   const navigate   = useNavigate();
   const role       = state?.role;
+
+  const isStaff    = !CAN_REGISTER.includes(role);
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail]       = useState('');
@@ -30,6 +35,11 @@ export default function Login() {
   if (!role) return <Navigate to="/" replace />;
 
   const saveAndRedirect = (data) => {
+    //to make sure each user can access their own portal
+    if (data.user.role !== role) {
+      setError('This account does not have access to this portal.');
+      return;
+    }
     localStorage.setItem('token', data.token);
     localStorage.setItem('role', data.user.role);
     localStorage.setItem('user', JSON.stringify({ name: data.user.name, email: data.user.email }));
@@ -60,7 +70,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      if (isSignUp) {
+      if (isSignUp && !isStaff) {
         await axios.post('/api/auth/register', {
           email,
           password,
@@ -122,29 +132,36 @@ export default function Login() {
                 : (isSignUp ? 'Create account' : 'Sign in')}
             </button>
           </form>
-
+          
+          {!isStaff && (
+            <>
           <div className="login-or">or</div>
 
           <button className="google-btn" type="button" onClick={() => handleGoogleLogin()} disabled={loading}>
             <i className="bi bi-google" />
             Sign {isSignUp ? 'up' : 'in'} with Google
           </button>
+          </>
+          )}
 
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 'auto', paddingTop: 16 }}>
-            {isSignUp ? (
-              <>Already have an account?{' '}
-                <button className="link-btn" onClick={() => { setIsSignUp(false); setError(''); }}>
-                  Sign in
-                </button>
-              </>
-            ) : (
-              <>Need an account?{' '}
-                <button className="link-btn" onClick={() => { setIsSignUp(true); setError(''); }}>
-                  Create one
-                </button>
-              </>
-            )}
-          </div>
+          {/* itshows the alumni register link */}
+          {!isStaff && (
+            <div style={{ fontSize: 13, color: '#6b7280', marginTop: 'auto', paddingTop: 16 }}>
+              {isSignUp ? (
+                <>Already have an account?{' '}
+                  <button className="link-btn" onClick={() => { setIsSignUp(false); setError(''); }}>
+                    Sign in
+                  </button>
+                </>
+              ) : (
+                <>Need an account?{' '}
+                  <button className="link-btn" onClick={() => { setIsSignUp(true); setError(''); }}>
+                    Create one
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           <button className="back-btn" onClick={() => navigate('/')}>
             <i className="bi bi-arrow-left" /> Back

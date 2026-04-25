@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 const navItems = [
   { path: '/external-portal',              label: 'Dashboard',    icon: 'bi-grid-fill' },
   { path: '/external-portal/applications', label: 'Applications', icon: 'bi-credit-card-2-front' },
+  { path: '/external-portal/id-processing', label: 'ID Processing', icon: 'bi-printer-fill' },
 ];
 
 export default function BookCenterSidebar({ isOpen, onClose }) {

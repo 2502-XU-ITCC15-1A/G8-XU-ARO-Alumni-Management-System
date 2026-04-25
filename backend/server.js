@@ -15,6 +15,9 @@ app.use('/uploads', require('express').static('uploads'));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/alumni", require("./routes/alumniRoutes"));
 app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
+app.use("/api/bookcenter", require("./routes/bookCenterRoutes"));
+
+
 
 app.get("/", (req, res) => {
     res.send("Backend Running");
