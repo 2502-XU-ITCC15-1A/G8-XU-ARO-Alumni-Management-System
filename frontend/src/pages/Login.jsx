@@ -32,7 +32,7 @@ export default function Login() {
   const saveAndRedirect = (data) => {
     localStorage.setItem('token', data.token);
     localStorage.setItem('role', data.user.role);
-    localStorage.setItem('user', JSON.stringify({ name: data.user.name, email: data.user.email }));
+    localStorage.setItem('user', JSON.stringify({ id: data.user._id, name: data.user.name, email: data.user.email }));
     navigate(ROLE_REDIRECTS[data.user.role] || '/dashboard', { replace: true });
   };
 

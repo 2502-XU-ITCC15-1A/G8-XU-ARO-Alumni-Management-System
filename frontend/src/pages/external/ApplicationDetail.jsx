@@ -27,7 +27,7 @@ function PaymentStatus({ app }) {
       </div>
     );
   }
-  if (!app.receiptImage) {
+  if (app.status === 'approved') {
     return (
       <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
         <i className="bi bi-pause-circle-fill fs-5" />
@@ -38,7 +38,7 @@ function PaymentStatus({ app }) {
       </div>
     );
   }
-  if (!app.paymentVerified) {
+  if (app.status === 'payment_pending' && !app.paymentVerified) {
     return (
       <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
         <i className="bi bi-clock-fill fs-5" />
@@ -88,7 +88,7 @@ export default function ApplicationDetail() {
   );
   if (!app) return null;
 
-  const canProcess = app.paymentVerified && app.status === 'approved';
+  const canProcess = app.paymentVerified && app.status === 'payment_pending';
   const canRelease = app.status === 'printing';
   const isReleased = app.status === 'released';
 
@@ -240,7 +240,7 @@ export default function ApplicationDetail() {
               }
             </div>
             <img
-              src={'/' + app.receiptImage.replace(/\\/g, '/')}
+              src={`http://localhost:5000/uploads/${app.receiptImage.replace(/^uploads[\\/]/, '').replace(/\\/g, '/')}`}
               alt="Payment Receipt"
               style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 8, border: '1px solid #e5e7eb', objectFit: 'contain' }}
             />
@@ -257,7 +257,7 @@ export default function ApplicationDetail() {
           Return
         </button>
 
-        {app.receiptImage && !app.paymentVerified && app.status === 'approved' && (
+        {app.status === 'payment_pending' && !app.paymentVerified && (
           <button
             className="btn btn-sm btn-warning"
             disabled={acting}
@@ -306,7 +306,7 @@ export default function ApplicationDetail() {
           </span>
         )}
 
-        {!app.receiptImage && app.status === 'approved' && (
+        {app.status === 'approved' && (
           <span className="d-flex align-items-center gap-1 text-warning fw-semibold" style={{ fontSize: 13 }}>
             <i className="bi bi-pause-circle-fill" /> On Hold — Awaiting Payment
           </span>
