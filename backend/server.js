@@ -14,6 +14,8 @@ app.use('/uploads', require('express').static('uploads'));
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/alumni", require("./routes/alumniRoutes"));
+app.use("/api/education", require("./routes/educationRoutes"));
+app.use("/api/work", require("./routes/workRoutes"));
 app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 
 app.get("/", (req, res) => {
