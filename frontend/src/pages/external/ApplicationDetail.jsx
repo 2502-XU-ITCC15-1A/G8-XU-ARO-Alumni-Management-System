@@ -27,7 +27,7 @@ function PaymentStatus({ app }) {
       </div>
     );
   }
-  if (!app.receiptImage) {
+  if (app.status === 'approved') {
     return (
       <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
         <i className="bi bi-pause-circle-fill fs-5" />
@@ -38,7 +38,7 @@ function PaymentStatus({ app }) {
       </div>
     );
   }
-  if (!app.paymentVerified) {
+  if (app.status === 'payment_pending' && !app.paymentVerified) {
     return (
       <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
         <i className="bi bi-clock-fill fs-5" />
@@ -88,7 +88,7 @@ export default function ApplicationDetail() {
   );
   if (!app) return null;
 
-  const canProcess = app.paymentVerified && app.status === 'approved';
+  const canProcess = app.paymentVerified && app.status === 'payment_pending';
   const canRelease = app.status === 'printing';
   const isReleased = app.status === 'released';
 
@@ -228,6 +228,26 @@ export default function ApplicationDetail() {
         </div>
       </div>
 
+      {/* Receipt Image */}
+      {app.receiptImage && (
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-body">
+            <div className="fw-semibold mb-2" style={{ fontSize: 14 }}>
+              <i className="bi bi-receipt me-2" />Payment Receipt
+              {app.paymentVerified
+                ? <span className="badge bg-success ms-2" style={{ fontSize: 11 }}>Verified</span>
+                : <span className="badge bg-warning text-dark ms-2" style={{ fontSize: 11 }}>Pending Verification</span>
+              }
+            </div>
+            <img
+              src={`http://localhost:5000/uploads/${app.receiptImage.replace(/^uploads[\\/]/, '').replace(/\\/g, '/')}`}
+              alt="Payment Receipt"
+              style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 8, border: '1px solid #e5e7eb', objectFit: 'contain' }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="d-flex gap-2 justify-content-end">
         <button
@@ -236,6 +256,27 @@ export default function ApplicationDetail() {
         >
           Return
         </button>
+
+        {app.status === 'payment_pending' && !app.paymentVerified && (
+          <button
+            className="btn btn-sm btn-warning"
+            disabled={acting}
+            onClick={async () => {
+              setActing(true);
+              try {
+                const res = await axios.put(`/api/IdApplication/${id}`, { paymentVerified: true });
+                setApp(res.data);
+              } catch {
+                alert('Failed to verify payment. Please try again.');
+              } finally {
+                setActing(false);
+              }
+            }}
+          >
+            <i className="bi bi-check2-circle me-1" />
+            {acting ? 'Verifying…' : 'Verify Payment'}
+          </button>
+        )}
 
         {canProcess && (
           <button
@@ -265,7 +306,7 @@ export default function ApplicationDetail() {
           </span>
         )}
 
-        {!app.receiptImage && app.status === 'approved' && (
+        {app.status === 'approved' && (
           <span className="d-flex align-items-center gap-1 text-warning fw-semibold" style={{ fontSize: 13 }}>
             <i className="bi bi-pause-circle-fill" /> On Hold — Awaiting Payment
           </span>

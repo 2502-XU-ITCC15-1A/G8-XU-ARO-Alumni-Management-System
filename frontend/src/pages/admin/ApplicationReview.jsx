@@ -117,12 +117,12 @@ export default function ApplicationReview() {
                       <button className="action-btn text-primary" onClick={() => setSelected(app)}>
                         <i className="bi bi-eye fs-6" />
                       </button>
-                      {app.status === 'pending' && (
+                      {(app.status === 'pending' || app.status === 'under_review') && (
                         <>
-                          <button className="action-btn text-success" onClick={() => handleAction(app._id, 'approved')}>
+                          <button className="action-btn text-success" title="Approve" onClick={() => handleAction(app._id, 'approved')}>
                             <i className="bi bi-check-lg fs-6" />
                           </button>
-                          <button className="action-btn text-danger" onClick={() => handleAction(app._id, 'rejected')}>
+                          <button className="action-btn text-danger" title="Reject" onClick={() => handleAction(app._id, 'rejected')}>
                             <i className="bi bi-x-lg fs-6" />
                           </button>
                         </>
@@ -180,7 +180,7 @@ export default function ApplicationReview() {
                     <button className="btn btn-secondary btn-sm" onClick={() => setSelected(null)}>
                       Close
                     </button>
-                    {selected.status === 'pending' && (
+                    {(selected.status === 'pending' || selected.status === 'under_review') && (
                       <>
                         <button
                           className="btn btn-danger btn-sm d-flex align-items-center gap-1"
