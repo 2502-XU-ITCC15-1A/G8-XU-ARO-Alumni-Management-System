@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { path: '/dashboard',          label: 'Dashboard',          icon: 'bi-grid-fill' },
-  { path: '/alumni-records',     label: 'Alumni Records',     icon: 'bi-people' },
-  { path: '/application-review', label: 'Application Review', icon: 'bi-file-earmark-text' },
+  { path: '/alumni-portal',             label: 'Dashboard',    icon: 'bi-grid-fill' },
+  { path: '/alumni-portal/profile',     label: 'My Profile',   icon: 'bi-person-fill' },
+  { path: '/alumni-portal/apply',       label: 'Alumni ID',    icon: 'bi-card-heading' },
 ];
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function AlumniSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
   const navigate     = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
-  const name    = user.name  || 'User';
+  const name    = user.name  || 'Alumni';
   const email   = user.email || '';
   const initial = name.charAt(0).toUpperCase();
 
@@ -30,10 +30,10 @@ export default function Sidebar({ isOpen, onClose }) {
       <div className="sidebar-brand d-flex align-items-start justify-content-between">
         <div>
           <div className="text-white fw-bold" style={{ fontSize: 20, lineHeight: 1.3 }}>
-            XU Alumni<br />Relations
+            XU Alumni<br />Portal
           </div>
           <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
-            ARO Staff Portal
+            Alumni Self-Service
           </div>
         </div>
         <button
@@ -60,7 +60,6 @@ export default function Sidebar({ isOpen, onClose }) {
       </nav>
 
       <div style={{ position: 'relative' }}>
-
         {showMenu && (
           <div className="sidebar-user-menu">
             <button className="sidebar-logout-btn" onClick={handleLogout}>
@@ -88,7 +87,6 @@ export default function Sidebar({ isOpen, onClose }) {
             style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, flexShrink: 0 }}
           />
         </button>
-
       </div>
     </div>
   );

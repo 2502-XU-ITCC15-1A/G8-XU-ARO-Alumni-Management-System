@@ -1,48 +1,63 @@
-import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/admin/Dashboard';
-import AlumniRecords from './pages/admin/AlumniRecords';
-import ApplicationReview from './pages/admin/ApplicationReview';
+
+import RoleSelection    from './pages/RoleSelection';
+import Login            from './pages/Login';
+import PrivateRoute     from './components/PrivateRoute';
+import AdminLayout      from './components/AdminLayout';
+import BookCenterLayout from './components/BookCenterLayout';
+import AlumniLayout     from './components/AlumniLayout';
+
+import Dashboard           from './pages/admin/Dashboard';
+import AlumniRecords       from './pages/admin/AlumniRecords';
+import ApplicationReview   from './pages/admin/ApplicationReview';
+
+import BookCenterDashboard  from './pages/external/BookCenterDashboard';
+import ApprovedApplications from './pages/external/ApprovedApplications';
+import ApplicationDetail    from './pages/external/ApplicationDetail';
+
+import AlumniDashboard     from './pages/alumni/AlumniDashboard';
+import AlumniProfile       from './pages/alumni/AlumniProfile';
+import AlumniIdApplication from './pages/alumni/AlumniIdApplication';
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <BrowserRouter>
-      <div className="app-shell">
+      <Routes>
+        {/* Public */}
+        <Route path="/"      element={<RoleSelection />} />
+        <Route path="/login" element={<Login />} />
 
-        {/* Mobile top bar */}
-        <div className="mobile-topbar d-flex d-md-none">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            style={{ background: 'none', border: 'none', color: '#fff', padding: 0, lineHeight: 1 }}
-          >
-            <i className="bi bi-list" style={{ fontSize: 26 }} />
-          </button>
-          <span className="text-white fw-bold" style={{ fontSize: 16 }}>XU Alumni Relations</span>
-        </div>
-
-        {/* Sidebar backdrop on mobile */}
-        {sidebarOpen && (
-          <div className="sidebar-backdrop d-md-none" onClick={() => setSidebarOpen(false)} />
-        )}
-
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <div className="app-content">
-          {/* Push content below mobile topbar */}
-          <div className="mobile-topbar-offset d-md-none" />
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/alumni-records" element={<AlumniRecords />} />
+        {/* XU-ARO Staff */}
+        <Route element={<PrivateRoute allowedRole="xu-aro" />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/dashboard"          element={<Dashboard />} />
+            <Route path="/alumni-records"     element={<AlumniRecords />} />
             <Route path="/application-review" element={<ApplicationReview />} />
-          </Routes>
-        </div>
+          </Route>
+        </Route>
 
-      </div>
+        {/* Book Center Staff */}
+        <Route element={<PrivateRoute allowedRole="external" />}>
+          <Route element={<BookCenterLayout />}>
+            <Route path="/external-portal"                        element={<BookCenterDashboard />} />
+            <Route path="/external-portal/applications"           element={<ApprovedApplications />} />
+            <Route path="/external-portal/applications/:id"       element={<ApplicationDetail />} />
+          </Route>
+        </Route>
+
+        {/* Alumni */}
+        <Route element={<PrivateRoute allowedRole="alumni" />}>
+          <Route element={<AlumniLayout />}>
+            <Route path="/alumni-portal"         element={<AlumniDashboard />} />
+            <Route path="/alumni-portal/profile" element={<AlumniProfile />} />
+            <Route path="/alumni-portal/apply"   element={<AlumniIdApplication />} />
+          </Route>
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }
