@@ -57,6 +57,17 @@ export default function ApprovedApplications() {
     }
   }, [receiptApp]);
 
+  const handleDelete = async (app) => {
+    const name = app.userId?.name || app.universityIdNumber || 'this application';
+    if (!window.confirm(`Delete the application for ${name}? This cannot be undone.`)) return;
+    try {
+      await axios.delete(`/api/IdApplication/${app._id}`);
+      fetchApps();
+    } catch {
+      alert('Failed to delete application.');
+    }
+  };
+
   const handleVerifyPayment = async () => {
     if (!receiptApp) return;
     setVerifying(true);
@@ -195,6 +206,13 @@ export default function ApprovedApplications() {
                           <i className="bi bi-pause-circle me-1" />On Hold
                         </span>
                       )}
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        style={{ fontSize: 12 }}
+                        onClick={() => handleDelete(app)}
+                      >
+                        <i className="bi bi-trash me-1" />Delete
+                      </button>
                     </td>
                   </tr>
                 );

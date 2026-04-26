@@ -5,7 +5,8 @@ const {
     getIdApplication,
     createIdApplication,
     updateStatus,
-    uploadReceipt } = require("../controllers/IdApplicationController");
+    uploadReceipt,
+    deleteIdApplication } = require("../controllers/IdApplicationController");
 
 router.get("/", getIdApplications);
 router.get("/:id", getIdApplication);
@@ -14,5 +15,6 @@ router.post("/", createIdApplication);
 router.post("/upload/:id", upload.single("receipt"), uploadReceipt);
 
 router.put("/:id", updateStatus);
+router.delete("/:id", deleteIdApplication);
 
 module.exports = router;
