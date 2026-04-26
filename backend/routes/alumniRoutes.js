@@ -1,10 +1,8 @@
 const router = require("express").Router();
-const auth = require("../middleware/authMiddleware");
-const { createProfile, getProfiles, getMyProfile, upsertMyProfile } = require("../controllers/alumniController");
+const { createProfile, getProfiles, deleteProfile } = require("../controllers/alumniController");
 
 router.post("/", createProfile);
 router.get("/", getProfiles);
-router.get("/me", auth, getMyProfile);
-router.put("/me", auth, upsertMyProfile);
+router.delete("/:id", deleteProfile);
 
 module.exports = router;
