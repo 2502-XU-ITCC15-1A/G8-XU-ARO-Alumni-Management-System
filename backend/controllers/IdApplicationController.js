@@ -1,5 +1,14 @@
 const IdApplication = require("../models/IdApplication");
 
+exports.getMyApplications = async (req, res) => {
+    try {
+        const apps = await IdApplication.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        res.json(apps);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 exports.getIdApplications = async (req, res) => {
     try {
         const apps = await IdApplication.find()
@@ -38,7 +47,7 @@ exports.uploadReceipt = async (req, res) => {
             id,
             {
                 receiptImage: req.file.path,
-                status: "under_review"
+                status: "payment_pending"
             },
             { new: true }
         );

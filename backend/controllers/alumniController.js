@@ -17,3 +17,13 @@ exports.getProfiles = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.deleteProfile = async (req, res) => {
+    try {
+        const deleted = await Alumni.findByIdAndDelete(req.params.id);
+        if (!deleted) return res.status(404).json({ message: "Alumni not found" });
+        res.json({ message: "Alumni deleted" });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
