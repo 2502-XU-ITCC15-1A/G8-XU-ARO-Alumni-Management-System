@@ -1,6 +1,9 @@
 const router = require("express").Router();
-const { createProfile, getProfiles, deleteProfile } = require("../controllers/alumniController");
+const auth = require("../middleware/authMiddleware");
+const { createProfile, getProfiles, deleteProfile, getMyProfile, upsertMyProfile } = require("../controllers/alumniController");
 
+router.get("/me", auth, getMyProfile);
+router.put("/me", auth, upsertMyProfile);
 router.post("/", createProfile);
 router.get("/", getProfiles);
 router.delete("/:id", deleteProfile);
