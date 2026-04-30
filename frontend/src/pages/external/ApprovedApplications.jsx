@@ -12,18 +12,19 @@ const FILTER_OPTIONS = [
 ];
 
 function paymentBadge(app) {
-  if (app.status === 'released')                                return { text: 'Released',          cls: 'status-released' };
-  if (app.status === 'printing')                                return { text: 'In Printing',        cls: 'status-printing' };
-  if (!app.receiptImage)                                        return { text: 'On Hold',            cls: 'status-pending' };
-  if (app.receiptImage && !app.paymentVerified)                 return { text: 'Receipt Uploaded',   cls: 'status-under_review' };
-  return                                                               { text: 'Payment Verified',   cls: 'status-approved' };
+  if (app.status === 'released')                                          return { text: 'Released',          cls: 'status-released' };
+  if (app.status === 'printing')                                          return { text: 'In Printing',        cls: 'status-printing' };
+  if (app.status === 'approved')                                          return { text: 'On Hold',            cls: 'status-pending' };
+  if (app.status === 'payment_pending' && !app.paymentVerified)           return { text: 'Receipt Uploaded',   cls: 'status-under_review' };
+  if (app.status === 'payment_pending' && app.paymentVerified)            return { text: 'Payment Verified',   cls: 'status-approved' };
+  return                                                                         { text: 'On Hold',            cls: 'status-pending' };
 }
 
 function appFilter(app, filter) {
   if (filter === 'all')        return true;
-  if (filter === 'on_hold')    return app.status === 'approved' && !app.receiptImage;
-  if (filter === 'unverified') return app.status === 'approved' && app.receiptImage && !app.paymentVerified;
-  if (filter === 'verified')   return app.status === 'approved' && app.paymentVerified;
+  if (filter === 'on_hold')    return app.status === 'approved';
+  if (filter === 'unverified') return app.status === 'payment_pending' && !app.paymentVerified;
+  if (filter === 'verified')   return app.status === 'payment_pending' && app.paymentVerified;
   if (filter === 'printing')   return app.status === 'printing';
   if (filter === 'released')   return app.status === 'released';
   return true;
@@ -42,7 +43,7 @@ export default function ApprovedApplications() {
   const fetchApps = () => {
     setLoading(true);
     axios.get('/api/IdApplication')
-      .then(r => setApps(r.data.filter(a => ['approved','printing','released'].includes(a.status))))
+      .then(r => setApps(r.data.filter(a => ['approved','payment_pending','printing','released'].includes(a.status))))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
@@ -56,6 +57,17 @@ export default function ApprovedApplications() {
       receiptModalRef.current.addEventListener('hidden.bs.modal', () => setReceiptApp(null), { once: true });
     }
   }, [receiptApp]);
+
+  const handleDelete = async (app) => {
+    const name = app.userId?.name || app.universityIdNumber || 'this application';
+    if (!window.confirm(`Delete the application for ${name}? This cannot be undone.`)) return;
+    try {
+      await axios.delete(`/api/IdApplication/${app._id}`);
+      fetchApps();
+    } catch {
+      alert('Failed to delete application.');
+    }
+  };
 
   const handleVerifyPayment = async () => {
     if (!receiptApp) return;
@@ -82,9 +94,9 @@ export default function ApprovedApplications() {
 
   const counts = {
     all:        apps.length,
-    on_hold:    apps.filter(a => a.status === 'approved' && !a.receiptImage).length,
-    unverified: apps.filter(a => a.status === 'approved' && a.receiptImage && !a.paymentVerified).length,
-    verified:   apps.filter(a => a.status === 'approved' && a.paymentVerified).length,
+    on_hold:    apps.filter(a => a.status === 'approved').length,
+    unverified: apps.filter(a => a.status === 'payment_pending' && !a.paymentVerified).length,
+    verified:   apps.filter(a => a.status === 'payment_pending' && a.paymentVerified).length,
     printing:   apps.filter(a => a.status === 'printing').length,
     released:   apps.filter(a => a.status === 'released').length,
   };
@@ -180,7 +192,7 @@ export default function ApprovedApplications() {
                         <i className="bi bi-eye me-1" />View
                       </button>
                       {/* Receipt uploaded but not verified */}
-                      {app.receiptImage && !app.paymentVerified && (
+                      {app.status === 'payment_pending' && !app.paymentVerified && (
                         <button
                           className="btn btn-sm btn-outline-warning"
                           style={{ fontSize: 12 }}
@@ -190,11 +202,18 @@ export default function ApprovedApplications() {
                         </button>
                       )}
                       {/* On Hold indicator */}
-                      {!app.receiptImage && app.status === 'approved' && (
+                      {app.status === 'approved' && (
                         <span className="text-muted" style={{ fontSize: 11, alignSelf: 'center' }}>
                           <i className="bi bi-pause-circle me-1" />On Hold
                         </span>
                       )}
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        style={{ fontSize: 12 }}
+                        onClick={() => handleDelete(app)}
+                      >
+                        <i className="bi bi-trash me-1" />Delete
+                      </button>
                     </td>
                   </tr>
                 );

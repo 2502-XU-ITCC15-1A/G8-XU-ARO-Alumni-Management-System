@@ -7,6 +7,7 @@ import Login            from './pages/Login';
 import PrivateRoute     from './components/PrivateRoute';
 import AdminLayout      from './components/AdminLayout';
 import BookCenterLayout from './components/BookCenterLayout';
+import AlumniLayout     from './components/AlumniLayout';
 
 import Dashboard           from './pages/admin/Dashboard';
 import AlumniRecords       from './pages/admin/AlumniRecords';
@@ -16,15 +17,9 @@ import BookCenterDashboard  from './pages/external/BookCenterDashboard';
 import ApprovedApplications from './pages/external/ApprovedApplications';
 import ApplicationDetail    from './pages/external/ApplicationDetail';
 
-
-function ComingSoon({ label }) {
-  return (
-    <div className="d-flex align-items-center justify-content-center" style={{ height: '100vh', flexDirection: 'column', gap: 12 }}>
-      <i className="bi bi-hammer" style={{ fontSize: 48, color: '#9ca3af' }} />
-      <h5 className="text-muted">{label || 'Coming Soon'}</h5>
-    </div>
-  );
-}
+import AlumniDashboard     from './pages/alumni/AlumniDashboard';
+import AlumniProfile       from './pages/alumni/AlumniProfile';
+import AlumniIdApplication from './pages/alumni/AlumniIdApplication';
 
 export default function App() {
   return (
@@ -53,8 +48,14 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Alumni (placeholder) */}
-        <Route path="/alumni-portal" element={<ComingSoon label="Alumni Portal – Coming Soon" />} />
+        {/* Alumni */}
+        <Route element={<PrivateRoute allowedRole="alumni" />}>
+          <Route element={<AlumniLayout />}>
+            <Route path="/alumni-portal"         element={<AlumniDashboard />} />
+            <Route path="/alumni-portal/profile" element={<AlumniProfile />} />
+            <Route path="/alumni-portal/apply"   element={<AlumniIdApplication />} />
+          </Route>
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

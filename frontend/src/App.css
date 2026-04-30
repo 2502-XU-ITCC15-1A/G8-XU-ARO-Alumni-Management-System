@@ -321,15 +321,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: repeating-linear-gradient(
-    to right,
-    #d4b0b0 0px,   #d4b0b0 18px,
-    #eddcdc 18px,  #eddcdc 34px,
-    #c0a8a8 34px,  #c0a8a8 50px,
-    #e8d0d0 50px,  #e8d0d0 68px,
-    #b8a4a4 68px,  #b8a4a4 80px,
-    #f0e0e0 80px,  #f0e0e0 96px
-  );
+  background: #eef0f7;
 }
 
 .login-card {
@@ -345,20 +337,68 @@
 .login-form-side {
   flex: 0 0 56%;
   padding: 48px 44px;
-  background: #fdf4f4;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
 }
 
 .login-dark-panel {
   flex: 0 0 44%;
-  background: #1e2d5e;
+  background: #283971;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.login-panel-content {
+  text-align: center;
+  color: #ffffff;
+}
+
+.login-panel-logo {
+  font-size: 26px;
+  font-weight: 800;
+  color: #A19158;
+  letter-spacing: 5px;
+  margin-bottom: 14px;
+}
+
+.login-panel-divider {
+  width: 44px;
+  height: 3px;
+  background: #A19158;
+  margin: 0 auto 16px;
+  border-radius: 2px;
+}
+
+.login-panel-university {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.login-panel-subtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+}
+
+.login-panel-office {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
 }
 
 .login-role-tag {
   display: inline-block;
-  background: rgba(30, 45, 94, 0.1);
-  color: #1e2d5e;
+  background: rgba(161, 145, 88, 0.15);
+  color: #283971;
   border-radius: 20px;
   padding: 3px 14px;
   font-size: 12px;
@@ -379,7 +419,7 @@
   transition: border-color 0.15s;
 }
 
-.login-input:focus { border-color: #2563eb; }
+.login-input:focus { border-color: #A19158; }
 
 .pw-wrapper {
   position: relative;
@@ -408,7 +448,7 @@
 .login-submit-btn {
   width: 100%;
   padding: 11px;
-  background: #2563eb;
+  background: #283971;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -419,13 +459,13 @@
   transition: background 0.15s;
 }
 
-.login-submit-btn:hover    { background: #1d4ed8; }
+.login-submit-btn:hover    { background: #A19158; }
 .login-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .link-btn {
   background: none;
   border: none;
-  color: #2563eb;
+  color: #A19158;
   padding: 0;
   cursor: pointer;
   font-size: 13px;
