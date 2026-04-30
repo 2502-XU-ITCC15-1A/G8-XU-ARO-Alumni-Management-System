@@ -15,10 +15,15 @@ const ROLE_REDIRECTS = {
   'external': '/external-portal',
 };
 
+//only the alumni can register
+const CAN_REGISTER = ['alumni'];
+
 export default function Login() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const role = state?.role;
+
+  const isStaff    = !CAN_REGISTER.includes(role);
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -51,7 +56,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      if (isSignUp) {
+      if (isSignUp && !isStaff) {
         await axios.post('/api/auth/register', {
           email,
           password,

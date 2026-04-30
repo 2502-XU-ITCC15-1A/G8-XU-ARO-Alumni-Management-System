@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
+import IDProcessing from './pages/external/IDProcessing';
 import RoleSelection    from './pages/RoleSelection';
 import Login            from './pages/Login';
 import PrivateRoute     from './components/PrivateRoute';
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/external-portal"                        element={<BookCenterDashboard />} />
             <Route path="/external-portal/applications"           element={<ApprovedApplications />} />
             <Route path="/external-portal/applications/:id"       element={<ApplicationDetail />} />
+            <Route path="/external-portal/id-processing" element={<IDProcessing />} />
           </Route>
         </Route>
 

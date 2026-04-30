@@ -24,6 +24,9 @@ app.use("/api/alumni", require("./routes/alumniRoutes"));
 app.use("/api/education", require("./routes/educationRoutes"));
 app.use("/api/work", require("./routes/workRoutes"));
 app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
+app.use("/api/bookcenter", require("./routes/bookCenterRoutes"));
+
+
 
 app.get("/", (req, res) => {
     res.send("Backend Running");
