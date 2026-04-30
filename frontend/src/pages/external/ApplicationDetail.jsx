@@ -209,8 +209,10 @@ export default function ApplicationDetail() {
               </div>
               <div className="col-7 xu-cell xu-cell-border-l">
                 <div className="xu-label">SIGNATURE</div>
-                <div className="xu-value" style={{ fontFamily: 'cursive', fontSize: 15 }}>
-                  {f(app.signature)}
+                <div className="xu-value">
+                  {app.signature?.startsWith('data:')
+                    ? <img src={app.signature} alt="Signature" style={{ maxHeight: 56, maxWidth: '100%', objectFit: 'contain' }} />
+                    : <span style={{ fontFamily: 'cursive', fontSize: 15 }}>{f(app.signature)}</span>}
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ const navItems = [
   { path: '/dashboard',          label: 'Dashboard',          icon: 'bi-grid-fill' },
   { path: '/alumni-records',     label: 'Alumni Records',     icon: 'bi-people' },
   { path: '/application-review', label: 'Application Review', icon: 'bi-file-earmark-text' },
+  { path: '/user-management',    label: 'User Management',    icon: 'bi-person-gear' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

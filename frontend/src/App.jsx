@@ -11,6 +11,7 @@ import AlumniLayout     from './components/AlumniLayout';
 import Dashboard           from './pages/admin/Dashboard';
 import AlumniRecords       from './pages/admin/AlumniRecords';
 import ApplicationReview   from './pages/admin/ApplicationReview';
+import UserManagement      from './pages/admin/UserManagement';
 
 import BookCenterDashboard  from './pages/external/BookCenterDashboard';
 import ApprovedApplications from './pages/external/ApprovedApplications';
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/dashboard"          element={<Dashboard />} />
             <Route path="/alumni-records"     element={<AlumniRecords />} />
             <Route path="/application-review" element={<ApplicationReview />} />
+            <Route path="/user-management"    element={<UserManagement />} />
           </Route>
         </Route>
 

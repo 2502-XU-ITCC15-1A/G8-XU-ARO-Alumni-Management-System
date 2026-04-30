@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 const STATUS_STEPS = [
@@ -15,8 +15,81 @@ const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const BLANK_FORM = {
   lastName: '', firstName: '', middleName: '', bloodType: '',
   gradGradeSchool: '', gradJHS: '', gradSHS: '', gradCollege: '', gradPostGrad: '',
-  course: '', homeAddress: '', universityIdNumber: '',
+  course: '', homeAddress: '', universityIdNumber: '', signature: '',
 };
+
+function SignaturePad({ value, onChange }) {
+  const canvasRef = useRef(null);
+  const drawing   = useRef(false);
+  const lastPos   = useRef(null);
+
+  const getPos = (e) => {
+    const canvas = canvasRef.current;
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const src    = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+  };
+
+  const startDraw = (e) => { e.preventDefault(); drawing.current = true; lastPos.current = getPos(e); };
+
+  const draw = (e) => {
+    e.preventDefault();
+    if (!drawing.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#1e2d5e';
+    ctx.lineWidth   = 2;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.stroke();
+    lastPos.current = pos;
+  };
+
+  const endDraw = (e) => {
+    e.preventDefault();
+    if (!drawing.current) return;
+    drawing.current = false;
+    onChange(canvasRef.current.toDataURL('image/png'));
+  };
+
+  const clear = () => {
+    const canvas = canvasRef.current;
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    onChange('');
+  };
+
+  return (
+    <div>
+      <div style={{ border: '1px solid #d1d5db', borderRadius: 6, background: '#fafafa', cursor: 'crosshair', touchAction: 'none' }}>
+        <canvas
+          ref={canvasRef}
+          width={600}
+          height={120}
+          style={{ width: '100%', height: 100, display: 'block' }}
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={endDraw}
+          onMouseLeave={endDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={endDraw}
+        />
+      </div>
+      <div className="d-flex align-items-center gap-2 mt-1">
+        <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear} style={{ fontSize: 12 }}>
+          <i className="bi bi-eraser me-1" />Clear
+        </button>
+        {value && <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>}
+        {!value && <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above using mouse or touch</span>}
+      </div>
+    </div>
+  );
+}
 
 function Field({ label, children, required }) {
   return (
@@ -303,6 +376,19 @@ function ApplicationForm({ profile, onSubmitted, token }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Signature */}
+        <div className="mb-4">
+          <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
+            Signature
+          </div>
+          <Field label="Draw Your Signature">
+            <SignaturePad
+              value={f('signature')}
+              onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+            />
+          </Field>
         </div>
 
         <div className="d-flex justify-content-end">

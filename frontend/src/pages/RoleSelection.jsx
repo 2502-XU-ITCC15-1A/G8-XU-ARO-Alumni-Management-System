@@ -16,7 +16,7 @@ const roles = [
 export default function RoleSelection() {
   const navigate = useNavigate();
 
-  const ACTIVE_PORTALS = ['xu-aro', 'external'];
+  const ACTIVE_PORTALS = ['xu-aro', 'external', 'alumni'];
 
   useEffect(() => {
     const token = localStorage.getItem('token');

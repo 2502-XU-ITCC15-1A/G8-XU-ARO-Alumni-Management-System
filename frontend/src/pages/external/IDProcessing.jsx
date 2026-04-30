@@ -213,12 +213,14 @@ export default function IDProcessing() {
                           <span className="id-card-label">ID NUMBER</span>
                           <span className="fw-bold">{selected.universityIdNumber || '—'}</span>
                         </div>
-                        {selected.validUntil && (
-                          <div className="id-card-field">
-                            <span className="id-card-label">VALID UNTIL</span>
-                            <span>{new Date(selected.validUntil).toLocaleDateString()}</span>
-                          </div>
-                        )}
+                        <div className="id-card-field">
+                          <span className="id-card-label">VALID UNTIL</span>
+                          <span>
+                            {selected.validUntil
+                              ? new Date(selected.validUntil).toLocaleDateString()
+                              : 'Pending Release'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div className="id-card-footer">
@@ -242,6 +244,18 @@ export default function IDProcessing() {
                             const sc = statusConfig[selected.status] || statusConfig.approved;
                             return <span className={`status-badge ${sc.cls}`}>{sc.text}</span>;
                           })()}
+                        </div>
+                      </div>
+                      <div className="col-6">
+                        <span className="text-muted" style={{ fontSize: 11 }}>BLOOD TYPE</span>
+                        <div>{selected.bloodType || '—'}</div>
+                      </div>
+                      <div className="col-6">
+                        <span className="text-muted" style={{ fontSize: 11 }}>SIGNATURE</span>
+                        <div>
+                          {selected.signature?.startsWith('data:')
+                            ? <img src={selected.signature} alt="Signature" style={{ maxHeight: 40, maxWidth: '100%', objectFit: 'contain' }} />
+                            : selected.signature || '—'}
                         </div>
                       </div>
                     </div>

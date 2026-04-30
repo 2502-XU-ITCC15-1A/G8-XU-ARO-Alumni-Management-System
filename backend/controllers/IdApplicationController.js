@@ -68,6 +68,10 @@ exports.updateStatus = async (req, res) => {
         if (remarks !== undefined)         fields.remarks = remarks;
         if (paymentVerified !== undefined) fields.paymentVerified = paymentVerified;
         if (status)                        fields.verifiedBy = "XU_BookCenter";
+        if (status === 'released') {
+            const THREE_YEARS_MS = 3 * 365.25 * 24 * 60 * 60 * 1000;
+            fields.validUntil = new Date(Date.now() + THREE_YEARS_MS);
+        }
 
         const updated = await IdApplication.findByIdAndUpdate(id, fields, { new: true });
 
