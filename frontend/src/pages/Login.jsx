@@ -84,7 +84,7 @@ export default function Login() {
         <div className="login-form-side">
           <span className="login-role-tag">{ROLE_LABELS[role]}</span>
 
-          <h4 className="fw-bold mb-1 mt-3" style={{ color: '#111827', fontSize: 22 }}>
+          <h4 className="fw-bold mb-1 mt-3" style={{ color: '#283971', fontSize: 22 }}>
             {isSignUp ? 'Create account' : 'Sign in'}
           </h4>
           <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 24 }}>
@@ -151,7 +151,15 @@ export default function Login() {
           </button>
         </div>
 
-        <div className="login-dark-panel" />
+        <div className="login-dark-panel">
+          <div className="login-panel-content">
+            <div className="login-panel-logo">XU · ARO</div>
+            <div className="login-panel-divider" />
+            <div className="login-panel-university">Xavier University</div>
+            <div className="login-panel-subtitle">Ateneo de Cagayan</div>
+            <div className="login-panel-office">Alumni Relations Office</div>
+          </div>
+        </div>
 
       </div>
     </div>
