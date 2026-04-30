@@ -4,36 +4,81 @@ import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 
 const ROLE_LABELS = {
-  'xu-aro':   'XU-ARO Staff',
-  'alumni':   'Alumni',
+  'xu-aro': 'XU-ARO Staff',
+  'alumni': 'Alumni',
   'external': 'Book Center Staff',
 };
 
 const ROLE_REDIRECTS = {
-  'xu-aro':   '/dashboard',
-  'alumni':   '/alumni-portal',
+  'xu-aro': '/dashboard',
+  'alumni': '/alumni-portal',
   'external': '/external-portal',
 };
 
+//only the alumni can register
+const CAN_REGISTER = ['alumni'];
+
 export default function Login() {
-  const { state }  = useLocation();
-  const navigate   = useNavigate();
-  const role       = state?.role;
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const role = state?.role;
+
+  const isStaff    = !CAN_REGISTER.includes(role);
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (!role) return <Navigate to="/" replace />;
 
-  const saveAndRedirect = (data) => {
+  const saveAndRedirect = (data, expectedRole) => {
+    const userRole = data.user.role;
+
+    // 🔒 ROLE ENFORCEMENT (THIS IS THE FIX)
+    if (userRole !== expectedRole) {
+      setError("You are not allowed to access this portal.");
+      return;
+    }
+
     localStorage.setItem('token', data.token);
-    localStorage.setItem('role', data.user.role);
-    localStorage.setItem('user', JSON.stringify({ id: data.user._id, name: data.user.name, email: data.user.email }));
-    navigate(ROLE_REDIRECTS[data.user.role] || '/dashboard', { replace: true });
+    localStorage.setItem('role', userRole);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    navigate(ROLE_REDIRECTS[userRole] || '/dashboard', { replace: true });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (isSignUp && !isStaff) {
+        await axios.post('/api/auth/register', {
+          email,
+          password,
+          role,
+          name: email.split('@')[0],
+        });
+      }
+
+      const { data } = await axios.post('/api/auth/login', {
+        email,
+        password,
+      });
+
+      saveAndRedirect(data, role); // 🔥 IMPORTANT FIX
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        'Something went wrong. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = useGoogleLogin({
@@ -45,7 +90,8 @@ export default function Login() {
           access_token: tokenResponse.access_token,
           role,
         });
-        saveAndRedirect(data);
+
+        saveAndRedirect(data, role); // 🔥 IMPORTANT FIX
       } catch (err) {
         setError(err.response?.data?.message || 'Google sign-in failed.');
       } finally {
@@ -54,28 +100,6 @@ export default function Login() {
     },
     onError: () => setError('Google sign-in was cancelled or failed.'),
   });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      if (isSignUp) {
-        await axios.post('/api/auth/register', {
-          email,
-          password,
-          role,
-          name: email.split('@')[0],
-        });
-      }
-      const { data } = await axios.post('/api/auth/login', { email, password });
-      saveAndRedirect(data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="login-page">
@@ -87,6 +111,7 @@ export default function Login() {
           <h4 className="fw-bold mb-1 mt-3" style={{ color: '#283971', fontSize: 22 }}>
             {isSignUp ? 'Create account' : 'Sign in'}
           </h4>
+
           <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 24 }}>
             Please {isSignUp ? 'fill in your details' : 'login to continue to your account'}.
           </p>
@@ -100,6 +125,7 @@ export default function Login() {
               onChange={e => setEmail(e.target.value)}
               required
             />
+
             <div className="pw-wrapper">
               <input
                 className="login-input"
@@ -114,37 +140,32 @@ export default function Login() {
               </button>
             </div>
 
-            {error && <div className="text-danger mb-2" style={{ fontSize: 13 }}>{error}</div>}
+            {error && (
+              <div className="text-danger mb-2" style={{ fontSize: 13 }}>
+                {error}
+              </div>
+            )}
 
             <button type="submit" className="login-submit-btn" disabled={loading}>
-              {loading
-                ? (isSignUp ? 'Creating account…' : 'Signing in…')
-                : (isSignUp ? 'Create account' : 'Sign in')}
+              {loading ? 'Loading...' : isSignUp ? 'Create account' : 'Sign in'}
             </button>
           </form>
+          
+          {role === 'alumni' && (
+            <>
+              <div className="login-or">or</div>
 
-          <div className="login-or">or</div>
-
-          <button className="google-btn" type="button" onClick={() => handleGoogleLogin()} disabled={loading}>
-            <i className="bi bi-google" />
-            Sign {isSignUp ? 'up' : 'in'} with Google
-          </button>
-
-          <div style={{ fontSize: 13, color: '#6b7280', marginTop: 'auto', paddingTop: 16 }}>
-            {isSignUp ? (
-              <>Already have an account?{' '}
-                <button className="link-btn" onClick={() => { setIsSignUp(false); setError(''); }}>
-                  Sign in
-                </button>
-              </>
-            ) : (
-              <>Need an account?{' '}
-                <button className="link-btn" onClick={() => { setIsSignUp(true); setError(''); }}>
-                  Create one
-                </button>
-              </>
-            )}
-          </div>
+              <button
+                className="google-btn"
+                type="button"
+                onClick={() => handleGoogleLogin()}
+                disabled={loading}
+              >
+                <i className="bi bi-google" />
+                Sign in with Google
+              </button>
+            </>
+          )}
 
           <button className="back-btn" onClick={() => navigate('/')}>
             <i className="bi bi-arrow-left" /> Back

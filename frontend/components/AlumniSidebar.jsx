@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { path: '/external-portal',              label: 'Dashboard',    icon: 'bi-grid-fill' },
-  { path: '/external-portal/applications', label: 'Applications', icon: 'bi-credit-card-2-front' },
-  { path: '/external-portal/id-processing', label: 'ID Processing', icon: 'bi-printer-fill' },
+  { path: '/alumni-portal',             label: 'Dashboard',    icon: 'bi-grid-fill' },
+  { path: '/alumni-portal/profile',     label: 'My Profile',   icon: 'bi-person-fill' },
+  { path: '/alumni-portal/apply',       label: 'Alumni ID',    icon: 'bi-card-heading' },
 ];
 
-export default function BookCenterSidebar({ isOpen, onClose }) {
+export default function AlumniSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
   const navigate     = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
-  const name    = user.name  || 'User';
+  const name    = user.name  || 'Alumni';
   const email   = user.email || '';
   const initial = name.charAt(0).toUpperCase();
 
@@ -30,10 +30,10 @@ export default function BookCenterSidebar({ isOpen, onClose }) {
       <div className="sidebar-brand d-flex align-items-start justify-content-between">
         <div>
           <div className="text-white fw-bold" style={{ fontSize: 20, lineHeight: 1.3 }}>
-            XU Book<br />Center
+            XU Alumni<br />Portal
           </div>
           <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
-            Book Center Staff Portal
+            Alumni Self-Service
           </div>
         </div>
         <button
@@ -68,14 +68,19 @@ export default function BookCenterSidebar({ isOpen, onClose }) {
             </button>
           </div>
         )}
+
         <button
           className={`sidebar-footer ${showMenu ? 'sidebar-footer-active' : ''}`}
           onClick={() => setShowMenu(v => !v)}
         >
           <div className="sidebar-avatar">{initial}</div>
           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-            <div className="text-white fw-semibold text-truncate" style={{ fontSize: 13 }}>{name}</div>
-            <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{email}</div>
+            <div className="text-white fw-semibold text-truncate" style={{ fontSize: 13 }}>
+              {name}
+            </div>
+            <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+              {email}
+            </div>
           </div>
           <i
             className={`bi bi-chevron-${showMenu ? 'down' : 'up'}`}
@@ -83,7 +88,6 @@ export default function BookCenterSidebar({ isOpen, onClose }) {
           />
         </button>
       </div>
-
     </div>
   );
 }
