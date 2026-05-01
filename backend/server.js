@@ -25,11 +25,8 @@ app.use("/api/education", require("./routes/educationRoutes"));
 app.use("/api/work", require("./routes/workRoutes"));
 app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
-<<<<<<< HEAD
-=======
 app.use("/api/bookcenter", require("./routes/bookCenterRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
->>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
 
 
 app.get("/", (req, res) => {

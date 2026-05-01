@@ -15,7 +15,7 @@ const ROLE_REDIRECTS = {
   'external': '/external-portal',
 };
 
-//only the alumni can register
+// only the alumni can register
 const CAN_REGISTER = ['alumni'];
 
 export default function Login() {
@@ -26,24 +26,20 @@ export default function Login() {
   const isStaff = !CAN_REGISTER.includes(role);
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [error, setError]       = useState('');
-  const [success, setSuccess]   = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (!role) return <Navigate to="/" replace />;
 
   const saveAndRedirect = (data, expectedRole) => {
     const userRole = data.user.role;
 
-<<<<<<< HEAD
-    // 🔒 ROLE ENFORCEMENT (THIS IS THE FIX)
-    if (userRole !== expectedRole) {
-=======
+    // Role enforcement
     if (expectedRole && userRole !== expectedRole) {
->>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
       setError("You are not allowed to access this portal.");
       return;
     }
@@ -61,14 +57,19 @@ export default function Login() {
     setSuccess('');
 
     if (isSignUp) {
-      const passwordRegex = /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+      const passwordRegex =
+        /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+
       if (!passwordRegex.test(password)) {
-        setError('Password must be at least 6 characters and include at least one special character (e.g. @, #, !).');
+        setError(
+          'Password must be at least 6 characters and include at least one special character (e.g. @, #, !).'
+        );
         return;
       }
     }
 
     setLoading(true);
+
     try {
       if (isSignUp && !isStaff) {
         await axios.post('/api/auth/register', {
@@ -77,6 +78,7 @@ export default function Login() {
           role,
           name: email.split('@')[0],
         });
+
         setSuccess('Account created! Please sign in.');
         setIsSignUp(false);
         setPassword('');
@@ -84,21 +86,16 @@ export default function Login() {
         return;
       }
 
-<<<<<<< HEAD
       const { data } = await axios.post('/api/auth/login', {
         email,
         password,
       });
 
-      saveAndRedirect(data, role); // 🔥 IMPORTANT FIX
-=======
-      const { data } = await axios.post('/api/auth/login', { email, password });
       saveAndRedirect(data, role);
->>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        'Something went wrong. Please try again.'
+          'Something went wrong. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -109,39 +106,55 @@ export default function Login() {
     onSuccess: async (tokenResponse) => {
       setError('');
       setLoading(true);
+
       try {
         const { data } = await axios.post('/api/auth/google', {
           access_token: tokenResponse.access_token,
           role,
         });
 
-<<<<<<< HEAD
-        saveAndRedirect(data, role); // 🔥 IMPORTANT FIX
-=======
         saveAndRedirect(data, role);
->>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
       } catch (err) {
-        setError(err.response?.data?.message || 'Google sign-in failed.');
+        setError(
+          err.response?.data?.message ||
+            'Google sign-in failed.'
+        );
       } finally {
         setLoading(false);
       }
     },
-    onError: () => setError('Google sign-in was cancelled or failed.'),
+
+    onError: () =>
+      setError('Google sign-in was cancelled or failed.'),
   });
 
   return (
     <div className="login-page">
       <div className="login-card">
-
         <div className="login-form-side">
-          <span className="login-role-tag">{ROLE_LABELS[role]}</span>
+          <span className="login-role-tag">
+            {ROLE_LABELS[role]}
+          </span>
 
-          <h4 className="fw-bold mb-1 mt-3" style={{ color: '#283971', fontSize: 22 }}>
+          <h4
+            className="fw-bold mb-1 mt-3"
+            style={{ color: '#283971', fontSize: 22 }}
+          >
             {isSignUp ? 'Create account' : 'Sign in'}
           </h4>
 
-          <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 24 }}>
-            Please {isSignUp ? 'fill in your details' : 'login to continue to your account'}.
+          <p
+            style={{
+              color: '#6b7280',
+              fontSize: 13,
+              marginBottom: 24,
+            }}
+          >
+            Please{' '}
+            {isSignUp
+              ? 'fill in your details'
+              : 'login to continue to your account'}
+            .
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -150,7 +163,7 @@ export default function Login() {
               type="email"
               placeholder="Email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
 
@@ -160,24 +173,64 @@ export default function Login() {
                 type={showPw ? 'text' : 'password'}
                 placeholder="Password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <button type="button" className="pw-toggle" onClick={() => setShowPw(v => !v)}>
-                <i className={`bi bi-eye${showPw ? '-slash' : ''}`} />
+
+              <button
+                type="button"
+                className="pw-toggle"
+                onClick={() => setShowPw((v) => !v)}
+              >
+                <i
+                  className={`bi bi-eye${
+                    showPw ? '-slash' : ''
+                  }`}
+                />
               </button>
             </div>
 
             {isSignUp && (
-              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8 }}>
-                Password must be at least 6 characters and include a special character (e.g. @, #, !).
+              <div
+                style={{
+                  fontSize: 11,
+                  color: '#6b7280',
+                  marginBottom: 8,
+                }}
+              >
+                Password must be at least 6 characters and
+                include a special character (e.g. @, #, !).
               </div>
             )}
-            {error   && <div className="text-danger mb-2" style={{ fontSize: 13 }}>{error}</div>}
-            {success && <div className="text-success mb-2" style={{ fontSize: 13 }}>{success}</div>}
 
-            <button type="submit" className="login-submit-btn" disabled={loading}>
-              {loading ? 'Loading...' : isSignUp ? 'Create account' : 'Sign in'}
+            {error && (
+              <div
+                className="text-danger mb-2"
+                style={{ fontSize: 13 }}
+              >
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div
+                className="text-success mb-2"
+                style={{ fontSize: 13 }}
+              >
+                {success}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="login-submit-btn"
+              disabled={loading}
+            >
+              {loading
+                ? 'Loading...'
+                : isSignUp
+                ? 'Create account'
+                : 'Sign in'}
             </button>
           </form>
 
@@ -197,21 +250,35 @@ export default function Login() {
             </>
           )}
 
-          <button className="back-btn" onClick={() => navigate('/')}>
+          <button
+            className="back-btn"
+            onClick={() => navigate('/')}
+          >
             <i className="bi bi-arrow-left" /> Back
           </button>
         </div>
 
         <div className="login-dark-panel">
           <div className="login-panel-content">
-            <div className="login-panel-logo">XU · ARO</div>
+            <div className="login-panel-logo">
+              XU · ARO
+            </div>
+
             <div className="login-panel-divider" />
-            <div className="login-panel-university">Xavier University</div>
-            <div className="login-panel-subtitle">Ateneo de Cagayan</div>
-            <div className="login-panel-office">Alumni Relations Office</div>
+
+            <div className="login-panel-university">
+              Xavier University
+            </div>
+
+            <div className="login-panel-subtitle">
+              Ateneo de Cagayan
+            </div>
+
+            <div className="login-panel-office">
+              Alumni Relations Office
+            </div>
           </div>
         </div>
-
       </div>
     </div>
   );
