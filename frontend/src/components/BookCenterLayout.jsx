@@ -10,9 +10,10 @@ export default function BookCenterLayout() {
       <div className="mobile-topbar d-flex d-md-none">
         <button
           onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
           style={{ background: 'none', border: 'none', color: '#fff', padding: 0, lineHeight: 1 }}
         >
-          <i className="bi bi-list" style={{ fontSize: 26 }} />
+          <i className="bi bi-list" aria-hidden="true" style={{ fontSize: 26 }} />
         </button>
         <span className="text-white fw-bold" style={{ fontSize: 16 }}>XU Book Center</span>
       </div>

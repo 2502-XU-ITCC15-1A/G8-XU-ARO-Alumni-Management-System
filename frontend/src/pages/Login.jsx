@@ -180,9 +180,11 @@ export default function Login() {
               <button
                 type="button"
                 className="pw-toggle"
+                aria-label={showPw ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPw((v) => !v)}
               >
                 <i
+                  aria-hidden="true"
                   className={`bi bi-eye${
                     showPw ? '-slash' : ''
                   }`}
