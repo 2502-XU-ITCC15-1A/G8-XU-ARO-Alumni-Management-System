@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
@@ -12,6 +13,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
   const navigate     = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
   const name    = user.name  || 'User';
