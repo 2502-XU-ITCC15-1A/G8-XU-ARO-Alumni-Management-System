@@ -25,6 +25,7 @@ app.use("/api/education", require("./routes/educationRoutes"));
 app.use("/api/work", require("./routes/workRoutes"));
 app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 app.get("/", (req, res) => {
     res.send("Backend Running");

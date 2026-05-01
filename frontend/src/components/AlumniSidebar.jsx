@@ -1,21 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const navItems = [
-  { path: '/alumni-portal',             label: 'Dashboard',    icon: 'bi-grid-fill' },
-  { path: '/alumni-portal/profile',     label: 'My Profile',   icon: 'bi-person-fill' },
-  { path: '/alumni-portal/apply',       label: 'Alumni ID',    icon: 'bi-card-heading' },
+  { path: '/alumni-portal', label: 'Dashboard', icon: 'bi-grid-fill' },
+  { path: '/alumni-portal/profile', label: 'My Profile', icon: 'bi-person-fill' },
+  { path: '/alumni-portal/apply', label: 'Alumni ID', icon: 'bi-card-heading' },
+  { path: '/alumni-portal/notifications', label: 'Notifications', icon: 'bi-bell-fill' },
 ];
 
 export default function AlumniSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
-  const navigate     = useNavigate();
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);  
 
-  const user    = JSON.parse(localStorage.getItem('user') || '{}');
-  const name    = user.name  || 'Alumni';
-  const email   = user.email || '';
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const name = user.name || 'Alumni';
+  const email = user.email || '';
   const initial = name.charAt(0).toUpperCase();
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        const response = await axios.get('/api/notifications/unread-count', { headers });
+        setUnreadCount(response.data.count || 0);  
+      } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -55,6 +74,9 @@ export default function AlumniSidebar({ isOpen, onClose }) {
           >
             <i className={`bi ${item.icon}`} style={{ fontSize: 16 }} />
             {item.label}
+            {item.path === '/alumni-portal/notifications' && unreadCount > 0 && (
+              <span className="notification-count">{unreadCount}</span>
+            )}
           </Link>
         ))}
       </nav>
