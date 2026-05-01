@@ -56,7 +56,8 @@ export default function AlumniDashboard() {
   }, []);
 
   const pct = profileCompleteness(profile, education, work);
-  const appMeta = application ? STATUS_META[application.status] : null;
+  const normalizedStatus = application?.status?.toLowerCase().replace(/\s+/g, '_');
+  const appMeta = normalizedStatus ? STATUS_META[normalizedStatus] : null;
   const stepIdx = application ? STEPS.indexOf(application.status) : -1;
 
   return (
@@ -127,7 +128,7 @@ export default function AlumniDashboard() {
                         <div className="text-muted" style={{ fontSize: 12 }}>Track your application status</div>
                       </div>
                     </div>
-                    {application && (
+                    {application && appMeta && (
                       <span
                         className="px-3 py-1 rounded-pill fw-semibold"
                         style={{ fontSize: 12, backgroundColor: appMeta.bg, color: appMeta.color }}
