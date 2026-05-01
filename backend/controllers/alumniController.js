@@ -14,7 +14,7 @@ exports.upsertMyProfile = async (req, res) => {
         const profile = await Alumni.findOneAndUpdate(
             { userId: req.user.id },
             { ...req.body, userId: req.user.id },
-            { new: true, upsert: true, runValidators: false }
+            { returnDocument: 'after', upsert: true, runValidators: false }
         );
         res.json(profile);
     } catch (err) {

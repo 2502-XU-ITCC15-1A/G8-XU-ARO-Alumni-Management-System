@@ -100,7 +100,9 @@ export default function Dashboard() {
                 <tbody>
                   {recentApps.map(app => (
                     <tr key={app._id}>
-                      <td className="text-primary fw-medium">{app.userId?.name || '—'}</td>
+                      <td className="text-primary fw-medium">
+                        {[app.firstName, app.lastName].filter(Boolean).join(' ') || app.userId?.name || '—'}
+                      </td>
                       <td>{app.course || '—'}</td>
                       <td>{formatDate(app.createdAt)}</td>
                       <td><StatusBadge status={app.status} /></td>

@@ -10,6 +10,7 @@ const alumniScheme = new mongoose.Schema({
 
     gender: String,
     birthdate: Date,
+    bloodType: String,
     nationality: String,
     religion: String,
     universityIdNumber: String,

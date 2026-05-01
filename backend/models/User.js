@@ -9,6 +9,6 @@ const userSchema = new mongoose.Schema({
         enum: ["alumni", "xu-aro", "external"],
         default: "alumni"
     }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

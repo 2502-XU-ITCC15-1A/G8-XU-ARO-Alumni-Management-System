@@ -32,7 +32,7 @@ exports.verifyPayment = async (req, res) => {
                 status: "approved",
                 verifiedBy: "XU_BookCenter",
             },
-            { new: true }
+            { returnDocument: 'after' }
         );
  
         res.json(updated);
@@ -55,7 +55,7 @@ exports.startPrinting = async (req, res) => {
         const updated = await IdApplication.findByIdAndUpdate(
             id,
             { status: "printing" },
-            { new: true }
+            { returnDocument: 'after' }
         );
  
         res.json(updated);
@@ -71,7 +71,7 @@ exports.releaseId = async (req, res) => {
         const updated = await IdApplication.findByIdAndUpdate(
             id,
             { status: "released" },
-            { new: true }
+            { returnDocument: 'after' }
         );
  
         if (!updated) return res.status(404).json({ message: "Application not found" });
@@ -89,7 +89,7 @@ exports.holdApplication = async (req, res) => {
         const updated = await IdApplication.findByIdAndUpdate(
             id,
             { paymentVerified: false, status: "under_review" },
-            { new: true }
+            { returnDocument: 'after' }
         );
  
         if (!updated) return res.status(404).json({ message: "Application not found" });

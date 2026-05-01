@@ -23,7 +23,7 @@ exports.updateEducation = async (req, res) => {
         const record = await Education.findOneAndUpdate(
             { _id: req.params.id, userId: req.user.id },
             req.body,
-            { new: true }
+            { returnDocument: 'after' }
         );
         if (!record) return res.status(404).json({ message: "Not found" });
         res.json(record);

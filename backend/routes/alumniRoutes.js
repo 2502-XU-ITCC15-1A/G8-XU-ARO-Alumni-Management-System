@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const auth = require("../middleware/authMiddleware");
+const { protect: auth } = require("../middleware/authMiddleware");
 const { createProfile, getProfiles, deleteProfile, getMyProfile, upsertMyProfile } = require("../controllers/alumniController");
 
 router.get("/me", auth, getMyProfile);

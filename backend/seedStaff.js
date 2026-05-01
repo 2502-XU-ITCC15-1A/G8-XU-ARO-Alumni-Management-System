@@ -30,8 +30,8 @@ async function seedStaff() {
         for (const staff of staffAccounts) {
             const exists = await User.findOne({ email: staff.email });
             if (exists) {
-                console.log(`Account already exists: ${staff.email}`);
-                continue;
+                await User.deleteOne({ email: staff.email });
+                console.log(`Deleted existing: ${staff.email}`);
             }
 
             const hashed = await bcrypt.hash(staff.password, 10);

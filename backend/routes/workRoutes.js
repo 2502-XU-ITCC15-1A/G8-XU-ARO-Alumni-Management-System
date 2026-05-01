@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const auth = require("../middleware/authMiddleware");
+const { protect: auth } = require("../middleware/authMiddleware");
 const { getMyWork, addWork, updateWork, deleteWork } = require("../controllers/workController");
 
 router.get("/", auth, getMyWork);

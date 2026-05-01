@@ -47,7 +47,7 @@ exports.updateUser = async (req, res) => {
         const user = await User.findByIdAndUpdate(
             req.params.id,
             { ...(name && { name }), ...(role && { role }) },
-            { new: true }
+            { returnDocument: 'after' }
         ).select("-password");
 
         if (!user) return res.status(404).json({ message: "User not found" });

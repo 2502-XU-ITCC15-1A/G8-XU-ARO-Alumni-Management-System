@@ -11,9 +11,11 @@ const TABS = [
   { id: 'work',      label: 'Work',        icon: 'bi-briefcase-fill' },
 ];
 
+const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
 const BLANK_PROFILE = {
   surname: '', firstName: '', middleName: '', nickname: '',
-  gender: '', birthdate: '', nationality: '', religion: '', universityIdNumber: '',
+  gender: '', birthdate: '', bloodType: '', nationality: '', religion: '', universityIdNumber: '',
   spouseName: '', childrenNames: [],
   email: '', phone: '', facebook: '',
   address: { street: '', barangay: '', city: '', province: '', country: '', zipCode: '' },
@@ -103,6 +105,11 @@ function BasicTab({ profile, onChange, onSave, saving }) {
         <div className="col-md-4">
           <Field label="Birthdate *">
             <Input type="date" value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')} />
+          </Field>
+        </div>
+        <div className="col-md-4">
+          <Field label="Blood Type">
+            <Select value={f('bloodType')} onChange={set('bloodType')} options={BLOOD_TYPES} />
           </Field>
         </div>
         <div className="col-md-4">

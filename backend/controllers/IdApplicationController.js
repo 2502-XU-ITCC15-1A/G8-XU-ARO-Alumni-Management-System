@@ -1,4 +1,5 @@
 const IdApplication = require("../models/IdApplication");
+const { sendStatusEmail } = require("../utils/emailService");
 
 exports.getMyApplications = async (req, res) => {
     try {
@@ -32,7 +33,7 @@ exports.getIdApplication = async (req, res) => {
 
 exports.createIdApplication = async (req, res) => {
     try {
-        const app = await IdApplication.create(req.body);
+        const app = await IdApplication.create({ ...req.body, userId: req.user.id });
         res.json(app);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -49,8 +50,13 @@ exports.uploadReceipt = async (req, res) => {
                 receiptImage: req.file.path,
                 status: "payment_pending"
             },
-            { new: true }
-        );
+            { returnDocument: 'after' }
+        ).populate('userId', 'name email');
+
+        if (updated?.userId) {
+            sendStatusEmail(updated.userId.email, updated.userId.name, 'payment_pending')
+                .catch(err => console.error('Email notification failed:', err));
+        }
 
         res.json(updated);
     } catch (err) {
@@ -73,7 +79,12 @@ exports.updateStatus = async (req, res) => {
             fields.validUntil = new Date(Date.now() + THREE_YEARS_MS);
         }
 
-        const updated = await IdApplication.findByIdAndUpdate(id, fields, { new: true });
+        const updated = await IdApplication.findByIdAndUpdate(id, fields, { returnDocument: 'after' }).populate('userId', 'name email');
+
+        if (status && updated?.userId) {
+            sendStatusEmail(updated.userId.email, updated.userId.name, status, remarks)
+                .catch(err => console.error('Email notification failed:', err));
+        }
 
         res.json(updated);
     } catch (err) {

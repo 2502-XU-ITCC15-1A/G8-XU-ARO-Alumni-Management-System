@@ -265,9 +265,10 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
 function ApplicationForm({ profile, onSubmitted, token }) {
   const [form, setForm] = useState({
     ...BLANK_FORM,
-    lastName:           profile?.surname   || '',
-    firstName:          profile?.firstName || '',
-    middleName:         profile?.middleName || '',
+    lastName:           profile?.surname            || '',
+    firstName:          profile?.firstName          || '',
+    middleName:         profile?.middleName         || '',
+    bloodType:          profile?.bloodType          || '',
     homeAddress:        [profile?.address?.street, profile?.address?.barangay, profile?.address?.city, profile?.address?.province].filter(Boolean).join(', '),
     universityIdNumber: profile?.universityIdNumber || '',
   });
