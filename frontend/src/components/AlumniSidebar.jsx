@@ -25,14 +25,25 @@ export default function AlumniSidebar({ isOpen, onClose }) {
       try {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await axios.get('/api/notifications/unread-count', { headers });
-        setUnreadCount(response.data.count || 0);
-      } catch (error) {
-        console.error('Error fetching unread notifications count:', error);
+
+        const res = await axios.get('/api/notifications/unread-count', { headers });
+        setUnreadCount(res.data.count || 0);
+      } catch (err) {
+        console.error(err);
       }
     };
 
     fetchUnreadCount();
+
+    const handleUpdate = () => {
+      fetchUnreadCount();
+    };
+
+    window.addEventListener('notifications:update', handleUpdate);
+
+    return () => {
+      window.removeEventListener('notifications:update', handleUpdate);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -41,6 +52,10 @@ export default function AlumniSidebar({ isOpen, onClose }) {
     localStorage.removeItem('user');
     navigate('/');
   };
+
+  const triggerNotificationUpdate = () => {
+  window.dispatchEvent(new Event('notifications:update'));
+};
 
   return (
     <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>

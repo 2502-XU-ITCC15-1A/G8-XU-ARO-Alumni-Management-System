@@ -35,7 +35,7 @@ function Field({ label, children }) {
   );
 }
 
-function Input({ value, onChange, type = 'text', placeholder = '' }) {
+function Input({ value, onChange, type = 'text', placeholder = '', max, min }) {
   return (
     <input
       type={type}
@@ -44,6 +44,8 @@ function Input({ value, onChange, type = 'text', placeholder = '' }) {
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
+      max={max}
+      min={min}
     />
   );
 }
@@ -104,7 +106,7 @@ function BasicTab({ profile, onChange, onSave, saving }) {
         </div>
         <div className="col-md-4">
           <Field label="Birthdate *">
-            <Input type="date" value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')} />
+          <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')}/>          
           </Field>
         </div>
         <div className="col-md-4">

@@ -50,26 +50,37 @@ export default function AlumniNotification() {
   }, [headers]);
 
   const markAllAsRead = async () => {
-    try {
-      await axios.patch('/api/notifications/read-all', {}, { headers });
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-      setUnreadCount(0);  
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  try {
+    await axios.patch('/api/notifications/read-all', {}, { headers });
+
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setUnreadCount(0);
+
+    triggerNotificationUpdate();
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const markAsRead = async (id) => {
-    try {
-      await axios.patch(`/api/notifications/${id}/read`, {}, { headers });
-      setNotifications(prev =>
-        prev.map(n => (n.id === id ? { ...n, read: true } : n))
-      );
-      setUnreadCount(unreadCount - 1);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  try {
+    await axios.patch(`/api/notifications/${id}/read`, {}, { headers });
+
+    setNotifications(prev =>
+      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+    );
+
+    setUnreadCount(prev => Math.max(prev - 1, 0));
+
+    triggerNotificationUpdate(); 
+  } catch (err) {
+    console.error(err);
+  }
+};
+ 
+  const triggerNotificationUpdate = () => {
+  window.dispatchEvent(new Event('notifications:update'));
+};
 
   return (
     <div className="p-4 p-lg-5">
