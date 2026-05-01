@@ -1,5 +1,4 @@
 const IdApplication = require("../models/IdApplication");
-const { createNotification } = require("../utils/notificationService");
 const { sendStatusEmail } = require("../utils/emailService");
 
 exports.getMyApplications = async (req, res) => {
@@ -55,17 +54,9 @@ exports.uploadReceipt = async (req, res) => {
         ).populate('userId', 'name email');
 
         if (updated?.userId) {
-            const user = updated.userId;
-
-           sendStatusEmail(user.email, user.name, 'payment_pending')
+            sendStatusEmail(updated.userId.email, updated.userId.name, 'payment_pending')
                 .catch(err => console.error('Email notification failed:', err));
-
-            await createNotification(
-                user._id,
-                "Your payment receipt has been submitted and is pending verification.",
-                "info"
-            );
-}
+        }
 
         res.json(updated);
     } catch (err) {
@@ -91,24 +82,8 @@ exports.updateStatus = async (req, res) => {
         const updated = await IdApplication.findByIdAndUpdate(id, fields, { returnDocument: 'after' }).populate('userId', 'name email');
 
         if (status && updated?.userId) {
-            const user = updated.userId;
-
-            sendStatusEmail(user.email, user.name, status, remarks)
+            sendStatusEmail(updated.userId.email, updated.userId.name, status, remarks)
                 .catch(err => console.error('Email notification failed:', err));
-
-            const messages = {
-                approved: "Your application has been approved.",
-                rejected: "Your application has been rejected.",
-                payment_verified: "Your payment has been verified.",
-                printing: "Your ID is now being processed.",
-                released: "Your ID is ready for pickup."
-            };
-
-            await createNotification(
-                user._id,
-                messages[status] || `Status updated: ${status}`,
-                "info"
-            );
         }
 
         res.json(updated);

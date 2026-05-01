@@ -15,6 +15,7 @@ const ROLE_REDIRECTS = {
   'external': '/external-portal',
 };
 
+//only the alumni can register
 const CAN_REGISTER = ['alumni'];
 
 export default function Login() {
@@ -36,6 +37,7 @@ export default function Login() {
   const saveAndRedirect = (data, expectedRole) => {
     const userRole = data.user.role;
 
+    // 🔒 ROLE ENFORCEMENT (THIS IS THE FIX)
     if (userRole !== expectedRole) {
       setError("You are not allowed to access this portal.");
       return;
@@ -68,7 +70,7 @@ export default function Login() {
         password,
       });
 
-      saveAndRedirect(data, role);
+      saveAndRedirect(data, role); // 🔥 IMPORTANT FIX
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -89,7 +91,7 @@ export default function Login() {
           role,
         });
 
-        saveAndRedirect(data, role); 
+        saveAndRedirect(data, role); // 🔥 IMPORTANT FIX
       } catch (err) {
         setError(err.response?.data?.message || 'Google sign-in failed.');
       } finally {
