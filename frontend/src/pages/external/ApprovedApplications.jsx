@@ -14,6 +14,7 @@ const FILTER_OPTIONS = [
 function paymentBadge(app) {
   if (app.status === 'released')                                return { text: 'Released',          cls: 'status-released' };
   if (app.status === 'printing')                                return { text: 'In Printing',        cls: 'status-printing' };
+  if (app.status === 'payment')   return { text: 'Receipt Uploaded',     cls: 'status-under_review' }; 
   if (!app.receiptImage)                                        return { text: 'On Hold',            cls: 'status-pending' };
   if (app.receiptImage && !app.paymentVerified)                 return { text: 'Receipt Uploaded',   cls: 'status-under_review' };
   return                                                               { text: 'Payment Verified',   cls: 'status-approved' };
@@ -21,9 +22,9 @@ function paymentBadge(app) {
 
 function appFilter(app, filter) {
   if (filter === 'all')        return true;
-  if (filter === 'on_hold')    return app.status === 'approved' && !app.receiptImage;
-  if (filter === 'unverified') return app.status === 'approved' && app.receiptImage && !app.paymentVerified;
-  if (filter === 'verified')   return app.status === 'approved' && app.paymentVerified;
+  if (filter === 'on_hold')    return app.status === 'approved';
+  if (filter === 'unverified') return app.status === 'payment';     
+  if (filter === 'verified')   return app.status === 'printing';    
   if (filter === 'printing')   return app.status === 'printing';
   if (filter === 'released')   return app.status === 'released';
   return true;
@@ -42,7 +43,7 @@ export default function ApprovedApplications() {
   const fetchApps = () => {
     setLoading(true);
     axios.get('/api/IdApplication')
-      .then(r => setApps(r.data.filter(a => ['approved','printing','released'].includes(a.status))))
+      .then(r => setApps(r.data.filter(a => ['approved','payment','printing','released'].includes(a.status))))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
@@ -61,7 +62,7 @@ export default function ApprovedApplications() {
     if (!receiptApp) return;
     setVerifying(true);
     try {
-      await axios.put(`/api/IdApplication/${receiptApp._id}`, { paymentVerified: true });
+      await axios.put(`/api/IdApplication/${receiptApp._id}`, { paymentVerified: true, status: 'printing' });
       fetchApps();
       window.bootstrap.Modal.getInstance(receiptModalRef.current)?.hide();
     } catch {
@@ -80,14 +81,14 @@ export default function ApprovedApplications() {
     return matchSearch && appFilter(a, filter);
   });
 
-  const counts = {
-    all:        apps.length,
-    on_hold:    apps.filter(a => a.status === 'approved' && !a.receiptImage).length,
-    unverified: apps.filter(a => a.status === 'approved' && a.receiptImage && !a.paymentVerified).length,
-    verified:   apps.filter(a => a.status === 'approved' && a.paymentVerified).length,
-    printing:   apps.filter(a => a.status === 'printing').length,
-    released:   apps.filter(a => a.status === 'released').length,
-  };
+const counts = {
+  all:        apps.length,
+  on_hold:    apps.filter(a => a.status === 'approved').length,
+  unverified: apps.filter(a => a.status === 'payment').length,    
+  verified:   apps.filter(a => a.status === 'printing').length,   
+  printing:   apps.filter(a => a.status === 'printing').length,
+  released:   apps.filter(a => a.status === 'released').length,
+};
 
   return (
     <div className="p-4">
@@ -171,31 +172,19 @@ export default function ApprovedApplications() {
                     </td>
                     <td><span className={`status-badge ${b.cls}`}>{b.text}</span></td>
                     <td className="d-flex gap-2 flex-wrap py-2">
-                      {/* Always: view full form */}
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        style={{ fontSize: 12 }}
-                        onClick={() => navigate(`/external-portal/applications/${app._id}`)}
-                      >
-                        <i className="bi bi-eye me-1" />View
-                      </button>
-                      {/* Receipt uploaded but not verified */}
-                      {app.receiptImage && !app.paymentVerified && (
-                        <button
-                          className="btn btn-sm btn-outline-warning"
-                          style={{ fontSize: 12 }}
-                          onClick={() => setReceiptApp(app)}
-                        >
-                          <i className="bi bi-receipt me-1" />Verify
-                        </button>
-                      )}
-                      {/* On Hold indicator */}
-                      {!app.receiptImage && app.status === 'approved' && (
-                        <span className="text-muted" style={{ fontSize: 11, alignSelf: 'center' }}>
-                          <i className="bi bi-pause-circle me-1" />On Hold
-                        </span>
-                      )}
-                    </td>
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      style={{ fontSize: 12 }}
+                      onClick={() => navigate(`/external-portal/applications/${app._id}`)}
+                    >
+                      <i className="bi bi-eye me-1" />View
+                    </button>
+                    {app.status === 'approved' && (
+                      <span className="text-muted" style={{ fontSize: 11, alignSelf: 'center' }}>
+                        <i className="bi bi-pause-circle me-1" />On Hold
+                      </span>
+                    )}
+                  </td>
                   </tr>
                 );
               })}
@@ -223,7 +212,7 @@ export default function ApprovedApplications() {
                   {receiptApp.receiptImage ? (
                     <div className="text-center border rounded p-3 bg-light">
                       <img
-                        src={`http://localhost:5000/uploads/${receiptApp.receiptImage.replace(/^uploads[\\/]/, '')}`}
+                        src={`http://localhost:5000/${receiptApp.receiptImage.replace(/\\/g, '/')}`}
                         alt="Payment Receipt"
                         className="img-fluid rounded"
                         style={{ maxHeight: 340, objectFit: 'contain' }}

@@ -30,6 +30,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
   const [error, setError]       = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading]   = useState(false);
 
   if (!role) return <Navigate to="/" replace />;
@@ -68,6 +69,16 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+
+    if (isSignUp) {
+      const passwordRegex = /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+      if (!passwordRegex.test(password)) {
+        setError('Password must be at least 6 characters and include at least one special character (e.g. @, #, !).');
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       if (isSignUp && !isStaff) {
@@ -77,6 +88,11 @@ export default function Login() {
           role,
           name: email.split('@')[0],
         });
+        setSuccess('Account created! Please sign in.');
+        setIsSignUp(false);
+        setPassword('');
+        setLoading(false);
+        return;
       }
       const { data } = await axios.post('/api/auth/login', { email, password });
       saveAndRedirect(data);
@@ -85,7 +101,7 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
+};
 
   return (
     <div className="login-page">
@@ -124,7 +140,13 @@ export default function Login() {
               </button>
             </div>
 
-            {error && <div className="text-danger mb-2" style={{ fontSize: 13 }}>{error}</div>}
+            {isSignUp && (
+              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8 }}>
+              Password must be at least 6 characters and include a special character (e.g. @, #, !).
+              </div>
+            )}
+            {error   && <div className="text-danger mb-2" style={{ fontSize: 13 }}>{error}</div>}
+            {success && <div className="text-success mb-2" style={{ fontSize: 13 }}>{success}</div>}
 
             <button type="submit" className="login-submit-btn" disabled={loading}>
               {loading

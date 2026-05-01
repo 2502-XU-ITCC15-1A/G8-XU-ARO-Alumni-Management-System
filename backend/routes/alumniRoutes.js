@@ -1,7 +1,10 @@
 const router = require("express").Router();
-const { createProfile, getProfiles } = require("../controllers/alumniController");
+const { protect } = require("../middleware/authMiddleware");
+const { createProfile, getProfiles, getMyProfile, saveMyProfile } = require("../controllers/alumniController");
 
-router.post("/", createProfile);
-router.get("/", getProfiles);
+router.get("/",    protect, getProfiles);
+router.get("/me",  protect, getMyProfile);
+router.put("/me",  protect, saveMyProfile);
+router.post("/",   protect, createProfile);
 
 module.exports = router;
