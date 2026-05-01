@@ -1,10 +1,10 @@
 const router = require("express").Router();
-const { protect: auth } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const { getMyWork, addWork, updateWork, deleteWork } = require("../controllers/workController");
 
-router.get("/", auth, getMyWork);
-router.post("/", auth, addWork);
-router.put("/:id", auth, updateWork);
-router.delete("/:id", auth, deleteWork);
+router.get("/", protect, getMyWork);
+router.post("/", protect, addWork);
+router.put("/:id", protect, updateWork);
+router.delete("/:id", protect, deleteWork);
 
 module.exports = router;

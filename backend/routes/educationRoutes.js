@@ -1,10 +1,10 @@
 const router = require("express").Router();
-const { protect: auth } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const { getMyEducation, addEducation, updateEducation, deleteEducation } = require("../controllers/educationController");
 
-router.get("/", auth, getMyEducation);
-router.post("/", auth, addEducation);
-router.put("/:id", auth, updateEducation);
-router.delete("/:id", auth, deleteEducation);
+router.get("/", protect, getMyEducation);
+router.post("/", protect, addEducation);
+router.put("/:id", protect, updateEducation);
+router.delete("/:id", protect, deleteEducation);
 
 module.exports = router;

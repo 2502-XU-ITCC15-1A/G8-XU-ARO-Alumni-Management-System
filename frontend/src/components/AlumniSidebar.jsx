@@ -2,21 +2,50 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navItems = [
+<<<<<<< HEAD
   { path: '/alumni-portal',             label: 'Dashboard',    icon: 'bi-grid-fill' },
   { path: '/alumni-portal/profile',     label: 'My Profile',   icon: 'bi-person-fill' },
   { path: '/alumni-portal/apply',       label: 'Alumni ID',    icon: 'bi-card-heading' },
+=======
+  { path: '/alumni-portal',             label: 'Dashboard',      icon: 'bi-grid-fill' },
+  { path: '/alumni-portal/profile',     label: 'My Profile',     icon: 'bi-person-fill' },
+  { path: '/alumni-portal/apply',       label: 'Alumni ID',      icon: 'bi-card-heading' },
+  { path: '/alumni-portal/notifications', label: 'Notifications', icon: 'bi-bell-fill' },
+>>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
 ];
 
 export default function AlumniSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
   const navigate     = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
+<<<<<<< HEAD
+=======
+  const [unreadCount, setUnreadCount] = useState(0);
+>>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
 
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
   const name    = user.name  || 'Alumni';
   const email   = user.email || '';
   const initial = name.charAt(0).toUpperCase();
 
+<<<<<<< HEAD
+=======
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+        const response = await axios.get('/api/notifications/unread-count', { headers });
+        setUnreadCount(response.data.count || 0);
+      } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+  }, []);
+
+>>>>>>> 363718fa7ed34d949ec7a5e75cb7ad7336e2ea8a
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');

@@ -14,6 +14,7 @@ export default function ApplicationReview() {
   const [loading, setLoading]   = useState(true);
   const [filter, setFilter]     = useState('all');
   const [selected, setSelected] = useState(null);
+  const [remarks, setRemarks]   = useState('');
 
   useEffect(() => {
     axios.get('/api/IdApplication')
@@ -24,12 +25,18 @@ export default function ApplicationReview() {
 
   const handleAction = async (id, status) => {
     try {
-      const res = await axios.put(`/api/IdApplication/${id}`, { status });
+      const res = await axios.put(`/api/IdApplication/${id}`, { status, remarks });
       setApps(prev => prev.map(a => a._id === id ? res.data : a));
       setSelected(null);
+      setRemarks('');
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const openModal = (app) => {
+    setSelected(app);
+    setRemarks('');
   };
 
   const counts = {
@@ -48,6 +55,22 @@ export default function ApplicationReview() {
     { label: 'Rejected',           value: counts.rejected, cls: 'app-stat-rejected', valClass: 'text-danger'  },
   ];
 
+  const getFullName = (app) => {
+    if (app.alumniProfile?.firstName || app.alumniProfile?.surname) {
+      return `${app.alumniProfile.firstName || ''} ${app.alumniProfile.surname || ''}`.trim();
+    }
+    return app.userId?.name || '—';
+  };
+
+  const getAddress = (app) => {
+    const addr = app.alumniProfile?.address;
+    if (addr) {
+      return [addr.street, addr.city, addr.province, addr.country]
+        .filter(Boolean).join(', ') || '—';
+    }
+    return app.homeAddress || '—';
+  };
+
   return (
     <div className="p-4 p-lg-5">
       <h4 className="page-title">Application Review</h4>
@@ -55,7 +78,7 @@ export default function ApplicationReview() {
         Verify alumni information and approve or reject ID applications
       </p>
 
-      {/* Mini-stat cards */}
+      {/* stat card */}
       <div className="row g-3 mb-4">
         {STAT_CARDS.map(card => (
           <div key={card.label} className="col-6 col-xl-3">
@@ -69,7 +92,7 @@ export default function ApplicationReview() {
         ))}
       </div>
 
-      {/* Filter */}
+      {/* filter */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body py-3 px-4 d-flex align-items-center gap-2">
           <i className="bi bi-funnel text-muted" />
@@ -87,7 +110,7 @@ export default function ApplicationReview() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* table */}
       <div className="card border-0 shadow-sm">
         <div className="card-body p-4">
           <h6 className="fw-bold mb-4">Applications ({filtered.length})</h6>
@@ -98,46 +121,46 @@ export default function ApplicationReview() {
             <div className="text-center py-4 text-muted small">No applications found.</div>
           ) : (
             <div className="table-responsive">
-            <table className="table mb-0" style={{ fontSize: 14 }}>
-              <thead>
-                <tr>
-                  {['Name', 'Program', 'Applied Date', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="fw-semibold text-dark border-top-0">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(app => (
-                  <tr key={app._id}>
-                    <td className="text-primary fw-medium">{app.userId?.name || '—'}</td>
-                    <td>{app.course || '—'}</td>
-                    <td>{formatDate(app.createdAt)}</td>
-                    <td><StatusBadge status={app.status} /></td>
-                    <td>
-                      <button className="action-btn text-primary" onClick={() => setSelected(app)}>
-                        <i className="bi bi-eye fs-6" />
-                      </button>
-                      {(app.status === 'pending' || app.status === 'under_review') && (
-                        <>
-                          <button className="action-btn text-success" title="Approve" onClick={() => handleAction(app._id, 'approved')}>
-                            <i className="bi bi-check-lg fs-6" />
-                          </button>
-                          <button className="action-btn text-danger" title="Reject" onClick={() => handleAction(app._id, 'rejected')}>
-                            <i className="bi bi-x-lg fs-6" />
-                          </button>
-                        </>
-                      )}
-                    </td>
+              <table className="table mb-0" style={{ fontSize: 14 }}>
+                <thead>
+                  <tr>
+                    {['Name', 'Program', 'Applied Date', 'Status', 'Actions'].map(h => (
+                      <th key={h} className="fw-semibold text-dark border-top-0">{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filtered.map(app => (
+                    <tr key={app._id}>
+                      <td className="text-primary fw-medium">{getFullName(app)}</td>
+                      <td>{app.course || '—'}</td>
+                      <td>{formatDate(app.createdAt)}</td>
+                      <td><StatusBadge status={app.status} /></td>
+                      <td>
+                        <button className="action-btn text-primary" onClick={() => openModal(app)}>
+                          <i className="bi bi-eye fs-6" />
+                        </button>
+                        {(app.status === 'pending' || app.status === 'under_review') && (
+                          <>
+                            <button className="action-btn text-success" title="Approve" onClick={() => handleAction(app._id, 'approved')}>
+                              <i className="bi bi-check-lg fs-6" />
+                            </button>
+                            <button className="action-btn text-danger" title="Reject" onClick={() => handleAction(app._id, 'rejected')}>
+                              <i className="bi bi-x-lg fs-6" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       </div>
 
-      {/* Verify Modal */}
+      {/* verify modal */}
       {selected && (
         <>
           <div className="modal show d-block" tabIndex="-1" style={{ zIndex: 1050 }}>
@@ -154,14 +177,14 @@ export default function ApplicationReview() {
                 <div className="modal-body p-4">
                   <div className="row g-4">
                     {[
-                      ['Full Name',        selected.userId?.name    || '—'],
-                      ['Email',            selected.userId?.email   || '—'],
-                      ['Student Number',   selected.universityIdNumber || '—'],
-                      ['Program',          selected.course          || '—'],
-                      ['Home Address',     selected.homeAddress     || '—'],
+                      ['Full Name',        getFullName(selected)],
+                      ['Email',            selected.userId?.email || '—'],
+                      ['Student Number',   selected.alumniProfile?.universityIdNumber || selected.universityIdNumber || '—'],
+                      ['Program',          selected.course || '—'],
+                      ['Home Address',     getAddress(selected)],
                       ['Application Date', formatDate(selected.createdAt)],
                       ['Current Status',   <StatusBadge status={selected.status} />],
-                      ['Remarks',          selected.remarks         || '—'],
+                      ['Remarks',          selected.remarks || '—'],
                     ].map(([label, value]) => (
                       <div key={label} className="col-6">
                         <div className="fw-semibold text-dark small mb-1">{label}</div>
@@ -171,10 +194,28 @@ export default function ApplicationReview() {
                       </div>
                     ))}
                   </div>
+
+                  {/* remarks input for rejection */}
+                  {(selected.status === 'pending' || selected.status === 'under_review') && (
+                    <div className="mt-4">
+                      <label className="form-label fw-semibold small">
+                        Remarks <span className="text-muted">(required for rejection, optional for approval)</span>
+                      </label>
+                      <textarea
+                        className="form-control"
+                        rows={2}
+                        style={{ fontSize: 13 }}
+                        placeholder="Add remarks or reason..."
+                        value={remarks}
+                        onChange={e => setRemarks(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
+
                 <div className="modal-footer bg-light border-top flex-column align-items-stretch gap-2">
                   <p className="text-muted small mb-0">
-                    Approving or rejecting will send an email notification to the applicant.
+                    Approving or rejecting will send a notification to the applicant.
                   </p>
                   <div className="d-flex justify-content-end gap-2">
                     <button className="btn btn-secondary btn-sm" onClick={() => setSelected(null)}>
@@ -185,6 +226,7 @@ export default function ApplicationReview() {
                         <button
                           className="btn btn-danger btn-sm d-flex align-items-center gap-1"
                           onClick={() => handleAction(selected._id, 'rejected')}
+                          disabled={!remarks.trim()}
                         >
                           <i className="bi bi-x-lg" /> Reject &amp; Notify
                         </button>
