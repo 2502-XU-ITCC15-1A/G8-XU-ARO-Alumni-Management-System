@@ -24,7 +24,7 @@ exports.markAsRead = async (req, res) => {
     const updatedNotification = await Notification.findByIdAndUpdate(
       req.params.id, 
       { read: true },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!updatedNotification) {

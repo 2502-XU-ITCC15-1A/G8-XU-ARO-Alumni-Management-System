@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 const STATUS_STEPS = [
-  { key: 'pending',          label: 'Submitted',      icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
-  { key: 'under_review',     label: 'Under Review',   icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
-  { key: 'approved',         label: 'Approved',        icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please upload your payment receipt below.' },
-  { key: 'payment_pending',  label: 'Payment',         icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
-  { key: 'printing',         label: 'Printing',        icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
-  { key: 'released',         label: 'Released',        icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
+  { key: 'pending',         label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
+  { key: 'under_review',    label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
+  { key: 'approved',        label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please upload your payment receipt below.' },
+  { key: 'payment_pending', label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
+  { key: 'payment',         label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
+  { key: 'printing',        label: 'Printing',     icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
+  { key: 'released',        label: 'Released',     icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
 ];
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -86,6 +87,27 @@ function SignaturePad({ value, onChange }) {
         </button>
         {value && <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>}
         {!value && <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above using mouse or touch</span>}
+      </div>
+    </div>
+  );
+}
+
+function RenewCard({ application, onRenew }) {
+  return (
+    <div className="card border-0 shadow-sm mb-4">
+      <div className="card-body p-4">
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <i className="bi bi-patch-check-fill text-success" style={{ fontSize: 32 }} />
+          <div>
+            <div className="fw-bold">Your Alumni ID has been released!</div>
+            <div className="text-muted" style={{ fontSize: 13 }}>
+              If your ID has expired or you need a replacement, you may apply for a renewal below.
+            </div>
+          </div>
+        </div>
+        <button className="btn btn-approve" onClick={() => onRenew(application)}>
+          <i className="bi bi-arrow-clockwise me-2" />Renew Alumni ID
+        </button>
       </div>
     </div>
   );
@@ -188,7 +210,7 @@ function StatusTracker({ application }) {
 }
 
 function ReceiptUpload({ applicationId, application, onUpdated, token }) {
-  const [file, setFile]       = useState(null);
+  const [file, setFile]           = useState(null);
   const [uploading, setUploading] = useState(false);
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -226,7 +248,7 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
     );
   }
 
-  if (application.status === 'approved') {
+  if (application.status === 'approved' || application.status === 'payment' || application.status === 'payment_pending') {
     return (
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
@@ -264,7 +286,7 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
   return null;
 }
 
-function ApplicationForm({ profile, onSubmitted, token }) {
+function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
   const [form, setForm] = useState({
     ...BLANK_FORM,
     lastName:           profile?.surname            || '',
@@ -287,7 +309,14 @@ function ApplicationForm({ profile, onSubmitted, token }) {
     }
     setSubmitting(true);
     try {
-      const payload = { ...form, userId: user.id };
+      const previousApplicationId = sessionStorage.getItem('previousApplicationId');
+      const userId = user.id || user._id;
+      const payload = {
+        ...form,
+        userId,
+        isRenewal: isRenewal || false,
+        previousApplicationId: previousApplicationId || null,
+      };
       const res = await axios.post('/api/IdApplication', payload, { headers });
       onSubmitted(res.data);
     } catch {
@@ -402,7 +431,8 @@ function ApplicationForm({ profile, onSubmitted, token }) {
           >
             {submitting
               ? <><span className="spinner-border spinner-border-sm me-2" />Submitting...</>
-              : <><i className="bi bi-send-fill me-2" />Submit Application</>}
+              : <><i className={`bi ${isRenewal ? 'bi-arrow-clockwise' : 'bi-send-fill'} me-2`} />
+                {isRenewal ? 'Submit Renewal' : 'Submit Application'}</>}
           </button>
         </div>
       </div>
@@ -418,6 +448,7 @@ export default function AlumniIdApplication() {
   const [profile, setProfile]         = useState(null);
   const [application, setApplication] = useState(null);
   const [loading, setLoading]         = useState(true);
+  const [isRenewing, setIsRenewing]   = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -431,6 +462,12 @@ export default function AlumniIdApplication() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const handleRenew = (oldApplication) => {
+    sessionStorage.setItem('previousApplicationId', oldApplication._id);
+    setApplication(null);
+    setIsRenewing(true);
+  };
 
   if (loading) {
     return (
@@ -457,6 +494,10 @@ export default function AlumniIdApplication() {
             token={token}
           />
 
+          {application.status === 'released' && (
+            <RenewCard application={application} onRenew={handleRenew} />
+          )}
+
           {application.status === 'rejected' && (
             <div className="card border-0 shadow-sm">
               <div className="card-body p-4">
@@ -475,7 +516,7 @@ export default function AlumniIdApplication() {
           )}
         </>
       ) : (
-        <ApplicationForm profile={profile} onSubmitted={setApplication} token={token} />
+        <ApplicationForm profile={profile} onSubmitted={setApplication} token={token} isRenewal={isRenewing} />
       )}
     </div>
   );

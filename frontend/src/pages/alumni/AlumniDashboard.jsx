@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const STATUS_META = {
-  pending:      { label: 'Pending Review',   color: '#92400e', bg: '#fef9c3', icon: 'bi-clock-fill' },
-  under_review: { label: 'Under Review',     color: '#1e40af', bg: '#dbeafe', icon: 'bi-search' },
-  approved:     { label: 'Approved',         color: '#166534', bg: '#dcfce7', icon: 'bi-check-circle-fill' },
-  rejected:     { label: 'Rejected',         color: '#991b1b', bg: '#fee2e2', icon: 'bi-x-circle-fill' },
-  printing:     { label: 'Being Printed',    color: '#6d28d9', bg: '#ede9fe', icon: 'bi-printer-fill' },
-  released:     { label: 'ID Released',      color: '#065f46', bg: '#d1fae5', icon: 'bi-patch-check-fill' },
+  pending:      { label: 'Pending Review',      color: '#92400e', bg: '#fef9c3', icon: 'bi-clock-fill' },
+  under_review: { label: 'Under Review',         color: '#1e40af', bg: '#dbeafe', icon: 'bi-search' },
+  approved:     { label: 'Approved',             color: '#166534', bg: '#dcfce7', icon: 'bi-check-circle-fill' },
+  payment:      { label: 'Payment Submitted',    color: '#0369a1', bg: '#e0f2fe', icon: 'bi-receipt' },
+  payment_pending: { label: 'Payment Pending',   color: '#0369a1', bg: '#e0f2fe', icon: 'bi-receipt' },
+  rejected:     { label: 'Rejected',             color: '#991b1b', bg: '#fee2e2', icon: 'bi-x-circle-fill' },
+  printing:     { label: 'Being Printed',        color: '#6d28d9', bg: '#ede9fe', icon: 'bi-printer-fill' },
+  released:     { label: 'ID Released',          color: '#065f46', bg: '#d1fae5', icon: 'bi-patch-check-fill' },
 };
 
-const STEPS = ['pending', 'under_review', 'approved', 'printing', 'released'];
+const STEPS = ['pending', 'under_review', 'approved', 'payment', 'printing', 'released'];
 
 function profileCompleteness(profile, education, work) {
   if (!profile) return 0;
@@ -32,11 +34,13 @@ export default function AlumniDashboard() {
   const token = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };
 
-  const [profile, setProfile]     = useState(null);
-  const [education, setEducation] = useState([]);
-  const [work, setWork]           = useState([]);
-  const [application, setApplication] = useState(null);
-  const [loading, setLoading]     = useState(true);
+  const [profile, setProfile]             = useState(null);
+  const [education, setEducation]         = useState([]);
+  const [work, setWork]                   = useState([]);
+  const [application, setApplication]     = useState(null);
+  const [loading, setLoading]             = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifs, setShowNotifs]       = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -44,17 +48,29 @@ export default function AlumniDashboard() {
       axios.get('/api/education', { headers }),
       axios.get('/api/work', { headers }),
       axios.get('/api/IdApplication/my', { headers }),
+      axios.get('/api/notifications', { headers }),
     ])
-      .then(([profileRes, eduRes, workRes, appRes]) => {
+      .then(([profileRes, eduRes, workRes, appRes, notifsRes]) => {
         setProfile(profileRes.data);
         setEducation(eduRes.data);
         setWork(workRes.data);
         setApplication(appRes.data[0] || null);
+        setNotifications(notifsRes.data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  const markAsRead = async (id) => {
+    try {
+      await axios.put(`/api/notifications/${id}/read`, {}, { headers });
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
   const pct = profileCompleteness(profile, education, work);
   const normalizedStatus = application?.status?.toLowerCase().replace(/\s+/g, '_');
   const appMeta = normalizedStatus ? STATUS_META[normalizedStatus] : null;
@@ -62,10 +78,91 @@ export default function AlumniDashboard() {
 
   return (
     <div className="p-4 p-lg-5">
-      <h4 className="page-title">Welcome back, {user.name?.split(' ')[0] || 'Alumni'}</h4>
-      <p className="text-muted mb-4" style={{ fontSize: 14 }}>
-        Xavier University — Alumni Self-Service Portal
-      </p>
+
+      {/* Header row with title and notifications bell */}
+      <div className="d-flex align-items-start justify-content-between mb-1">
+        <div>
+          <h4 className="page-title mb-0">Welcome back, {user.name?.split(' ')[0] || 'Alumni'}</h4>
+          <p className="text-muted mt-1" style={{ fontSize: 14 }}>
+            Xavier University — Alumni Self-Service Portal
+          </p>
+        </div>
+
+        {/* Notifications Bell */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => {
+              setShowNotifs(v => !v);
+              if (!showNotifs && unreadCount > 0) {
+                axios.put('/api/notifications/read-all', {}, { headers })
+                  .then(() => setNotifications(prev => prev.map(n => ({ ...n, read: true }))))
+                  .catch(console.error);
+              }
+            }}
+            className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+          >
+            <i className="bi bi-bell-fill" />
+            {unreadCount > 0 && (
+              <span className="badge rounded-pill bg-danger">{unreadCount}</span>
+            )}
+          </button>
+
+          {showNotifs && (
+            <div
+              className="card border-0 shadow"
+              style={{
+                position: 'absolute', top: '110%', right: 0,
+                width: 320, zIndex: 100, maxHeight: 360, overflowY: 'auto'
+              }}
+            >
+              <div className="card-body p-0">
+                <div className="p-3 border-bottom fw-bold d-flex justify-content-between align-items-center"
+                  style={{ fontSize: 13 }}>
+                  Notifications
+                  <button
+                    className="btn btn-sm btn-link p-0 text-muted"
+                    style={{ fontSize: 11 }}
+                    onClick={() => setShowNotifs(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="p-3 text-muted" style={{ fontSize: 13 }}>
+                    No notifications yet.
+                  </div>
+                ) : (
+                  notifications.map(n => (
+                    <div
+                      key={n._id}
+                      onClick={() => markAsRead(n._id)}
+                      className="p-3 border-bottom"
+                      style={{
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        background: n.read ? '#fff' : '#f0f4ff',
+                      }}
+                    >
+                      <div className="d-flex align-items-start gap-2">
+                        <i
+                          className="bi bi-bell-fill mt-1"
+                          style={{ color: n.read ? '#9ca3af' : '#2563eb', fontSize: 12, flexShrink: 0 }}
+                        />
+                        <div>
+                          <div>{n.message}</div>
+                          <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>
+                            {new Date(n.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {loading ? (
         <div className="text-center py-5 text-muted">Loading...</div>
@@ -219,10 +316,10 @@ export default function AlumniDashboard() {
               <h6 className="fw-bold mb-3">Quick Actions</h6>
               <div className="row g-3">
                 {[
-                  { label: 'Update Basic Info',  icon: 'bi-person',          path: '/alumni-portal/profile', tab: 'basic' },
-                  { label: 'Add Education',       icon: 'bi-mortarboard',     path: '/alumni-portal/profile', tab: 'education' },
-                  { label: 'Add Work History',    icon: 'bi-briefcase',       path: '/alumni-portal/profile', tab: 'work' },
-                  { label: 'Alumni ID Status',    icon: 'bi-card-heading',    path: '/alumni-portal/apply' },
+                  { label: 'Update Basic Info', icon: 'bi-person',       path: '/alumni-portal/profile', tab: 'basic' },
+                  { label: 'Add Education',      icon: 'bi-mortarboard',  path: '/alumni-portal/profile', tab: 'education' },
+                  { label: 'Add Work History',   icon: 'bi-briefcase',    path: '/alumni-portal/profile', tab: 'work' },
+                  { label: 'Alumni ID Status',   icon: 'bi-card-heading', path: '/alumni-portal/apply' },
                 ].map(action => (
                   <div key={action.label} className="col-6 col-md-3">
                     <button

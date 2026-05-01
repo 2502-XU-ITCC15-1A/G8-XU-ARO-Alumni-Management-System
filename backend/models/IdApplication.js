@@ -32,7 +32,7 @@ const applicationSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ["pending", "under_review", "approved", "payment_pending", "rejected", "printing", "released"],
+        enum: ["pending", "under_review", "approved", "payment_pending", "payment", "rejected", "printing", "released"],
         default: "pending"
     },
 
