@@ -1,5 +1,7 @@
 # XU-ARO Alumni Management System
 
+**Version:** 1.0.0-alpha.1
+
 A full-stack web application for Xavier University - Ateneo de Cagayan's Alumni Relations Office (XU-ARO). It provides alumni profile management, educational and work history tracking, alumni ID card application processing, and role-based portals for alumni, XU-ARO staff, and external book center personnel.
 
 ---
@@ -28,6 +30,8 @@ A full-stack web application for Xavier University - Ateneo de Cagayan's Alumni 
 - **ID Card Applications** — End-to-end workflow from application submission to ID release, including payment receipt upload and admin approval stages
 - **Role-Based Access Control** — Separate portals and protected routes for alumni, XU-ARO staff, and book center personnel
 - **File Uploads** — Receipt images and signature files via Multer
+- **Real-Time Notifications** — In-app notifications delivered over Socket.io
+- **Email Notifications** — Automated emails via Nodemailer for application status updates
 
 ---
 
@@ -41,6 +45,7 @@ A full-stack web application for Xavier University - Ateneo de Cagayan's Alumni 
 | Auth | JWT, bcryptjs, Google OAuth 2.0 |
 | File Uploads | Multer |
 | Email | Nodemailer |
+| Real-Time | Socket.io |
 | Containerization | Docker, Docker Compose, Nginx |
 
 ---
@@ -52,10 +57,12 @@ G8-XU-ARO-Alumni-Management-System/
 ├── backend/
 │   ├── config/          # MongoDB connection
 │   ├── controllers/     # Route handler logic
-│   ├── middleware/      # JWT auth, file upload
+│   ├── middleware/      # JWT auth, admin guard, file upload
 │   ├── models/          # Mongoose schemas
 │   ├── routes/          # Express route definitions
+│   ├── utils/           # Email service (Nodemailer)
 │   ├── uploads/         # Uploaded files (gitignored)
+│   ├── seedStaff.js     # Script to seed initial staff accounts
 │   └── server.js        # Entry point
 ├── frontend/
 │   ├── src/
@@ -86,6 +93,8 @@ G8-XU-ARO-Alumni-Management-System/
 ```env
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_key
+EMAIL_USER=your_gmail_address
+EMAIL_PASS=your_gmail_app_password
 ```
 
 **`frontend/.env`**
@@ -148,6 +157,9 @@ All endpoints are prefixed with `/api`.
 | `/api/education` | Education history CRUD |
 | `/api/work` | Work experience CRUD |
 | `/api/IdApplication` | ID card application workflow |
+| `/api/notifications` | In-app notification management |
+| `/api/users` | User account management (admin) |
+| `/api/book-center` | Book center / external portal operations |
 
 Protected routes require an `Authorization: Bearer <token>` header.
 
@@ -161,6 +173,7 @@ Protected routes require an `Authorization: Bearer <token>` header.
 |---|---|
 | `npm start` | Start production server |
 | `npm run dev` | Start with Nodemon (auto-reload) |
+| `node seedStaff.js` | Seed initial XU-ARO staff accounts |
 
 **Frontend (`frontend/`)**
 
