@@ -46,7 +46,7 @@ exports.getIdApplication = async (req, res) => {
 exports.createIdApplication = async (req, res) => {
     try {
         const app = await IdApplication.create({
-            ...{ ...req.body, userId: req.user.id },
+            ...req.body,
             userId: req.user._id
         });
         const populated = await IdApplication.findById(app._id)
@@ -61,9 +61,9 @@ exports.uploadReceipt = async (req, res) => {
     try {
         const receiptPath = req.file.path.replace(/\\/g, '/');
         const updated = await IdApplication.findByIdAndUpdate(
-            id,
+            req.params.id,
             {
-                receiptImage: req.file.path,
+                receiptImage: receiptPath,
                 status: "payment_pending"
             },
             { returnDocument: 'after' }

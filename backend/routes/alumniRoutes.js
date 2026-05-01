@@ -6,6 +6,6 @@ router.get("/",    protect, getProfiles);
 router.get("/me",  protect, getMyProfile);
 router.put("/me",  protect, upsertMyProfile);
 router.post("/",   protect, createProfile);
-router.delete("/:id", deleteProfile);
+router.delete("/:id", protect, deleteProfile);
 
 module.exports = router;
