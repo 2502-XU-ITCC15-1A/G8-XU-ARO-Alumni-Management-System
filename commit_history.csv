@@ -1,0 +1,50 @@
+723e7d4,Gwyn Dayot,Fri May 1 13:20:06 2026 +0800,Refactor code structure for improved readability and maintainability
+62d8c43,Gwyn Dayot,Fri May 1 13:18:53 2026 +0800,chore: bump version to 1.0.0-alpha.1
+baf1d6e,Gwyn Dayot,Fri May 1 08:48:09 2026 +0800,feat: add email service for alumni ID application status notifications
+0309b19,Gwyn Dayot,Fri May 1 06:29:38 2026 +0800,Merge branch 'dev' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into dev
+d80bfef,Gwyn Dayot,Fri May 1 06:27:27 2026 +0800,feat: add User Management page for managing staff accounts with CRUD operations
+0fb6076,Mary Gwyneth Dayot,Fri May 1 06:23:48 2026 +0800,Merge pull request #16 from christinedy/feature/userauth-and-dashboard-logic
+64fd5fd,Mary Gwyneth Dayot,Fri May 1 06:23:15 2026 +0800,Merge branch 'dev' into feature/userauth-and-dashboard-logic
+584d9fa,Mary Gwyneth Dayot,Fri May 1 06:19:04 2026 +0800,Merge pull request #15 from 2502-XU-ITCC15-1A/feature/login-pages
+38ac869,Elisha Cogtas,Thu Apr 30 23:35:16 2026 +0800,Revised login pages for ARO and Book Center
+8a43be1,Gwyn Dayot,Thu Apr 30 14:48:15 2026 +0800,Refactor code structure for improved readability and maintainability
+64cbb15,Gwyn Dayot,Mon Apr 27 18:25:07 2026 +0800,Update README.md to enhance project documentation and structure
+d66a150,Gwyn Dayot,Mon Apr 27 14:28:18 2026 +0800,Implement profile retrieval and update endpoints; update MongoDB URI
+7d916cf,Mary Gwyneth Dayot,Mon Apr 27 13:21:14 2026 +0800,Merge pull request #12 from 2502-XU-ITCC15-1A/feature/book-center-dashboard
+2819cdf,Gwyn Dayot,Mon Apr 27 13:03:27 2026 +0800,Merge branch 'feature/book-center-dashboard' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into feature/book-center-dashboard
+a41333b,Gwyn Dayot,Mon Apr 27 13:02:59 2026 +0800,Update dependencies in frontend to latest versions
+a6fe497,Mary Gwyneth Dayot,Sun Apr 26 22:09:55 2026 +0800,Merge pull request #11 from 2502-XU-ITCC15-1A/dev
+9e9e386,Mary Gwyneth Dayot,Sun Apr 26 21:58:46 2026 +0800,Merge pull request #8 from 2502-XU-ITCC15-1A/feature/book-center-dashboard
+8101a9f,Gwyn Dayot,Sun Apr 26 21:56:54 2026 +0800,feat: add Alumni ID application and profile management pages
+61499ac,Gwyn Dayot,Sun Apr 26 21:55:55 2026 +0800,feat: implement delete functionality for ID applications in backend and frontend
+7e12f51,Mary Gwyneth Dayot,Sun Apr 26 21:48:55 2026 +0800,Merge pull request #7 from 2502-XU-ITCC15-1A/feature/admin-dashboard
+d36b850,Gwyn Dayot,Sun Apr 26 21:44:52 2026 +0800,Merge branch 'dev' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into feature/admin-dashboard
+a5d0652,Gwyn Dayot,Sun Apr 26 21:43:17 2026 +0800,Refactor code structure for improved readability and maintainability
+2de7c7f,Gwyn Dayot,Sun Apr 26 21:42:54 2026 +0800,Merge branch 'feature/admin-dashboard' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into feature/admin-dashboard
+63ea40b,Gwyn Dayot,Sun Apr 26 21:39:27 2026 +0800,feat: implement delete functionality for alumni profiles and enhance application review actions
+86f03d8,Mary Gwyneth Dayot,Sun Apr 26 21:27:36 2026 +0800,Merge pull request #6 from 2502-XU-ITCC15-1A/feature/alumni-dashboard
+ec7e752,Mary Gwyneth Dayot,Sun Apr 26 21:25:56 2026 +0800,Merge pull request #5 from 2502-XU-ITCC15-1A/feature/admin-dashboard
+57f287e,Gwyn Dayot,Sun Apr 26 21:21:14 2026 +0800,feat: add Alumni ID application and profile management pages
+e6376f5,Gwyn Dayot,Sun Apr 26 19:29:01 2026 +0800,Refactor code structure for improved readability and maintainability
+b454a8f,Gwyn Dayot,Sun Apr 26 19:27:52 2026 +0800,feat: add receipt image display and payment verification functionality in ApplicationDetail
+f890718,Christine Dy,Sat Apr 25 09:56:54 2026 -0400,"user auth, created staff accs, and dashboard logic"
+9adfacd,Gwyn Dayot,Mon Apr 20 13:05:01 2026 +0800,Set up Docker for frontend and backend with production and development configurations
+acdcd03,Mary Gwyneth Dayot,Sun Apr 19 22:56:21 2026 +0800,Merge pull request #4 from 2502-XU-ITCC15-1A/feature/book-center-dashboard
+d145efa,Mary Gwyneth Dayot,Sun Apr 19 22:48:40 2026 +0800,Merge pull request #3 from 2502-XU-ITCC15-1A/feature/admin-dashboard
+4f2359f,Gwyn Dayot,Sun Apr 19 22:45:03 2026 +0800,Resolved merge conflicts in server.js
+84289dd,Gwyn Dayot,Sun Apr 19 22:15:39 2026 +0800,Add external pages for managing alumni ID applications
+0ede60e,Gwyn Dayot,Sun Apr 19 01:58:23 2026 +0800,feat: add .gitignore file to exclude unnecessary files from version control
+fb2ba3a,Gwyn Dayot,Sun Apr 19 00:24:05 2026 +0800,"feat: add JWT secret to environment variables, implement CRUD for ID applications, and enhance frontend with new components and styles"
+406b083,Mary Gwyneth Dayot,Sat Apr 18 23:10:10 2026 +0800,Merge pull request #2 from christinedy/feature/route
+d2696b8,Gwyn Dayot,Sat Apr 18 23:07:44 2026 +0800,Implement error handling in controllers and add upload functionality for receipts
+f4e7982,Christine Dy,Sat Apr 18 10:45:59 2026 -0400,added route feature
+7eca9df,Christine Dy,Sat Apr 18 10:06:56 2026 -0400,added application route
+1fd671f,Gwyn Dayot,Sat Apr 18 21:46:47 2026 +0800,"configuring of models, routes, and controllers"
+19dd501,Christine Dy,Sat Apr 18 09:44:52 2026 -0400,added application route
+2e3e56c,Gwyn Dayot,Sat Apr 18 12:37:13 2026 +0800,education+IdApplication modules created
+dbce50e,Gwyn Dayot,Sat Apr 18 12:16:10 2026 +0800,alumniProfile model
+0ec7c0f,Gwyn Dayot,Sat Apr 18 08:14:54 2026 +0800,sync dev with main
+f518b5f,Gwyn Dayot,Sat Apr 18 08:06:03 2026 +0800,creating models for db
+538af15,Gwyn Dayot,Sat Apr 18 07:56:21 2026 +0800,backend setup
+401b3d8,Gwyn Dayot,Fri Apr 17 15:39:10 2026 +0800,setting up env.
+20990a4,Mary Gwyneth Dayot,Fri Apr 17 15:04:12 2026 +0800,Initial commit

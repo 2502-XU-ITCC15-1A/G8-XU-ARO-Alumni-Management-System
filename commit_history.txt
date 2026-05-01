@@ -1,0 +1,374 @@
+commit 723e7d42ae2468a62ad23d7c9fef16ca08b23529
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 13:20:06 2026 +0800
+
+    Refactor code structure for improved readability and maintainability
+
+commit 62d8c43cb8ac02503397717a9329758da6987ea8
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 13:18:53 2026 +0800
+
+    chore: bump version to 1.0.0-alpha.1
+
+commit baf1d6ef2942e6aa6e08a08d0e23f93851faa23d
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 08:48:09 2026 +0800
+
+    feat: add email service for alumni ID application status notifications
+
+commit 0309b1904736e90df2c40c06fcc62ce5c7574b06
+Merge: d80bfef 0fb6076
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 06:29:38 2026 +0800
+
+    Merge branch 'dev' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into dev
+
+commit d80bfef77d15fbdc223ebc761be8b8819d7d4666
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 06:27:27 2026 +0800
+
+    feat: add User Management page for managing staff accounts with CRUD operations
+
+commit 0fb60769a9f281d2aae7f1e963766b6e14d47a24
+Merge: 584d9fa 64fd5fd
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 06:23:48 2026 +0800
+
+    Merge pull request #16 from christinedy/feature/userauth-and-dashboard-logic
+    
+    created admin accs and id processing page in book center
+
+commit 64fd5fd0686bddaee2f07e6cf1f101cce14ad1ca
+Merge: f890718 584d9fa
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 06:23:15 2026 +0800
+
+    Merge branch 'dev' into feature/userauth-and-dashboard-logic
+
+commit 584d9fa04b56aefe089667576923525b2fc08b0e
+Merge: 8a43be1 38ac869
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri May 1 06:19:04 2026 +0800
+
+    Merge pull request #15 from 2502-XU-ITCC15-1A/feature/login-pages
+    
+    Revised login pages for ARO and Book Center
+
+commit 38ac869572fe66311fd4f69dc9f82ed0153e2c30
+Author: Elisha Cogtas <20230028752@my.xu.edu.ph>
+Date:   Thu Apr 30 23:35:16 2026 +0800
+
+    Revised login pages for ARO and Book Center
+
+commit 8a43be18df1f367e348b12cb67c5d0a1ed34cccb
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Thu Apr 30 14:48:15 2026 +0800
+
+    Refactor code structure for improved readability and maintainability
+
+commit 64cbb15e61c86c0be39d33a0640bacd92ed44753
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Mon Apr 27 18:25:07 2026 +0800
+
+    Update README.md to enhance project documentation and structure
+
+commit d66a1501dd4910caa0f9d7d919d80265e633fcac
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Mon Apr 27 14:28:18 2026 +0800
+
+    Implement profile retrieval and update endpoints; update MongoDB URI
+
+commit 7d916cf2e6e780caf48387111e6b91bc87865ba2
+Merge: 9e9e386 2819cdf
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Mon Apr 27 13:21:14 2026 +0800
+
+    Merge pull request #12 from 2502-XU-ITCC15-1A/feature/book-center-dashboard
+    
+    Feature/book center dashboard
+
+commit 2819cdf52614f05f7ef9a6fb881b1900eb164200
+Merge: a41333b a6fe497
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Mon Apr 27 13:03:27 2026 +0800
+
+    Merge branch 'feature/book-center-dashboard' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into feature/book-center-dashboard
+
+commit a41333b5b3afda5385298bc22d7f53db5d70e81e
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Mon Apr 27 13:02:59 2026 +0800
+
+    Update dependencies in frontend to latest versions
+
+commit a6fe497666fc34982819a6603c85ce569f4f0a35
+Merge: 7e12f51 9e9e386
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 22:09:55 2026 +0800
+
+    Merge pull request #11 from 2502-XU-ITCC15-1A/dev
+    
+    Merge pull request #8 from 2502-XU-ITCC15-1A/feature/book-center-dash…
+
+commit 9e9e3866bb27a8c06817a4ed534462be0cc3166d
+Merge: 9adfacd 7e12f51
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:58:46 2026 +0800
+
+    Merge pull request #8 from 2502-XU-ITCC15-1A/feature/book-center-dashboard
+    
+    Feature/book center dashboard
+
+commit 8101a9fff188ea70f06c215175206b7dc007d0cd
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:56:54 2026 +0800
+
+    feat: add Alumni ID application and profile management pages
+    
+    - Implemented Alumni ID Application form with status tracking and receipt upload functionality.
+    - Created Alumni Profile page with editable sections for basic info, family, contact, address, education, and work experience.
+    - Added API integration for fetching and updating alumni data.
+    - Enhanced user experience with loading states and validation messages.
+
+commit 61499acbacc6dbee67994abd914a5c99cf884ffb
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:55:55 2026 +0800
+
+    feat: implement delete functionality for ID applications in backend and frontend
+
+commit 7e12f519834386b5630a4290f778ef5abfb3eb2a
+Merge: e6376f5 d36b850
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:48:55 2026 +0800
+
+    Merge pull request #7 from 2502-XU-ITCC15-1A/feature/admin-dashboard
+    
+    sync! will refine book-center dashboard
+
+commit d36b850c24c80a92d76ab85629df18d572e348f7
+Merge: a5d0652 9adfacd
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:44:52 2026 +0800
+
+    Merge branch 'dev' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into feature/admin-dashboard
+
+commit a5d0652cc468af1992063fe1b78d6c8c2c7ccde1
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:43:17 2026 +0800
+
+    Refactor code structure for improved readability and maintainability
+
+commit 2de7c7f8d7de4b4c112f88770ff19da392587419
+Merge: 63ea40b 86f03d8
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:42:54 2026 +0800
+
+    Merge branch 'feature/admin-dashboard' of https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System into feature/admin-dashboard
+
+commit 63ea40bd5cb04a4b52301e061c773b94b526d1c1
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:39:27 2026 +0800
+
+    feat: implement delete functionality for alumni profiles and enhance application review actions
+
+commit 86f03d85c681d01487274535b7e5969215a7f524
+Merge: 4f2359f ec7e752
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:27:36 2026 +0800
+
+    Merge pull request #6 from 2502-XU-ITCC15-1A/feature/alumni-dashboard
+    
+    Feature/alumni dashboard sync
+
+commit ec7e7526122a451e16a680025af40c0d3bd657b0
+Merge: 57f287e 4f2359f
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:25:56 2026 +0800
+
+    Merge pull request #5 from 2502-XU-ITCC15-1A/feature/admin-dashboard
+    
+    Feature/admin dashboard + alumni-dashboard sync
+
+commit 57f287ec7b59c8191a21e430ca1c0910146a2f69
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 21:21:14 2026 +0800
+
+    feat: add Alumni ID application and profile management pages
+    
+    - Implemented Alumni ID Application page with status tracking, receipt upload, and application form.
+    - Created Alumni Profile page with tabs for basic info, family, contact, address, education, and work records.
+    - Added functionality for saving and managing user profile information and education/work records.
+
+commit e6376f5c6218cdb84f44e06aae5534eca00ff02f
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 19:29:01 2026 +0800
+
+    Refactor code structure for improved readability and maintainability
+
+commit b454a8f5648442ab85b898704cd6eaa89475ca5f
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 26 19:27:52 2026 +0800
+
+    feat: add receipt image display and payment verification functionality in ApplicationDetail
+
+commit f8907187972aaa41f9ce80cf59165fe79201cfd4
+Author: Christine Dy <20230028712@my.xu.edu.ph>
+Date:   Sat Apr 25 09:56:54 2026 -0400
+
+    user auth, created staff accs, and dashboard logic
+
+commit 9adfacdc4344762ec66072dc4cc92dcd64ce77cb
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Mon Apr 20 13:05:01 2026 +0800
+
+    Set up Docker for frontend and backend with production and development configurations
+    
+    - Updated Vite configuration to use BACKEND_URL from environment variables.
+    - Added .dockerignore files for both frontend and backend to exclude unnecessary files.
+    - Created Dockerfile for backend to set up Node.js environment.
+    - Added docker-compose.prod.yml for production deployment of frontend and backend services.
+    - Created docker-compose.yml for local development with volume mappings and environment variables.
+    - Added Dockerfile for frontend to build and serve the application using Nginx.
+    - Created Dockerfile.dev for frontend development with hot-reloading.
+    - Added Nginx configuration to handle API requests and serve the frontend application.
+
+commit acdcd03a2ea42b864a06c110c7981cc88eda69a7
+Merge: d145efa 84289dd
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 19 22:56:21 2026 +0800
+
+    Merge pull request #4 from 2502-XU-ITCC15-1A/feature/book-center-dashboard
+    
+    Add external pages for managing alumni ID applications
+
+commit d145efa33034805b1f37f1c70d1d2c6f0b3dfdbb
+Merge: 406b083 4f2359f
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 19 22:48:40 2026 +0800
+
+    Merge pull request #3 from 2502-XU-ITCC15-1A/feature/admin-dashboard
+    
+    Feature/admin dashboard merge to dev
+
+commit 4f2359f58355cf37caa7a1b0610d017e8a7841a7
+Merge: 0ede60e 406b083
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 19 22:45:03 2026 +0800
+
+    Resolved merge conflicts in server.js
+
+commit 84289dd799ecdbcd1cd1a0998634c4b9286df3d2
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 19 22:15:39 2026 +0800
+
+    Add external pages for managing alumni ID applications
+    
+    - Created ApplicationDetail component to display application details and payment status.
+    - Implemented ApprovedApplications component for listing approved applications with filtering and search functionality.
+    - Developed BookCenterDashboard for overview of alumni ID applications and payment processing.
+    - Introduced IDProcessing component for processing and releasing alumni IDs.
+
+commit 0ede60e09ea2f7d0258e9a9b606bedfd4728d01b
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 19 01:58:23 2026 +0800
+
+    feat: add .gitignore file to exclude unnecessary files from version control
+
+commit fb2ba3a9270e7202b3483a5020be3d7671130627
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sun Apr 19 00:24:05 2026 +0800
+
+    feat: add JWT secret to environment variables, implement CRUD for ID applications, and enhance frontend with new components and styles
+    
+    - Added JWT_SECRET to backend/.env for authentication.
+    - Implemented getIdApplications and getIdApplication methods in IdApplicationController for fetching applications.
+    - Updated IdApplication model to reference User for userId.
+    - Added start and dev scripts to package.json for easier server management.
+    - Created new routes for fetching ID applications in IdApplicationRoutes.
+    - Enhanced frontend index.html with Bootstrap icons and updated title.
+    - Refactored App.css for improved layout and styling.
+    - Updated App.jsx to include routing and sidebar navigation.
+    - Created Sidebar component for navigation in the frontend.
+    - Implemented AlumniRecords and ApplicationReview pages with data fetching and display.
+    - Added Dashboard page to summarize alumni and application statistics.
+    - Configured Vite to proxy API requests to the backend server.
+
+commit 406b083e6ae6e40ce775fe9ab926aaade1ebd3d2
+Merge: 0ec7c0f f4e7982
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 23:10:10 2026 +0800
+
+    Merge pull request #2 from christinedy/feature/route
+    
+    Feature/route
+
+commit d2696b89a58d74b27e7ff9804ec29ca5a3bb0b4b
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 23:07:44 2026 +0800
+
+    Implement error handling in controllers and add upload functionality for receipts
+
+commit f4e7982a16008322f8c9b9a33e5036fbd3183014
+Author: Christine Dy <20230028712@my.xu.edu.ph>
+Date:   Sat Apr 18 10:45:59 2026 -0400
+
+    added route feature
+
+commit 7eca9df3882c5521744601138dbed3ca7f3fe639
+Author: Christine Dy <20230028712@my.xu.edu.ph>
+Date:   Sat Apr 18 10:06:56 2026 -0400
+
+    added application route
+
+commit 1fd671f9ee9cd5c1b1e046dcfbcc1ded839d5376
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 21:46:47 2026 +0800
+
+    configuring of models, routes, and controllers
+
+commit 19dd501f21aa89dd473927a266eb7b82a562442b
+Author: Christine Dy <20230028712@my.xu.edu.ph>
+Date:   Sat Apr 18 09:44:52 2026 -0400
+
+    added application route
+
+commit 2e3e56c353c40373b8ba560cd271ed17341451f0
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 12:37:13 2026 +0800
+
+    education+IdApplication modules created
+
+commit dbce50e27204fbe7f9eba5275944a042945ac48b
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 12:16:10 2026 +0800
+
+    alumniProfile model
+
+commit 0ec7c0f98d40772e907765af3e5885639314d728
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 08:14:54 2026 +0800
+
+    sync dev with main
+
+commit f518b5fccb22752d2e0887acc57ab25381149817
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 08:06:03 2026 +0800
+
+    creating models for db
+
+commit 538af154da46b98d7ee26b99bebb5797d6e881d4
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Sat Apr 18 07:56:21 2026 +0800
+
+    backend setup
+
+commit 401b3d882e2a29c26eb259bc07f6d888b26897e2
+Author: Gwyn Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri Apr 17 15:39:10 2026 +0800
+
+    setting up env.
+
+commit 20990a4deb9c43984dd26f6ded95e4940440bbcf
+Author: Mary Gwyneth Dayot <20230028015@my.xu.edu.ph>
+Date:   Fri Apr 17 15:04:12 2026 +0800
+
+    Initial commit
