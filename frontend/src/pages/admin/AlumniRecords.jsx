@@ -1,8 +1,22 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+const STATUS_LABELS = {
+  pending:         'Pending',
+  under_review:    'Under Review',
+  approved:        'Approved',
+  payment_pending: 'Payment Pending',
+  payment:         'Payment Verified',
+  printing:        'Printing',
+  released:        'Released',
+  rejected:        'Rejected',
+  active:          'Active',
+  inactive:        'Inactive',
+};
+
 function StatusBadge({ status = 'active' }) {
-  return <span className={`status-badge status-${status}`}>{status}</span>;
+  const label = STATUS_LABELS[status] || status;
+  return <span className={`status-badge status-${status}`}>{label}</span>;
 }
 
 function fullName(a) {

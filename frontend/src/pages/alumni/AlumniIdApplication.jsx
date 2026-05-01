@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 
 const STATUS_STEPS = [
-  { key: 'pending',         label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
-  { key: 'under_review',    label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
-  { key: 'approved',        label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please upload your payment receipt below.' },
-  { key: 'payment_pending', label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
-  { key: 'payment',         label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
-  { key: 'printing',        label: 'Printing',     icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
-  { key: 'released',        label: 'Released',     icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
+  { key: 'pending',      label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
+  { key: 'under_review', label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
+  { key: 'approved',     label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please upload your payment receipt below.' },
+  { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
+  { key: 'printing',     label: 'Printing',     icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
+  { key: 'released',     label: 'Released',     icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
 ];
+
+const STEP_KEY_MAP = { payment_pending: 'payment' };
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -125,8 +126,9 @@ function Field({ label, children, required }) {
 }
 
 function StatusTracker({ application }) {
-  const isRejected = application.status === 'rejected';
-  const stepIdx    = STATUS_STEPS.findIndex(s => s.key === application.status);
+  const isRejected  = application.status === 'rejected';
+  const mappedKey   = STEP_KEY_MAP[application.status] || application.status;
+  const stepIdx     = STATUS_STEPS.findIndex(s => s.key === mappedKey);
 
   return (
     <div className="card border-0 shadow-sm mb-4">
@@ -233,7 +235,7 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
     }
   };
 
-  if (application.paymentVerified) {
+  if (application.paymentVerified && application.status !== 'approved') {
     return (
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4 d-flex align-items-center gap-3">

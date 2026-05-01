@@ -60,9 +60,11 @@ function PaymentStatus({ app }) {
 export default function ApplicationDetail() {
   const { id }              = useParams();
   const navigate            = useNavigate();
-  const [app, setApp]       = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [acting, setActing] = useState(false);
+  const [app, setApp]           = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [acting, setActing]     = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const fetchApp = () => {
     setLoading(true);
@@ -89,12 +91,33 @@ export default function ApplicationDetail() {
     }
   };
 
+  const handlePhotoUpload = async () => {
+    if (!photoFile) return;
+    const allowed = ['image/jpeg', 'image/png'];
+    if (!allowed.includes(photoFile.type)) return alert('Only JPEG and PNG files are allowed.');
+    const fd = new FormData();
+    fd.append('photo', photoFile);
+    setUploadingPhoto(true);
+    try {
+      const res = await axios.post(`/api/IdApplication/upload-photo/${id}`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setApp(res.data);
+      setPhotoFile(null);
+    } catch {
+      alert('Photo upload failed. Please try again.');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   if (loading) return (
     <div className="p-4 text-muted">Loading…</div>
   );
   if (!app) return null;
 
   const canProcess = (app.status === 'payment' || (app.status === 'payment_pending' && !app.paymentVerified));
+  const canProceedToPrinting = app.paymentVerified && (app.status === 'payment_pending' || app.status === 'payment');
   const canRelease = app.status === 'printing';
   const isReleased = app.status === 'released';
 
@@ -249,7 +272,7 @@ export default function ApplicationDetail() {
             </div>
             <div className="text-center border rounded p-3 bg-light">
               <img
-                src={`http://localhost:5000/${app.receiptImage.replace(/^uploads[\\/]/, '').replace(/\\/g, '/')}`}
+                src={`/${app.receiptImage.replace(/\\/g, '/')}`}
                 alt="Payment Receipt"
                 className="img-fluid rounded"
                 style={{ maxHeight: 400, objectFit: 'contain' }}
@@ -266,6 +289,80 @@ export default function ApplicationDetail() {
         </div>
       )}
 
+      {/* Alumni Photo Upload */}
+      {app.status !== 'released' && (
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-body p-4">
+            <div className="fw-semibold mb-1" style={{ fontSize: 14 }}>
+              <i className="bi bi-person-bounding-box me-2" />Alumni Photo
+              {app.alumniPhoto
+                ? <span className="badge bg-success ms-2" style={{ fontSize: 11 }}>Uploaded</span>
+                : <span className="badge bg-warning text-dark ms-2" style={{ fontSize: 11 }}>Required for ID</span>
+              }
+            </div>
+            <p className="text-muted mb-3" style={{ fontSize: 13 }}>
+              Upload a clear photo of the alumni for their ID card. Use a plain background, face clearly visible.
+            </p>
+
+            {/* Preview current photo */}
+            {app.alumniPhoto && (
+              <div className="mb-3 d-flex align-items-center gap-3">
+                <img
+                  src={`/${app.alumniPhoto.replace(/\\/g, '/')}`}
+                  alt="Alumni"
+                  style={{ width: 80, height: 96, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
+                />
+                <div>
+                  <div className="text-success fw-semibold" style={{ fontSize: 13 }}>
+                    <i className="bi bi-check-circle-fill me-1" />Photo on file
+                  </div>
+                  <div className="text-muted" style={{ fontSize: 12 }}>Upload a new file to replace it</div>
+                </div>
+              </div>
+            )}
+
+            <div className="d-flex gap-2 align-items-center flex-wrap">
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                className="form-control"
+                style={{ maxWidth: 280, fontSize: 13 }}
+                onChange={e => setPhotoFile(e.target.files[0] || null)}
+              />
+              <button
+                className="btn btn-approve btn-sm"
+                style={{ fontSize: 13 }}
+                disabled={uploadingPhoto || !photoFile}
+                onClick={handlePhotoUpload}
+              >
+                {uploadingPhoto
+                  ? <><span className="spinner-border spinner-border-sm me-2" />Uploading…</>
+                  : <><i className="bi bi-upload me-1" />{app.alumniPhoto ? 'Replace Photo' : 'Upload Photo'}</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Show uploaded photo for released IDs */}
+      {app.status === 'released' && app.alumniPhoto && (
+        <div className="card border-0 shadow-sm mb-4">
+          <div className="card-body p-4 d-flex align-items-center gap-3">
+            <img
+              src={`/${app.alumniPhoto.replace(/\\/g, '/')}`}
+              alt="Alumni"
+              style={{ width: 80, height: 96, objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
+            />
+            <div>
+              <div className="fw-semibold" style={{ fontSize: 14 }}>
+                <i className="bi bi-person-bounding-box me-2" />Alumni Photo
+              </div>
+              <div className="text-muted" style={{ fontSize: 13 }}>Photo used for this Alumni ID card.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="d-flex gap-2 justify-content-end">
         <button
@@ -275,27 +372,6 @@ export default function ApplicationDetail() {
           Return
         </button>
 
-        {(app.status === 'payment_pending' || app.status === 'payment') && !app.paymentVerified && (
-          <button
-            className="btn btn-sm btn-warning"
-            disabled={acting}
-            onClick={async () => {
-              setActing(true);
-              try {
-                const res = await axios.put(`/api/IdApplication/${id}`, { paymentVerified: true });
-                setApp(res.data);
-              } catch {
-                alert('Failed to verify payment. Please try again.');
-              } finally {
-                setActing(false);
-              }
-            }}
-          >
-            <i className="bi bi-check2-circle me-1" />
-            {acting ? 'Verifying…' : 'Verify Payment'}
-          </button>
-        )}
-
         {canProcess && (
           <button
             className="btn btn-sm btn-approve"
@@ -303,7 +379,18 @@ export default function ApplicationDetail() {
             onClick={() => handleAction('printing')}
           >
             <i className="bi bi-check-circle me-1" />
-            {acting ? 'Verifying…' : 'Verify Payment & Process'}
+            {acting ? 'Processing…' : 'Verify Payment & Process'}
+          </button>
+        )}
+
+        {canProceedToPrinting && (
+          <button
+            className="btn btn-sm btn-approve"
+            disabled={acting}
+            onClick={() => handleAction('printing')}
+          >
+            <i className="bi bi-printer-fill me-1" />
+            {acting ? 'Processing…' : 'Proceed to Printing'}
           </button>
         )}
 

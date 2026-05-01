@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const NOTIF_META = {
+  info:    { icon: 'bi-info-circle-fill',          color: '#1e40af', bg: '#dbeafe' },
+  success: { icon: 'bi-check-circle-fill',          color: '#166534', bg: '#dcfce7' },
+  warning: { icon: 'bi-exclamation-triangle-fill',  color: '#92400e', bg: '#fef9c3' },
+  error:   { icon: 'bi-x-circle-fill',              color: '#991b1b', bg: '#fee2e2' },
+};
+
 const STATUS_META = {
   pending:      { label: 'Pending Review',      color: '#92400e', bg: '#fef9c3', icon: 'bi-clock-fill' },
   under_review: { label: 'Under Review',         color: '#1e40af', bg: '#dbeafe', icon: 'bi-search' },
@@ -48,7 +55,7 @@ export default function AlumniDashboard() {
       axios.get('/api/education', { headers }),
       axios.get('/api/work', { headers }),
       axios.get('/api/IdApplication/my', { headers }),
-      axios.get('/api/notifications', { headers }),
+      axios.get('/api/notifications/my', { headers }),
     ])
       .then(([profileRes, eduRes, workRes, appRes, notifsRes]) => {
         setProfile(profileRes.data);
@@ -111,53 +118,98 @@ export default function AlumniDashboard() {
               className="card border-0 shadow"
               style={{
                 position: 'absolute', top: '110%', right: 0,
-                width: 320, zIndex: 100, maxHeight: 360, overflowY: 'auto'
+                width: 340, zIndex: 100,
+                borderRadius: 12, overflow: 'hidden',
               }}
             >
-              <div className="card-body p-0">
-                <div className="p-3 border-bottom fw-bold d-flex justify-content-between align-items-center"
-                  style={{ fontSize: 13 }}>
-                  Notifications
-                  <button
-                    className="btn btn-sm btn-link p-0 text-muted"
-                    style={{ fontSize: 11 }}
-                    onClick={() => setShowNotifs(false)}
-                  >
-                    Close
-                  </button>
-                </div>
+              {/* Header */}
+              <div
+                className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
+                style={{ backgroundColor: '#1e2d5e' }}
+              >
+                <span className="fw-semibold text-white" style={{ fontSize: 13 }}>
+                  <i className="bi bi-bell-fill me-2" />Notifications
+                  {unreadCount > 0 && (
+                    <span className="badge bg-danger ms-2" style={{ fontSize: 10 }}>{unreadCount}</span>
+                  )}
+                </span>
+                <button
+                  className="btn btn-sm btn-link p-0"
+                  style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}
+                  onClick={() => setShowNotifs(false)}
+                >
+                  <i className="bi bi-x-lg" />
+                </button>
+              </div>
+
+              {/* List */}
+              <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                 {notifications.length === 0 ? (
-                  <div className="p-3 text-muted" style={{ fontSize: 13 }}>
+                  <div className="text-center py-4 text-muted" style={{ fontSize: 13 }}>
+                    <i className="bi bi-bell-slash d-block mb-1" style={{ fontSize: 22 }} />
                     No notifications yet.
                   </div>
                 ) : (
-                  notifications.map(n => (
-                    <div
-                      key={n._id}
-                      onClick={() => markAsRead(n._id)}
-                      className="p-3 border-bottom"
-                      style={{
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        background: n.read ? '#fff' : '#f0f4ff',
-                      }}
-                    >
-                      <div className="d-flex align-items-start gap-2">
-                        <i
-                          className="bi bi-bell-fill mt-1"
-                          style={{ color: n.read ? '#9ca3af' : '#2563eb', fontSize: 12, flexShrink: 0 }}
-                        />
-                        <div>
-                          <div>{n.message}</div>
-                          <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>
-                            {new Date(n.createdAt).toLocaleDateString()}
+                  notifications.slice(0, 8).map((n, idx) => {
+                    const meta = NOTIF_META[n.type] || NOTIF_META.info;
+                    return (
+                      <div
+                        key={n._id}
+                        onClick={() => markAsRead(n._id)}
+                        className="d-flex align-items-start gap-3 px-3 py-3"
+                        style={{
+                          cursor: 'pointer',
+                          borderBottom: idx !== Math.min(notifications.length, 8) - 1 ? '1px solid #f3f4f6' : 'none',
+                          background: n.read ? '#fff' : '#f8fafc',
+                          transition: 'background 0.15s',
+                        }}
+                      >
+                        <div
+                          className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                          style={{ width: 36, height: 36, backgroundColor: meta.bg, color: meta.color }}
+                        >
+                          <i className={`bi ${meta.icon}`} style={{ fontSize: 14 }} />
+                        </div>
+                        <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                          {n.title && (
+                            <div className="fw-semibold text-truncate" style={{ fontSize: 13, color: '#111827' }}>
+                              {n.title}
+                            </div>
+                          )}
+                          <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.4 }}>
+                            {n.message}
+                          </div>
+                          <div className="text-muted mt-1" style={{ fontSize: 11 }}>
+                            {new Date(n.createdAt).toLocaleString()}
                           </div>
                         </div>
+                        {!n.read && (
+                          <div
+                            className="rounded-circle flex-shrink-0"
+                            style={{ width: 8, height: 8, backgroundColor: '#2563eb', marginTop: 6 }}
+                          />
+                        )}
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
+
+              {/* Footer */}
+              {notifications.length > 0 && (
+                <div
+                  className="text-center py-2 border-top"
+                  style={{ backgroundColor: '#f9fafb' }}
+                >
+                  <button
+                    className="btn btn-sm btn-link p-0"
+                    style={{ fontSize: 12, color: '#1e2d5e', fontWeight: 600, textDecoration: 'none' }}
+                    onClick={() => { setShowNotifs(false); navigate('/alumni-portal/notifications'); }}
+                  >
+                    View all notifications →
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

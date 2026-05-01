@@ -27,6 +27,7 @@ import IDProcessing from './pages/external/IDProcessing';
 import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import AlumniProfile from './pages/alumni/AlumniProfile';
 import AlumniIdApplication from './pages/alumni/AlumniIdApplication';
+import AlumniNotification from './pages/alumni/AlumniNotification';
 
 export default function App() {
   return (
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/alumni-portal" element={<AlumniDashboard />} />
             <Route path="/alumni-portal/profile" element={<AlumniProfile />} />
             <Route path="/alumni-portal/apply" element={<AlumniIdApplication />} />
+            <Route path="/alumni-portal/notifications" element={<AlumniNotification />} />
           </Route>
         </Route>
 

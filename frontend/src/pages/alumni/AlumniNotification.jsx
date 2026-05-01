@@ -44,10 +44,11 @@ export default function AlumniNotification() {
       .finally(() => setLoading(false));
 
     axios
-      .get('/api/notifications/unread-count', { headers })  
+      .get('/api/notifications/unread-count', { headers })
       .then(res => setUnreadCount(res.data.count || 0))
       .catch(console.error);
-  }, [headers]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const markAllAsRead = async () => {
   try {
@@ -67,7 +68,7 @@ export default function AlumniNotification() {
     await axios.patch(`/api/notifications/${id}/read`, {}, { headers });
 
     setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+      prev.map(n => (n._id === id ? { ...n, read: true } : n))
     );
 
     setUnreadCount(prev => Math.max(prev - 1, 0));

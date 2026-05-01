@@ -1,24 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const FILTER_OPTIONS = [
-  { value: 'all',       label: 'All' },
-  { value: 'on_hold',   label: 'On Hold' },
+  { value: 'all',        label: 'All' },
+  { value: 'on_hold',    label: 'On Hold' },
   { value: 'unverified', label: 'Receipt Uploaded' },
-  { value: 'verified',  label: 'Payment Verified' },
-  { value: 'printing',  label: 'In Printing' },
-  { value: 'released',  label: 'Released' },
+  { value: 'verified',   label: 'Payment Verified' },
+  { value: 'printing',   label: 'In Printing' },
+  { value: 'released',   label: 'Released' },
 ];
 
 function paymentBadge(app) {
-  if (app.status === 'released')                                                      return { text: 'Released',        cls: 'status-released' };
-  if (app.status === 'printing')                                                      return { text: 'In Printing',      cls: 'status-printing' };
-  if (app.status === 'approved' && !app.receiptImage)                                return { text: 'On Hold',          cls: 'status-pending' };
-  if (app.status === 'payment' || app.status === 'payment_pending')                  return { text: 'Receipt Uploaded', cls: 'status-under_review' };
-  if (app.receiptImage && !app.paymentVerified)                                      return { text: 'Receipt Uploaded', cls: 'status-under_review' };
-  if (app.paymentVerified)                                                            return { text: 'Payment Verified', cls: 'status-approved' };
-  return                                                                                    { text: 'On Hold',          cls: 'status-pending' };
+  if (app.status === 'released')                                                   return { text: 'Released',        cls: 'status-released' };
+  if (app.status === 'printing')                                                   return { text: 'In Printing',     cls: 'status-printing' };
+  if (app.status === 'approved' && !app.receiptImage)                             return { text: 'On Hold',         cls: 'status-pending' };
+  if (app.status === 'payment' || app.status === 'payment_pending')               return { text: 'Receipt Uploaded', cls: 'status-under_review' };
+  if (app.receiptImage && !app.paymentVerified)                                   return { text: 'Receipt Uploaded', cls: 'status-under_review' };
+  if (app.paymentVerified)                                                         return { text: 'Payment Verified', cls: 'status-approved' };
+  return                                                                                  { text: 'On Hold',         cls: 'status-pending' };
 }
 
 function appFilter(app, filter) {
@@ -31,6 +31,66 @@ function appFilter(app, filter) {
   return true;
 }
 
+function VerifyModal({ app, onClose, onVerify, verifying }) {
+  if (!app) return null;
+  return (
+    <>
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }} />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 1055, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', pointerEvents: 'none' }}>
+        <div style={{ width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto', borderRadius: 14, backgroundColor: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', pointerEvents: 'all' }}>
+          {/* Header */}
+          <div className="d-flex align-items-center justify-content-between px-4 py-3" style={{ backgroundColor: '#1e2d5e', borderRadius: '14px 14px 0 0' }}>
+            <span className="fw-semibold text-white" style={{ fontSize: 15 }}>
+              <i className="bi bi-receipt me-2" />Verify Payment
+            </span>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 18, cursor: 'pointer' }}>
+              <i className="bi bi-x-lg" />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div className="p-4">
+            <div className="mb-3 p-3 rounded" style={{ backgroundColor: '#f8fafc', border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Applicant</div>
+              <div className="fw-semibold" style={{ fontSize: 14, color: '#111827' }}>{app.userId?.name || '—'}</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>{app.userId?.email || ''}</div>
+            </div>
+
+            {app.receiptImage ? (
+              <div className="border rounded overflow-hidden" style={{ backgroundColor: '#f9fafb' }}>
+                <img
+                  src={`/${app.receiptImage.replace(/\\/g, '/')}`}
+                  alt="Payment Receipt"
+                  style={{ width: '100%', maxHeight: 340, objectFit: 'contain', display: 'block' }}
+                  onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                />
+                <div style={{ display: 'none', alignItems: 'center', justifyContent: 'center', padding: '2rem', color: '#9ca3af', fontSize: 13 }}>
+                  <i className="bi bi-image me-2" />Unable to load receipt image
+                </div>
+              </div>
+            ) : (
+              <div className="alert alert-warning d-flex align-items-center gap-2" style={{ fontSize: 13 }}>
+                <i className="bi bi-exclamation-triangle-fill" />No receipt image on file.
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="d-flex justify-content-end gap-2 px-4 pb-4">
+            <button className="btn btn-sm btn-outline-secondary" onClick={onClose}>Cancel</button>
+            {app.receiptImage && (
+              <button className="btn btn-sm btn-approve" disabled={verifying} onClick={onVerify}>
+                <i className="bi bi-check-lg me-1" />
+                {verifying ? 'Verifying…' : 'Confirm Payment Verified'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function ApprovedApplications() {
   const [apps, setApps]             = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -38,7 +98,8 @@ export default function ApprovedApplications() {
   const [filter, setFilter]         = useState('all');
   const [receiptApp, setReceiptApp] = useState(null);
   const [verifying, setVerifying]   = useState(false);
-  const receiptModalRef             = useRef(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleting, setDeleting]     = useState(false);
   const navigate                    = useNavigate();
 
   const fetchApps = () => {
@@ -51,22 +112,17 @@ export default function ApprovedApplications() {
 
   useEffect(() => { fetchApps(); }, []);
 
-  useEffect(() => {
-    if (receiptApp && receiptModalRef.current) {
-      const m = new window.bootstrap.Modal(receiptModalRef.current);
-      m.show();
-      receiptModalRef.current.addEventListener('hidden.bs.modal', () => setReceiptApp(null), { once: true });
-    }
-  }, [receiptApp]);
-
-  const handleDelete = async (app) => {
-    const name = app.userId?.name || app.universityIdNumber || 'this application';
-    if (!window.confirm(`Delete the application for ${name}? This cannot be undone.`)) return;
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
     try {
-      await axios.delete(`/api/IdApplication/${app._id}`);
+      await axios.delete(`/api/IdApplication/${confirmDelete._id}`);
+      setConfirmDelete(null);
       fetchApps();
     } catch {
       alert('Failed to delete application.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -75,8 +131,8 @@ export default function ApprovedApplications() {
     setVerifying(true);
     try {
       await axios.put(`/api/IdApplication/${receiptApp._id}`, { paymentVerified: true, status: 'printing' });
+      setReceiptApp(null);
       fetchApps();
-      window.bootstrap.Modal.getInstance(receiptModalRef.current)?.hide();
     } catch {
       alert('Failed to verify payment.');
     } finally {
@@ -109,7 +165,7 @@ export default function ApprovedApplications() {
         Alumni ID applications approved by XU-ARO — verify payment before processing
       </p>
 
-      {/* Mini stats */}
+      {/* Stats */}
       <div className="row g-3 mb-4">
         {[
           { label: 'Total',                value: counts.all,        cls: 'app-stat-plain' },
@@ -154,12 +210,9 @@ export default function ApprovedApplications() {
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
-                <th style={{ fontSize: 12 }}>APPLICANT</th>
-                <th style={{ fontSize: 12 }}>ID NUMBER</th>
-                <th style={{ fontSize: 12 }}>COURSE</th>
-                <th style={{ fontSize: 12 }}>DATE APPLIED</th>
-                <th style={{ fontSize: 12 }}>PAYMENT STATUS</th>
-                <th style={{ fontSize: 12 }}>ACTIONS</th>
+                {['APPLICANT', 'ID NUMBER', 'COURSE', 'DATE APPLIED', 'PAYMENT STATUS', 'ACTIONS'].map(h => (
+                  <th key={h} style={{ fontSize: 12 }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -183,38 +236,40 @@ export default function ApprovedApplications() {
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>
                     <td><span className={`status-badge ${b.cls}`}>{b.text}</span></td>
-                    <td className="d-flex gap-2 flex-wrap py-2">
-                      {/* Always: view full form */}
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        style={{ fontSize: 12 }}
-                        onClick={() => navigate(`/external-portal/applications/${app._id}`)}
-                      >
-                        <i className="bi bi-eye me-1" />View
-                      </button>
-                      {/* Receipt uploaded but not verified */}
-                      {(app.status === 'payment' || app.status === 'payment_pending') && !app.paymentVerified && (
+                    <td>
+                      <div className="d-flex align-items-center gap-1">
                         <button
-                          className="btn btn-sm btn-outline-warning"
+                          className="btn btn-sm btn-outline-secondary"
                           style={{ fontSize: 12 }}
-                          onClick={() => setReceiptApp(app)}
+                          onClick={() => navigate(`/external-portal/applications/${app._id}`)}
+                          title="View application"
                         >
-                          <i className="bi bi-receipt me-1" />Verify
+                          <i className="bi bi-eye me-1" />View
                         </button>
-                      )}
-                      {/* On Hold indicator */}
-                      {app.status === 'approved' && !app.receiptImage && (
-                        <span className="text-muted" style={{ fontSize: 11, alignSelf: 'center' }}>
-                          <i className="bi bi-pause-circle me-1" />On Hold
-                        </span>
-                      )}
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        style={{ fontSize: 12 }}
-                        onClick={() => handleDelete(app)}
-                      >
-                        <i className="bi bi-trash me-1" />Delete
-                      </button>
+                        {(app.status === 'payment' || app.status === 'payment_pending') && !app.paymentVerified && (
+                          <button
+                            className="btn btn-sm btn-approve"
+                            style={{ fontSize: 12 }}
+                            onClick={() => setReceiptApp(app)}
+                            title="Verify payment"
+                          >
+                            <i className="bi bi-receipt me-1" />Verify
+                          </button>
+                        )}
+                        {app.status === 'approved' && !app.receiptImage && (
+                          <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                            <i className="bi bi-pause-circle me-1" />On Hold
+                          </span>
+                        )}
+                        <button
+                          className="btn btn-sm"
+                          style={{ fontSize: 12, color: '#ef4444', background: 'none', border: 'none', padding: '4px 6px' }}
+                          onClick={() => setConfirmDelete(app)}
+                          title="Delete application"
+                        >
+                          <i className="bi bi-trash" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -224,60 +279,39 @@ export default function ApprovedApplications() {
         </div>
       </div>
 
-      {/* Receipt verification modal */}
-      <div className="modal fade" ref={receiptModalRef} tabIndex={-1}>
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            {receiptApp && (
-              <>
-                <div className="modal-header modal-header-dark text-white">
-                  <h5 className="modal-title">
-                    <i className="bi bi-receipt me-2" />Verify Payment
-                  </h5>
-                  <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" />
+      {/* Verify Payment Modal */}
+      <VerifyModal
+        app={receiptApp}
+        onClose={() => setReceiptApp(null)}
+        onVerify={handleVerifyPayment}
+        verifying={verifying}
+      />
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <>
+          <div onClick={() => setConfirmDelete(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1050 }} />
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1055, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', pointerEvents: 'none' }}>
+            <div style={{ width: '100%', maxWidth: 400, borderRadius: 14, backgroundColor: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', pointerEvents: 'all', overflow: 'hidden' }}>
+              <div className="p-4 text-center">
+                <div className="mb-3">
+                  <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: 40, color: '#ef4444' }} />
                 </div>
-                <div className="modal-body">
-                  <p style={{ fontSize: 13, color: '#374151' }}>
-                    Applicant: <strong>{receiptApp.userId?.name}</strong>
-                  </p>
-                  {receiptApp.receiptImage ? (
-                    <div className="text-center border rounded p-3 bg-light">
-                      <img
-                        src={`http://localhost:5000/${receiptApp.receiptImage.replace(/\\/g, '/')}`}
-                        alt="Payment Receipt"
-                        className="img-fluid rounded"
-                        style={{ maxHeight: 340, objectFit: 'contain' }}
-                        onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-                      />
-                      <div style={{ display: 'none', color: '#9ca3af', fontSize: 13 }}>
-                        <i className="bi bi-image me-1" />Unable to load receipt image
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="alert alert-warning">No receipt image on file.</div>
-                  )}
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary btn-sm" data-bs-dismiss="modal">
-                    Cancel
+                <h6 className="fw-bold mb-1">Delete Application?</h6>
+                <p className="text-muted mb-4" style={{ fontSize: 13 }}>
+                  This will permanently remove the application for <strong>{confirmDelete.userId?.name || confirmDelete.universityIdNumber}</strong>. This action cannot be undone.
+                </p>
+                <div className="d-flex justify-content-center gap-2">
+                  <button className="btn btn-sm btn-outline-secondary px-4" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                  <button className="btn btn-sm btn-danger px-4" onClick={handleDelete} disabled={deleting}>
+                    {deleting ? 'Deleting…' : 'Yes, Delete'}
                   </button>
-                  {receiptApp.receiptImage && (
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-approve"
-                      disabled={verifying}
-                      onClick={handleVerifyPayment}
-                    >
-                      <i className="bi bi-check-lg me-1" />
-                      {verifying ? 'Verifying…' : 'Confirm Payment Verified'}
-                    </button>
-                  )}
                 </div>
-              </>
-            )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

@@ -30,6 +30,9 @@ const applicationSchema = new mongoose.Schema({
     receiptImage:    String,
     paymentVerified: { type: Boolean, default: false },
 
+    // Alumni photo (uploaded by Book Center for ID printing)
+    alumniPhoto: String,
+
     status: {
         type: String,
         enum: ["pending", "under_review", "approved", "payment_pending", "payment", "rejected", "printing", "released"],

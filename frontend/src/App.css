@@ -191,14 +191,16 @@
   white-space: nowrap;
 }
 
-.status-pending      { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
+.status-pending          { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
 .status-approved,
-.status-active       { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.status-rejected     { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-.status-inactive     { background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
-.status-under_review { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-.status-printing     { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; }
-.status-released     { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.status-active           { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.status-rejected         { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.status-inactive         { background: #f3f4f6; color: #6b7280; border: 1px solid #d1d5db; }
+.status-under_review     { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.status-payment_pending,
+.status-payment          { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+.status-printing         { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; }
+.status-released         { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 
 /* ── Page heading ────────────────────────────────── */
 .page-title { font-weight: 700; color: #1e2d5e; margin-bottom: 6px; }
