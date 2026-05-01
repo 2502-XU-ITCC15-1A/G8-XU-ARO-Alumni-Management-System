@@ -2,7 +2,19 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 function StatusBadge({ status }) {
-  return <span className={`status-badge status-${status}`}>{status}</span>;
+  const labelMap = {
+    pending: "Pending",
+    under_review: "Under Review",
+    approved: "Approved",
+    rejected: "Rejected",
+    payment_pending: "Payment Pending",
+  };
+
+  return (
+    <span className={`status-badge status-${status}`}>
+      {labelMap[status] || status}
+    </span>
+  );
 }
 
 function formatDate(iso) {
