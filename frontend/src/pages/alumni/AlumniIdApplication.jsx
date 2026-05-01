@@ -194,6 +194,8 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
 
   const upload = async () => {
     if (!file) return alert('Please select a receipt image first.');
+    const allowed = ['image/jpeg', 'image/png'];
+    if (!allowed.includes(file.type)) return alert('Only JPEG and PNG files are allowed.');
     const fd = new FormData();
     fd.append('receipt', file);
     setUploading(true);
@@ -240,7 +242,7 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
           <div className="d-flex gap-2 align-items-center flex-wrap">
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png"
               className="form-control"
               style={{ maxWidth: 280, fontSize: 13 }}
               onChange={e => setFile(e.target.files[0])}
