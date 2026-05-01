@@ -78,7 +78,6 @@ export default function ApplicationReview() {
         Verify alumni information and approve or reject ID applications
       </p>
 
-      {/* stat card */}
       <div className="row g-3 mb-4">
         {STAT_CARDS.map(card => (
           <div key={card.label} className="col-6 col-xl-3">
@@ -92,7 +91,6 @@ export default function ApplicationReview() {
         ))}
       </div>
 
-      {/* filter */}
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body py-3 px-4 d-flex align-items-center gap-2">
           <i className="bi bi-funnel text-muted" />
@@ -110,7 +108,6 @@ export default function ApplicationReview() {
         </div>
       </div>
 
-      {/* table */}
       <div className="card border-0 shadow-sm">
         <div className="card-body p-4">
           <h6 className="fw-bold mb-4">Applications ({filtered.length})</h6>
@@ -160,7 +157,6 @@ export default function ApplicationReview() {
         </div>
       </div>
 
-      {/* verify modal */}
       {selected && (
         <>
           <div className="modal show d-block" tabIndex="-1" style={{ zIndex: 1050 }}>

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Application = require('../models/IdApplication');
 
-//get applications
 router.get('/', async (req, res) => {
   try {
     const applications = await Application.find()
