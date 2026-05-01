@@ -3,47 +3,48 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const FILTER_OPTIONS = [
-  { value: 'all',      label: 'All' },
-  { value: 'on_hold',  label: 'On Hold' },
+  { value: 'all',       label: 'All' },
+  { value: 'on_hold',   label: 'On Hold' },
   { value: 'unverified', label: 'Receipt Uploaded' },
-  { value: 'verified', label: 'Payment Verified' },
-  { value: 'printing', label: 'In Printing' },
-  { value: 'released', label: 'Released' },
+  { value: 'verified',  label: 'Payment Verified' },
+  { value: 'printing',  label: 'In Printing' },
+  { value: 'released',  label: 'Released' },
 ];
 
 function paymentBadge(app) {
-  if (app.status === 'released')                                          return { text: 'Released',          cls: 'status-released' };
-  if (app.status === 'printing')                                          return { text: 'In Printing',        cls: 'status-printing' };
-  if (app.status === 'approved')                                          return { text: 'On Hold',            cls: 'status-pending' };
-  if (app.status === 'payment_pending' && !app.paymentVerified)           return { text: 'Receipt Uploaded',   cls: 'status-under_review' };
-  if (app.status === 'payment_pending' && app.paymentVerified)            return { text: 'Payment Verified',   cls: 'status-approved' };
-  return                                                                         { text: 'On Hold',            cls: 'status-pending' };
+  if (app.status === 'released')                                                      return { text: 'Released',        cls: 'status-released' };
+  if (app.status === 'printing')                                                      return { text: 'In Printing',      cls: 'status-printing' };
+  if (app.status === 'approved' && !app.receiptImage)                                return { text: 'On Hold',          cls: 'status-pending' };
+  if (app.status === 'payment' || app.status === 'payment_pending')                  return { text: 'Receipt Uploaded', cls: 'status-under_review' };
+  if (app.receiptImage && !app.paymentVerified)                                      return { text: 'Receipt Uploaded', cls: 'status-under_review' };
+  if (app.paymentVerified)                                                            return { text: 'Payment Verified', cls: 'status-approved' };
+  return                                                                                    { text: 'On Hold',          cls: 'status-pending' };
 }
 
 function appFilter(app, filter) {
   if (filter === 'all')        return true;
-  if (filter === 'on_hold')    return app.status === 'approved';
-  if (filter === 'unverified') return app.status === 'payment_pending' && !app.paymentVerified;
-  if (filter === 'verified')   return app.status === 'payment_pending' && app.paymentVerified;
+  if (filter === 'on_hold')    return app.status === 'approved' && !app.receiptImage;
+  if (filter === 'unverified') return app.status === 'payment' || app.status === 'payment_pending' || (app.receiptImage && !app.paymentVerified);
+  if (filter === 'verified')   return app.paymentVerified;
   if (filter === 'printing')   return app.status === 'printing';
   if (filter === 'released')   return app.status === 'released';
   return true;
 }
 
 export default function ApprovedApplications() {
-  const [apps, setApps]           = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [search, setSearch]       = useState('');
-  const [filter, setFilter]       = useState('all');
+  const [apps, setApps]             = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState('');
+  const [filter, setFilter]         = useState('all');
   const [receiptApp, setReceiptApp] = useState(null);
-  const [verifying, setVerifying] = useState(false);
-  const receiptModalRef           = useRef(null);
-  const navigate                  = useNavigate();
+  const [verifying, setVerifying]   = useState(false);
+  const receiptModalRef             = useRef(null);
+  const navigate                    = useNavigate();
 
   const fetchApps = () => {
     setLoading(true);
     axios.get('/api/IdApplication')
-      .then(r => setApps(r.data.filter(a => ['approved','payment_pending','printing','released'].includes(a.status))))
+      .then(r => setApps(r.data.filter(a => ['approved', 'payment', 'payment_pending', 'printing', 'released'].includes(a.status))))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
@@ -73,7 +74,7 @@ export default function ApprovedApplications() {
     if (!receiptApp) return;
     setVerifying(true);
     try {
-      await axios.put(`/api/IdApplication/${receiptApp._id}`, { paymentVerified: true });
+      await axios.put(`/api/IdApplication/${receiptApp._id}`, { paymentVerified: true, status: 'printing' });
       fetchApps();
       window.bootstrap.Modal.getInstance(receiptModalRef.current)?.hide();
     } catch {
@@ -94,9 +95,9 @@ export default function ApprovedApplications() {
 
   const counts = {
     all:        apps.length,
-    on_hold:    apps.filter(a => a.status === 'approved').length,
-    unverified: apps.filter(a => a.status === 'payment_pending' && !a.paymentVerified).length,
-    verified:   apps.filter(a => a.status === 'payment_pending' && a.paymentVerified).length,
+    on_hold:    apps.filter(a => a.status === 'approved' && !a.receiptImage).length,
+    unverified: apps.filter(a => a.status === 'payment' || a.status === 'payment_pending' || (a.receiptImage && !a.paymentVerified)).length,
+    verified:   apps.filter(a => a.paymentVerified).length,
     printing:   apps.filter(a => a.status === 'printing').length,
     released:   apps.filter(a => a.status === 'released').length,
   };
@@ -111,10 +112,10 @@ export default function ApprovedApplications() {
       {/* Mini stats */}
       <div className="row g-3 mb-4">
         {[
-          { label: 'Total',            value: counts.all,        cls: 'app-stat-plain' },
-          { label: 'On Hold',          value: counts.on_hold,    cls: 'app-stat-pending' },
+          { label: 'Total',                value: counts.all,        cls: 'app-stat-plain' },
+          { label: 'On Hold',              value: counts.on_hold,    cls: 'app-stat-pending' },
           { label: 'Pending Verification', value: counts.unverified, cls: 'app-stat-plain' },
-          { label: 'Payment Verified', value: counts.verified,   cls: 'app-stat-approved' },
+          { label: 'Payment Verified',     value: counts.verified,   cls: 'app-stat-approved' },
         ].map(s => (
           <div key={s.label} className="col-6 col-xl-3">
             <div className={`app-stat-card ${s.cls}`}>
@@ -192,7 +193,7 @@ export default function ApprovedApplications() {
                         <i className="bi bi-eye me-1" />View
                       </button>
                       {/* Receipt uploaded but not verified */}
-                      {app.status === 'payment_pending' && !app.paymentVerified && (
+                      {(app.status === 'payment' || app.status === 'payment_pending') && !app.paymentVerified && (
                         <button
                           className="btn btn-sm btn-outline-warning"
                           style={{ fontSize: 12 }}
@@ -202,7 +203,7 @@ export default function ApprovedApplications() {
                         </button>
                       )}
                       {/* On Hold indicator */}
-                      {app.status === 'approved' && (
+                      {app.status === 'approved' && !app.receiptImage && (
                         <span className="text-muted" style={{ fontSize: 11, alignSelf: 'center' }}>
                           <i className="bi bi-pause-circle me-1" />On Hold
                         </span>
@@ -242,7 +243,7 @@ export default function ApprovedApplications() {
                   {receiptApp.receiptImage ? (
                     <div className="text-center border rounded p-3 bg-light">
                       <img
-                        src={`http://localhost:5000/uploads/${receiptApp.receiptImage.replace(/^uploads[\\/]/, '')}`}
+                        src={`http://localhost:5000/${receiptApp.receiptImage.replace(/\\/g, '/')}`}
                         alt="Payment Receipt"
                         className="img-fluid rounded"
                         style={{ maxHeight: 340, objectFit: 'contain' }}

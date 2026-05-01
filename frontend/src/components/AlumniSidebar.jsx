@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const navItems = [
-  { path: '/alumni-portal', label: 'Dashboard', icon: 'bi-grid-fill' },
-  { path: '/alumni-portal/profile', label: 'My Profile', icon: 'bi-person-fill' },
-  { path: '/alumni-portal/apply', label: 'Alumni ID', icon: 'bi-card-heading' },
+  { path: '/alumni-portal',             label: 'Dashboard',      icon: 'bi-grid-fill' },
+  { path: '/alumni-portal/profile',     label: 'My Profile',     icon: 'bi-person-fill' },
+  { path: '/alumni-portal/apply',       label: 'Alumni ID',      icon: 'bi-card-heading' },
   { path: '/alumni-portal/notifications', label: 'Notifications', icon: 'bi-bell-fill' },
 ];
 
@@ -13,11 +13,11 @@ export default function AlumniSidebar({ isOpen, onClose }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);  
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const name = user.name || 'Alumni';
-  const email = user.email || '';
+  const user    = JSON.parse(localStorage.getItem('user') || '{}');
+  const name    = user.name  || 'Alumni';
+  const email   = user.email || '';
   const initial = name.charAt(0).toUpperCase();
 
   useEffect(() => {

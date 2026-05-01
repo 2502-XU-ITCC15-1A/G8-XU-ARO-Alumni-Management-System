@@ -9,16 +9,16 @@ export default function BookCenterDashboard() {
 
   useEffect(() => {
     axios.get('/api/IdApplication')
-      .then(r => setApps(r.data.filter(a => ['approved','printing','released'].includes(a.status))))
+      .then(r => setApps(r.data.filter(a => ['approved', 'payment', 'printing','released'].includes(a.status))))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const onHold    = apps.filter(a => a.status === 'approved' && !a.receiptImage).length;
-  const awaitVerif = apps.filter(a => a.status === 'approved' && a.receiptImage && !a.paymentVerified).length;
-  const readyToPrint = apps.filter(a => a.status === 'approved' && a.paymentVerified).length;
-  const printing  = apps.filter(a => a.status === 'printing').length;
-  const released  = apps.filter(a => a.status === 'released').length;
+  const onHold       = apps.filter(a => a.status === 'approved').length;         
+  const awaitVerif   = apps.filter(a => a.status === 'payment').length;           
+  const readyToPrint = apps.filter(a => a.status === 'printing').length;          
+  const printing     = apps.filter(a => a.status === 'printing').length;          
+  const released     = apps.filter(a => a.status === 'released').length;
 
   const stats = [
     { label: 'Total Applications', value: apps.length,     icon: 'bi-files',                color: '#1e2d5e' },
@@ -34,6 +34,7 @@ export default function BookCenterDashboard() {
   const paymentBadge = (app) => {
     if (app.status === 'printing')  return { text: 'In Printing', cls: 'status-printing' };
     if (app.status === 'released')  return { text: 'Released',    cls: 'status-released' };
+    if (app.status === 'payment')   return { text: 'Pending Verification', cls: 'status-under_review' };
     if (!app.receiptImage)          return { text: 'On Hold',     cls: 'status-pending' };
     if (!app.paymentVerified)       return { text: 'Unverified',  cls: 'status-under_review' };
     return                                 { text: 'Verified',    cls: 'status-approved' };

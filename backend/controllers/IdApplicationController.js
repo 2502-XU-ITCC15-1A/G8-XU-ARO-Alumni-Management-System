@@ -10,13 +10,24 @@ exports.getMyApplications = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+const Notification = require("../models/Notification");
+const AlumniProfile = require("../models/AlumniProfile");
 
 exports.getIdApplications = async (req, res) => {
     try {
         const apps = await IdApplication.find()
             .populate('userId', 'name email')
             .sort({ createdAt: -1 });
-        res.json(apps);
+
+        const appsWithProfile = await Promise.all(apps.map(async (app) => {
+            const profile = await AlumniProfile.findOne({ userId: app.userId?._id });
+            return {
+                ...app.toObject(),
+                alumniProfile: profile || null,
+            };
+        }));
+
+        res.json(appsWithProfile);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -24,7 +35,8 @@ exports.getIdApplications = async (req, res) => {
 
 exports.getIdApplication = async (req, res) => {
     try {
-        const app = await IdApplication.findById(req.params.id).populate('userId', 'name email');
+        const app = await IdApplication.findById(req.params.id)
+            .populate('userId', 'name email');
         if (!app) return res.status(404).json({ message: 'Not found' });
         res.json(app);
     } catch (err) {
@@ -34,8 +46,13 @@ exports.getIdApplication = async (req, res) => {
 
 exports.createIdApplication = async (req, res) => {
     try {
-        const app = await IdApplication.create({ ...req.body, userId: req.user.id });
-        res.json(app);
+        const app = await IdApplication.create({
+            ...{ ...req.body, userId: req.user.id },
+            userId: req.user._id
+        });
+        const populated = await IdApplication.findById(app._id)
+            .populate('userId', 'name email');
+        res.json(populated);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -43,8 +60,7 @@ exports.createIdApplication = async (req, res) => {
 
 exports.uploadReceipt = async (req, res) => {
     try {
-        const { id } = req.params;
-
+        const receiptPath = req.file.path.replace(/\\/g, '/');
         const updated = await IdApplication.findByIdAndUpdate(
             id,
             {

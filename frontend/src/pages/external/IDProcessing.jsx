@@ -14,7 +14,7 @@ export default function IDProcessing() {
     axios.get('/api/IdApplication')
       .then(r => {
         const relevant = r.data.filter(a =>
-          (a.paymentVerified && a.status === 'approved') ||
+          a.status === 'payment' || 
           a.status === 'printing' ||
           a.status === 'released'
         );
@@ -47,13 +47,15 @@ export default function IDProcessing() {
   };
 
   const statusConfig = {
+    payment:  { text: 'Receipt Submitted', cls: 'status-pending',  icon: 'bi-receipt' },
     approved:  { text: 'Ready to Print', cls: 'status-approved', icon: 'bi-check-circle-fill' },
     printing:  { text: 'In Printing',    cls: 'status-printing',  icon: 'bi-printer-fill' },
     released:  { text: 'Released',       cls: 'status-released',  icon: 'bi-bag-check-fill' },
   };
 
   const filtered = filter === 'all' ? apps : apps.filter(a => a.status === filter);
-  const readyCount   = apps.filter(a => a.status === 'approved').length;
+  const pendingPaymentCount = apps.filter(a => a.status === 'payment').length;
+  const readyCount = apps.filter(a => a.status === 'printing').length;
   const printingCount = apps.filter(a => a.status === 'printing').length;
   const releasedCount = apps.filter(a => a.status === 'released').length;
 
@@ -67,10 +69,10 @@ export default function IDProcessing() {
       {/* Mini stats */}
       <div className="row g-3 mb-4">
         {[
-          { label: 'Ready to Print',   value: readyCount,    cls: 'app-stat-approved' },
-          { label: 'In Printing',      value: printingCount, cls: 'app-stat-plain' },
-          { label: 'Released',         value: releasedCount, cls: 'app-stat-plain' },
-          { label: 'Total Processed',  value: apps.length,   cls: 'app-stat-plain' },
+          { label: 'Pending Verification', value: pendingPaymentCount, cls: 'app-stat-pending' },
+          { label: 'Ready to Print',       value: readyCount,          cls: 'app-stat-approved' },
+          { label: 'In Printing',          value: printingCount,       cls: 'app-stat-plain' },
+          { label: 'Released',             value: releasedCount,       cls: 'app-stat-plain' },
         ].map(s => (
           <div key={s.label} className="col-6 col-xl-3">
             <div className={`app-stat-card ${s.cls}`}>
@@ -92,7 +94,8 @@ export default function IDProcessing() {
             onChange={e => setFilter(e.target.value)}
           >
             <option value="all">All Statuses</option>
-            <option value="approved">Ready to Print</option>
+            <option value="payment">Pending Verification</option>
+            <option value="printing">Ready to Print</option>
             <option value="printing">In Printing</option>
             <option value="released">Released</option>
           </select>
@@ -142,14 +145,14 @@ export default function IDProcessing() {
                       >
                         <i className="bi bi-eye me-1" />ID Info
                       </button>
-                      {app.status === 'approved' && (
+                      {app.status === 'payment' && (
                         <button
                           className="btn btn-sm btn-approve"
                           style={{ fontSize: 12 }}
                           disabled={acting}
-                          onClick={() => handleStatusUpdate(app, 'printing')}
+                          onClick={() => handleStatusUpdate(app, 'printing')}  
                         >
-                          <i className="bi bi-printer me-1" />Process
+                          <i className="bi bi-check-circle me-1" />Verify & Print
                         </button>
                       )}
                       {app.status === 'printing' && (
@@ -229,6 +232,17 @@ export default function IDProcessing() {
                       </div>
                     </div>
                   </div>
+                  {selected.receiptImage && (
+                    <div className="p-3 border-top">
+                    <div className="text-muted mb-2" style={{ fontSize: 11 }}>PAYMENT RECEIPT</div>
+                    <img
+                      src={`/${selected.receiptImage.replace(/\\/g, '/')}`}
+                      alt="Payment Receipt"
+                      className="img-fluid rounded border"
+                      style={{ maxHeight: 200, objectFit: 'contain' }}
+                    />
+                    </div>
+                  )}
 
                   {/* Raw data for reference */}
                   <div className="p-3">
@@ -263,7 +277,7 @@ export default function IDProcessing() {
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                  {selected.status === 'approved' && (
+                  {selected.status === 'payment' && (
                     <button
                       type="button"
                       className="btn btn-sm btn-approve"

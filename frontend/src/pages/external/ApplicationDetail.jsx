@@ -27,6 +27,14 @@ function PaymentStatus({ app }) {
       </div>
     );
   }
+  if ((app.status === 'payment' || app.status === 'payment_pending') && !app.paymentVerified) {
+    return (
+      <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
+        <i className="bi bi-clock-fill fs-5" />
+        <div><strong>Receipt Uploaded.</strong> Payment is awaiting verification by Book Center staff.</div>
+      </div>
+    );
+  }
   if (app.status === 'approved') {
     return (
       <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
@@ -38,20 +46,15 @@ function PaymentStatus({ app }) {
       </div>
     );
   }
-  if (app.status === 'payment_pending' && !app.paymentVerified) {
+  if (app.paymentVerified) {
     return (
-      <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
-        <i className="bi bi-clock-fill fs-5" />
-        <div><strong>Receipt Uploaded.</strong> Payment is awaiting verification by Book Center staff.</div>
+      <div className="alert alert-success d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
+        <i className="bi bi-check-circle-fill fs-5" />
+        <div><strong>Payment Verified.</strong> Ready to process ID printing.</div>
       </div>
     );
   }
-  return (
-    <div className="alert alert-success d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
-      <i className="bi bi-check-circle-fill fs-5" />
-      <div><strong>Payment Verified.</strong> Ready to process ID printing.</div>
-    </div>
-  );
+  return null;
 }
 
 export default function ApplicationDetail() {
@@ -74,7 +77,10 @@ export default function ApplicationDetail() {
   const handleAction = async (newStatus) => {
     setActing(true);
     try {
-      const res = await axios.put(`/api/IdApplication/${id}`, { status: newStatus });
+      const payload = newStatus === 'printing'
+        ? { status: 'printing', paymentVerified: true }
+        : { status: newStatus };
+      const res = await axios.put(`/api/IdApplication/${id}`, payload);
       setApp(res.data);
     } catch {
       alert('Failed to update status. Please try again.');
@@ -88,7 +94,7 @@ export default function ApplicationDetail() {
   );
   if (!app) return null;
 
-  const canProcess = app.paymentVerified && app.status === 'payment_pending';
+  const canProcess = (app.status === 'payment' || (app.status === 'payment_pending' && !app.paymentVerified));
   const canRelease = app.status === 'printing';
   const isReleased = app.status === 'released';
 
@@ -233,7 +239,7 @@ export default function ApplicationDetail() {
       {/* Receipt Image */}
       {app.receiptImage && (
         <div className="card border-0 shadow-sm mb-4">
-          <div className="card-body">
+          <div className="card-body p-4">
             <div className="fw-semibold mb-2" style={{ fontSize: 14 }}>
               <i className="bi bi-receipt me-2" />Payment Receipt
               {app.paymentVerified
@@ -241,11 +247,21 @@ export default function ApplicationDetail() {
                 : <span className="badge bg-warning text-dark ms-2" style={{ fontSize: 11 }}>Pending Verification</span>
               }
             </div>
-            <img
-              src={`http://localhost:5000/uploads/${app.receiptImage.replace(/^uploads[\\/]/, '').replace(/\\/g, '/')}`}
-              alt="Payment Receipt"
-              style={{ maxWidth: '100%', maxHeight: 400, borderRadius: 8, border: '1px solid #e5e7eb', objectFit: 'contain' }}
-            />
+            <div className="text-center border rounded p-3 bg-light">
+              <img
+                src={`http://localhost:5000/${app.receiptImage.replace(/^uploads[\\/]/, '').replace(/\\/g, '/')}`}
+                alt="Payment Receipt"
+                className="img-fluid rounded"
+                style={{ maxHeight: 400, objectFit: 'contain' }}
+                onError={e => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <div style={{ display: 'none', color: '#9ca3af', fontSize: 13 }}>
+                <i className="bi bi-image me-1" />Unable to load receipt image
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -259,7 +275,7 @@ export default function ApplicationDetail() {
           Return
         </button>
 
-        {app.status === 'payment_pending' && !app.paymentVerified && (
+        {(app.status === 'payment_pending' || app.status === 'payment') && !app.paymentVerified && (
           <button
             className="btn btn-sm btn-warning"
             disabled={acting}
@@ -286,8 +302,8 @@ export default function ApplicationDetail() {
             disabled={acting}
             onClick={() => handleAction('printing')}
           >
-            <i className="bi bi-printer me-1" />
-            {acting ? 'Processing…' : 'Process ID Printing'}
+            <i className="bi bi-check-circle me-1" />
+            {acting ? 'Verifying…' : 'Verify Payment & Process'}
           </button>
         )}
 
