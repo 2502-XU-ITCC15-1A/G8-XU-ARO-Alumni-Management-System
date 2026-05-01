@@ -122,7 +122,7 @@ const sendStatusEmail = async (toEmail, applicantName, status, remarks = '') => 
 
     try {
         await transporter.sendMail({
-            from: `"XU Alumni Management System Support" <${process.env.EMAIL_USER}>`,
+            from: `"XU Alumni Management System" <${process.env.EMAIL_USER}>`,
             to: toEmail,
             subject: config.subject,
             html
