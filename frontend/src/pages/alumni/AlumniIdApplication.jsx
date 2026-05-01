@@ -161,7 +161,6 @@ function StatusTracker({ application }) {
           </div>
         )}
 
-        {/* Application detail summary */}
         <div className="border-top pt-3 mt-2">
           <div className="row g-2" style={{ fontSize: 13 }}>
             <div className="col-6 col-md-3">
