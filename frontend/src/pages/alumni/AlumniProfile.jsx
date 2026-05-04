@@ -26,10 +26,12 @@ const BLANK_WORK = { company: '', department: '', position: '', address: '', pho
 
 const EDUCATION_LEVELS = ['Grade School', 'Junior High School', 'Senior High School', 'College', 'Post-Graduate', 'Vocational', 'Other'];
 
-function Field({ label, children }) {
+function Field({ label, children, required }) {
   return (
     <div className="mb-3">
-      <label className="form-label fw-semibold" style={{ fontSize: 12, color: '#374151' }}>{label}</label>
+      <label className="form-label fw-semibold" style={{ fontSize: 12, color: '#374151' }}>
+        {label}{required && <span className="text-danger ms-1">*</span>}
+      </label>
       {children}
     </div>
   );
@@ -125,7 +127,7 @@ function BasicTab({ profile, onChange, onSave, saving }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="XU University ID Number">
+          <Field label="XU University ID Number *">
             <Input value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
           </Field>
         </div>
@@ -520,26 +522,35 @@ export default function AlumniProfile() {
   }, []);
 
   const saveProfile = useCallback(async () => {
-    setSaving(true);
-    try {
-      const res = await axios.put('/api/alumni/me', profile, { headers });
-      setProfile(res.data);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } catch {
-      alert('Failed to save profile. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  }, [profile]);
-
-  if (loading) {
-    return (
-      <div className="d-flex align-items-center justify-content-center" style={{ height: '100vh' }}>
-        <div className="text-muted">Loading profile...</div>
-      </div>
-    );
+  if (activeTab === 'basic') {
+    if (!profile.surname)   return alert('Last Name is required.');
+    if (!profile.firstName) return alert('First Name is required.');
+    if (!profile.gender)    return alert('Gender is required.');
+    if (!profile.birthdate) return alert('Birthdate is required.');
+    if (!profile.universityIdNumber) return alert('XU University ID Number is required.');
   }
+  if (activeTab === 'contact') {
+    if (!profile.email) return alert('Email Address is required.');
+    if (!profile.phone) return alert('Phone Number is required.');
+  }
+  if (activeTab === 'address') {
+    if (!profile.address?.street)  return alert('Street / House No. is required.');
+    if (!profile.address?.city)    return alert('City / Municipality is required.');
+    if (!profile.address?.country) return alert('Country is required.');
+  }
+
+  setSaving(true);
+  try {
+    const res = await axios.put('/api/alumni/me', profile, { headers });
+    setProfile(res.data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  } catch {
+    alert('Failed to save profile. Please try again.');
+  } finally {
+    setSaving(false);
+  }
+}, [profile, activeTab]);
 
   const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving };
 

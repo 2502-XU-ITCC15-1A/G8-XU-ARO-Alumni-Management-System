@@ -305,27 +305,37 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
   const submit = async () => {
-    if (!form.lastName || !form.firstName || !form.course) {
-      return alert('Last name, first name, and course are required.');
-    }
-    setSubmitting(true);
-    try {
-      const previousApplicationId = sessionStorage.getItem('previousApplicationId');
-      const userId = user.id || user._id;
-      const payload = {
-        ...form,
-        userId,
-        isRenewal: isRenewal || false,
-        previousApplicationId: previousApplicationId || null,
-      };
-      const res = await axios.post('/api/IdApplication', payload, { headers });
-      onSubmitted(res.data);
-    } catch {
-      alert('Failed to submit application. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  if (!form.lastName)           return alert('Last Name is required.');
+  if (!form.firstName)          return alert('First Name is required.');
+  if (!form.course)             return alert('Degree / Course is required.');
+  if (!form.universityIdNumber) return alert('XU University ID Number is required.');
+  if (!form.bloodType)    return alert('Blood Type is required.');
+  if (!form.homeAddress)  return alert('Home Address is required.');  
+
+  const gradFields = ['gradGradeSchool', 'gradJHS', 'gradSHS', 'gradCollege', 'gradPostGrad'];
+  const hasGrad = gradFields.some(field => form[field]?.trim());
+  if (!hasGrad) return alert('Please enter at least one Year of Graduation.');
+
+  if (!form.signature) return alert('Please draw your signature before submitting.');
+
+  setSubmitting(true);
+  try {
+    const previousApplicationId = sessionStorage.getItem('previousApplicationId');
+    const userId = user.id || user._id;
+    const payload = {
+      ...form,
+      userId,
+      isRenewal: isRenewal || false,
+      previousApplicationId: previousApplicationId || null,
+    };
+    const res = await axios.post('/api/IdApplication', payload, { headers });
+    onSubmitted(res.data);
+  } catch {
+    alert('Failed to submit application. Please try again.');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="card border-0 shadow-sm">
@@ -357,7 +367,7 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
               </Field>
             </div>
             <div className="col-md-3">
-              <Field label="Blood Type">
+              <Field label="Blood Type" required>
                 <select className="form-select" style={{ fontSize: 14 }} value={f('bloodType')} onChange={set('bloodType')}>
                   <option value="">Select...</option>
                   {BLOOD_TYPES.map(b => <option key={b} value={b}>{b}</option>)}
@@ -365,7 +375,7 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
               </Field>
             </div>
             <div className="col-md-5">
-              <Field label="XU University ID Number">
+              <Field label="XU University ID Number" required>
                 <input className="form-control" style={{ fontSize: 14 }} value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
               </Field>
             </div>
@@ -375,7 +385,7 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
               </Field>
             </div>
             <div className="col-12">
-              <Field label="Home Address">
+              <Field label="Home Address" required>
                 <input className="form-control" style={{ fontSize: 14 }} value={f('homeAddress')} onChange={set('homeAddress')} />
               </Field>
             </div>
@@ -385,7 +395,8 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
         {/* Graduation Years */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-            Year of Graduation
+            Year of Graduation <span className="text-danger">*</span>
+            <span className="text-muted fw-normal ms-2" style={{ fontSize: 11 }}>(at least one)</span>
           </div>
           <div className="row g-3">
             {[
@@ -414,8 +425,8 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
         {/* Signature */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-            Signature
-          </div>
+          Signature <span className="text-danger">*</span>
+        </div>
           <Field label="Draw Your Signature">
             <SignaturePad
               value={f('signature')}
