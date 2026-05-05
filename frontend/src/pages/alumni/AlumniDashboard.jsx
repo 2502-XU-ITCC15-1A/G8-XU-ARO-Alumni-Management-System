@@ -85,7 +85,6 @@ export default function AlumniDashboard() {
   return (
     <div className="p-4 p-lg-5">
 
-      {/* Header row with title and notifications bell */}
       <div className="d-flex align-items-start justify-content-between mb-1">
         <div>
           <h4 className="page-title mb-0">Welcome back, {user.name?.split(' ')[0] || 'Alumni'}</h4>
@@ -94,7 +93,6 @@ export default function AlumniDashboard() {
           </p>
         </div>
 
-        {/* Notifications Bell */}
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => {
@@ -122,7 +120,6 @@ export default function AlumniDashboard() {
                 borderRadius: 12, overflow: 'hidden',
               }}
             >
-              {/* Header */}
               <div
                 className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
                 style={{ backgroundColor: '#1e2d5e' }}
@@ -142,7 +139,6 @@ export default function AlumniDashboard() {
                 </button>
               </div>
 
-              {/* List */}
               <div style={{ maxHeight: 320, overflowY: 'auto' }}>
                 {notifications.length === 0 ? (
                   <div className="text-center py-4 text-muted" style={{ fontSize: 13 }}>
@@ -195,7 +191,6 @@ export default function AlumniDashboard() {
                 )}
               </div>
 
-              {/* Footer */}
               {notifications.length > 0 && (
                 <div
                   className="text-center py-2 border-top"
@@ -219,7 +214,6 @@ export default function AlumniDashboard() {
         <div className="text-center py-5 text-muted">Loading...</div>
       ) : (
         <>
-          {/* Profile Completeness */}
           <div className="row g-4 mb-4">
             <div className="col-12 col-md-5">
               <div className="card border-0 shadow-sm h-100">

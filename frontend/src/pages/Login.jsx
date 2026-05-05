@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 
 const ROLE_LABELS = {
@@ -29,7 +28,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(state?.googleError || '');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -102,31 +101,9 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setError('');
-      setLoading(true);
-
-      try {
-        const { data } = await axios.post('/api/auth/google', {
-          access_token: tokenResponse.access_token,
-          role,
-        });
-
-        saveAndRedirect(data, role);
-      } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            'Google sign-in failed.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-
-    onError: () =>
-      setError('Google sign-in was cancelled or failed.'),
-  });
+  const handleGoogleLogin = () => {
+    window.location.href = `/api/auth/google?role=${role}`;
+  };
 
   return (
     <div className="login-page">
@@ -247,9 +224,22 @@ export default function Login() {
                 disabled={loading}
               >
                 <i className="bi bi-google" />
-                Sign in with Google
+                {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
               </button>
             </>
+          )}
+
+          {!isStaff && (
+            <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', marginTop: 16 }}>
+              {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', padding: 0, color: '#283971', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
+                onClick={() => { setIsSignUp(v => !v); setError(''); setSuccess(''); }}
+              >
+                {isSignUp ? 'Sign in' : 'Create one'}
+              </button>
+            </p>
           )}
 
           <button

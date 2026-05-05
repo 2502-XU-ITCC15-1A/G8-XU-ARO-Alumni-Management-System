@@ -1,4 +1,5 @@
 const https = require("https");
+const querystring = require("querystring");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -18,6 +19,38 @@ function fetchGoogleUser(accessToken) {
                 catch (e) { reject(e); }
             });
         }).on("error", reject);
+    });
+}
+
+function exchangeCodeForToken(code) {
+    return new Promise((resolve, reject) => {
+        const body = querystring.stringify({
+            code,
+            client_id: process.env.GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET,
+            redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+            grant_type: "authorization_code",
+        });
+        const options = {
+            hostname: "oauth2.googleapis.com",
+            path: "/token",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Length": Buffer.byteLength(body),
+            },
+        };
+        const req = https.request(options, (res) => {
+            let raw = "";
+            res.on("data", (chunk) => { raw += chunk; });
+            res.on("end", () => {
+                try { resolve(JSON.parse(raw)); }
+                catch (e) { reject(e); }
+            });
+        });
+        req.on("error", reject);
+        req.write(body);
+        req.end();
     });
 }
 
@@ -66,25 +99,62 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.googleLogin = async (req, res) => {
-    try {
-        const { access_token, role } = req.body;
+exports.googleAuthRedirect = (req, res) => {
+    const { role } = req.query;
+    const params = new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        response_type: "code",
+        scope: "openid email profile",
+        access_type: "offline",
+        state: role || "alumni",
+        prompt: "select_account",
+    });
+    res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
+};
 
-        const googleUser = await fetchGoogleUser(access_token);
-        if (!googleUser.email) {
-            return res.status(400).json({ message: "Could not retrieve Google account info" });
+exports.googleAuthCallback = async (req, res) => {
+    const { code, state: role, error } = req.query;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
+    if (error || !code) {
+        return res.redirect(`${frontendUrl}/auth/callback?error=cancelled`);
+    }
+
+    try {
+        const tokenData = await exchangeCodeForToken(code);
+        if (tokenData.error) {
+            return res.redirect(`${frontendUrl}/auth/callback?error=token_failed`);
         }
 
-        const user = await User.findOne({ email: googleUser.email });
+        const googleUser = await fetchGoogleUser(tokenData.access_token);
+        if (!googleUser.email) {
+            return res.redirect(`${frontendUrl}/auth/callback?error=no_email`);
+        }
+
+        let user = await User.findOne({ email: googleUser.email });
+
         if (!user) {
-            return res.status(403).json({ 
-                message: "No account found with this Google email. Please create an account first." 
+            if (role !== "alumni") {
+                return res.redirect(`${frontendUrl}/auth/callback?error=no_account`);
+            }
+            user = await User.create({
+                name: googleUser.name || googleUser.email.split("@")[0],
+                email: googleUser.email,
+                role: "alumni",
             });
         }
 
+        if (role && user.role !== role) {
+            return res.redirect(`${frontendUrl}/auth/callback?error=wrong_role`);
+        }
+
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role,} });
+        const userData = encodeURIComponent(JSON.stringify({
+            id: user._id, name: user.name, email: user.email, role: user.role,
+        }));
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${userData}`);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.redirect(`${frontendUrl}/auth/callback?error=server_error`);
     }
 };

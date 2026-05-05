@@ -305,8 +305,13 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
   const submit = async () => {
-    if (!form.lastName || !form.firstName || !form.course) {
-      return alert('Last name, first name, and course are required.');
+    const missing = [];
+    if (!form.lastName.trim())            missing.push('Last Name');
+    if (!form.firstName.trim())           missing.push('First Name');
+    if (!form.course.trim())              missing.push('Degree / Course');
+    if (!form.universityIdNumber.trim())  missing.push('XU University ID Number');
+    if (missing.length > 0) {
+      return alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
     }
     setSubmitting(true);
     try {
@@ -335,7 +340,6 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
           Fill in the details below to apply for your Alumni ID card.
         </p>
 
-        {/* Personal Information */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Personal Information
@@ -365,7 +369,7 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
               </Field>
             </div>
             <div className="col-md-5">
-              <Field label="XU University ID Number">
+              <Field label="XU ID Number" required>
                 <input className="form-control" style={{ fontSize: 14 }} value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
               </Field>
             </div>
@@ -382,7 +386,6 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
           </div>
         </div>
 
-        {/* Graduation Years */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Year of Graduation
@@ -411,7 +414,6 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
           </div>
         </div>
 
-        {/* Signature */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Signature
