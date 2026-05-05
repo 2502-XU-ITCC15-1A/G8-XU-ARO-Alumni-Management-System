@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react';
-import { Container, Card, Table } from 'react-bootstrap'; // Using your preferred library
+import { Container, Card, Table } from 'react-bootstrap';
 import { Eye, ChevronDown } from 'lucide-react';
 
 // --- Helper Components ---
@@ -53,18 +53,13 @@ function AlumniApplication() {
   ]);
 
   return (
-    /* MATCHING YOUR DASHBOARD PATTERN:
-       Using Container fluid with your specific padding (30px 50px) 
-       and background color ensures it fills the screen perfectly.
-    */
+
     <Container fluid style={{ padding: "30px 50px", minHeight: "100vh", backgroundColor: "#f4f6f9" }}>
       
       <Card className="border-0 shadow-sm rounded-4 bg-white overflow-hidden">
         
-        {/* Header Section */}
         <div className="p-4 border-bottom d-flex justify-content-between align-items-center bg-white">
           <h4 className="m-0 fw-bold text-dark" style={{ fontSize: '1.2rem' }}>
-            Application History
           </h4>
           
           <button className="btn btn-link text-decoration-none fw-bold d-flex align-items-center gap-2 text-dark p-0">
@@ -72,7 +67,6 @@ function AlumniApplication() {
           </button>
         </div>
         
-        {/* Table Body */}
         <div className="p-0">
           <div className="table-responsive">
             <Table hover className="m-0 align-middle">

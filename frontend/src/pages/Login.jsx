@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 
 const ROLE_LABELS = {
@@ -29,7 +28,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(state?.googleError || '');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -102,31 +101,9 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setError('');
-      setLoading(true);
-
-      try {
-        const { data } = await axios.post('/api/auth/google', {
-          access_token: tokenResponse.access_token,
-          role,
-        });
-
-        saveAndRedirect(data, role);
-      } catch (err) {
-        setError(
-          err.response?.data?.message ||
-            'Google sign-in failed.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-
-    onError: () =>
-      setError('Google sign-in was cancelled or failed.'),
-  });
+  const handleGoogleLogin = () => {
+    window.location.href = `/api/auth/google?role=${role}`;
+  };
 
   return (
     <div className="login-page">

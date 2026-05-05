@@ -1,9 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import axios from 'axios'
 import './index.css'
-import './App.css'         
+import './App.css'
 import App from './App.jsx'
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -18,8 +17,6 @@ axios.interceptors.request.use(config => {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID} use_fedcm_for_prompt>
-      <App />
-    </GoogleOAuthProvider>
+    <App />
   </StrictMode>,
 )

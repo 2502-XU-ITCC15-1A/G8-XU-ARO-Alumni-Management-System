@@ -3,12 +3,12 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const TABS = [
-  { id: 'basic',     label: 'Basic Info',  icon: 'bi-person-fill' },
-  { id: 'family',    label: 'Family',      icon: 'bi-house-heart-fill' },
-  { id: 'contact',   label: 'Contact',     icon: 'bi-telephone-fill' },
-  { id: 'address',   label: 'Address',     icon: 'bi-geo-alt-fill' },
-  { id: 'education', label: 'Education',   icon: 'bi-mortarboard-fill' },
-  { id: 'work',      label: 'Work',        icon: 'bi-briefcase-fill' },
+  { id: 'basic', label: 'Basic Info', icon: 'bi-person-fill' },
+  { id: 'family', label: 'Family', icon: 'bi-house-heart-fill' },
+  { id: 'contact', label: 'Contact', icon: 'bi-telephone-fill' },
+  { id: 'address', label: 'Address', icon: 'bi-geo-alt-fill' },
+  { id: 'education', label: 'Education', icon: 'bi-mortarboard-fill' },
+  { id: 'work', label: 'Work', icon: 'bi-briefcase-fill' },
 ];
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];

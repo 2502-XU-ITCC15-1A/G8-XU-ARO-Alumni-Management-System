@@ -340,7 +340,6 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
           Fill in the details below to apply for your Alumni ID card.
         </p>
 
-        {/* Personal Information */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Personal Information
@@ -370,7 +369,7 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
               </Field>
             </div>
             <div className="col-md-5">
-              <Field label="XU University ID Number" required>
+              <Field label="XU ID Number" required>
                 <input className="form-control" style={{ fontSize: 14 }} value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
               </Field>
             </div>
@@ -387,7 +386,6 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
           </div>
         </div>
 
-        {/* Graduation Years */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Year of Graduation
@@ -416,7 +414,6 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
           </div>
         </div>
 
-        {/* Signature */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Signature

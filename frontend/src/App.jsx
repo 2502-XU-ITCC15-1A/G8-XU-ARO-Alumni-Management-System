@@ -8,6 +8,7 @@ import AlumniLayout from './components/AlumniLayout';
 
 // Auth
 import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
 import RoleSelection from './pages/RoleSelection';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -37,6 +38,7 @@ export default function App() {
         {/* Public Routes */}
         <Route path="/" element={<RoleSelection />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         {/* Admin/Staff routes */}
         <Route element={<PrivateRoute allowedRole="xu-aro" />}>
