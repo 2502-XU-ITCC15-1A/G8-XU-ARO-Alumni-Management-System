@@ -26,6 +26,62 @@ const BLANK_WORK = { company: '', department: '', position: '', address: '', pho
 
 const EDUCATION_LEVELS = ['Grade School', 'Junior High School', 'Senior High School', 'College', 'Post-Graduate', 'Vocational', 'Other'];
 
+/* ─── Toast ───────────────────────────────────────────────────── */
+function Toast({ toast, onDismiss }) {
+  if (!toast) return null;
+  const styles = {
+    error:   { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626', icon: 'bi-x-circle-fill' },
+    success: { bg: '#f0fdf4', border: '#86efac', text: '#16a34a', icon: 'bi-check-circle-fill' },
+    warning: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706', icon: 'bi-exclamation-triangle-fill' },
+  };
+  const s = styles[toast.type] ?? styles.error;
+  return (
+    <div style={{
+      position: 'fixed', top: 24, right: 24, zIndex: 9999,
+      background: s.bg, border: `1px solid ${s.border}`, borderRadius: 10,
+      padding: '14px 18px', maxWidth: 380, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+      display: 'flex', alignItems: 'flex-start', gap: 10, animation: 'fadeInDown 0.2s ease',
+    }}>
+      <i className={`bi ${s.icon}`} style={{ color: s.text, fontSize: 17, marginTop: 1 }} />
+      <div style={{ flex: 1, fontSize: 13, color: s.text, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+        {toast.message}
+      </div>
+      <button onClick={onDismiss} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: s.text, fontSize: 18, lineHeight: 1 }}>
+        <i className="bi bi-x" />
+      </button>
+    </div>
+  );
+}
+
+/* ─── ConfirmModal ────────────────────────────────────────────── */
+function ConfirmModal({ confirm, onCancel }) {
+  if (!confirm) return null;
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 10000,
+        background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 12, padding: '28px 32px',
+          maxWidth: 380, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+        }}
+      >
+        <div className="fw-bold mb-2" style={{ fontSize: 16 }}>Confirm Delete</div>
+        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>{confirm.message}</p>
+        <div className="d-flex gap-2 justify-content-end">
+          <button className="btn btn-outline-secondary btn-sm px-3" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-danger btn-sm px-3" onClick={confirm.onConfirm}>Delete</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, children }) {
   return (
     <div className="mb-3">
@@ -72,19 +128,19 @@ function SaveBtn({ saving, onClick }) {
 }
 
 /* ─── Tab: Basic Info ─────────────────────────────────────────── */
-function BasicTab({ profile, onChange, onSave, saving }) {
+function BasicTab({ profile, onChange, onSave, saving, showToast }) {
   const f = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
   const handleSave = () => {
     const missing = [];
-    if (!f('surname').trim())           missing.push('Last Name');
-    if (!f('firstName').trim())         missing.push('First Name');
-    if (!f('gender'))                   missing.push('Gender');
-    if (!f('birthdate'))                missing.push('Birthdate');
+    if (!f('surname').trim())            missing.push('Last Name');
+    if (!f('firstName').trim())          missing.push('First Name');
+    if (!f('gender'))                    missing.push('Gender');
+    if (!f('birthdate'))                 missing.push('Birthdate');
     if (!f('universityIdNumber').trim()) missing.push('XU University ID Number');
     if (missing.length > 0) {
-      alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
+      showToast(`Please fill in the required fields:\n• ${missing.join('\n• ')}`, 'error');
       return;
     }
     onSave();
@@ -120,7 +176,7 @@ function BasicTab({ profile, onChange, onSave, saving }) {
         </div>
         <div className="col-md-4">
           <Field label="Birthdate *">
-          <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')}/>
+            <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')} />
           </Field>
         </div>
         <div className="col-md-4">
@@ -205,7 +261,7 @@ function FamilyTab({ profile, onChange, onSave, saving }) {
 }
 
 /* ─── Tab: Contact ────────────────────────────────────────────── */
-function ContactTab({ profile, onChange, onSave, saving }) {
+function ContactTab({ profile, onChange, onSave, saving, showToast }) {
   const f   = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
@@ -214,7 +270,7 @@ function ContactTab({ profile, onChange, onSave, saving }) {
     if (!f('email').trim()) missing.push('Email Address');
     if (!f('phone').trim()) missing.push('Phone Number');
     if (missing.length > 0) {
-      alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
+      showToast(`Please fill in the required fields:\n• ${missing.join('\n• ')}`, 'error');
       return;
     }
     onSave();
@@ -247,17 +303,17 @@ function ContactTab({ profile, onChange, onSave, saving }) {
 }
 
 /* ─── Tab: Address ────────────────────────────────────────────── */
-function AddressTab({ profile, onChange, onSave, saving }) {
+function AddressTab({ profile, onChange, onSave, saving, showToast }) {
   const addr = profile.address ?? {};
   const setAddr = (field) => (val) => onChange({ ...profile, address: { ...addr, [field]: val } });
 
   const handleSave = () => {
     const missing = [];
-    if (!addr.street?.trim())   missing.push('Street / House No.');
-    if (!addr.city?.trim())     missing.push('City / Municipality');
-    if (!addr.country?.trim())  missing.push('Country');
+    if (!addr.street?.trim())  missing.push('Street / House No.');
+    if (!addr.city?.trim())    missing.push('City / Municipality');
+    if (!addr.country?.trim()) missing.push('Country');
     if (missing.length > 0) {
-      alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
+      showToast(`Please fill in the required fields:\n• ${missing.join('\n• ')}`, 'error');
       return;
     }
     onSave();
@@ -305,7 +361,7 @@ function AddressTab({ profile, onChange, onSave, saving }) {
 }
 
 /* ─── Tab: Education ──────────────────────────────────────────── */
-function EducationTab({ records, setRecords, token }) {
+function EducationTab({ records, setRecords, token, showToast, showConfirm }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm]       = useState(BLANK_EDU);
   const [saving, setSaving]   = useState(false);
@@ -316,7 +372,10 @@ function EducationTab({ records, setRecords, token }) {
   const cancel   = () => { setEditing(null); setForm(BLANK_EDU); };
 
   const save = async () => {
-    if (!form.schoolName || !form.level) return alert('School name and level are required.');
+    if (!form.schoolName || !form.level) {
+      showToast('School name and level are required.', 'error');
+      return;
+    }
     setSaving(true);
     try {
       if (editing === 'new') {
@@ -328,20 +387,21 @@ function EducationTab({ records, setRecords, token }) {
       }
       cancel();
     } catch {
-      alert('Failed to save education record.');
+      showToast('Failed to save education record.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const remove = async (id) => {
-    if (!confirm('Delete this education record?')) return;
-    try {
-      await axios.delete(`/api/education/${id}`, { headers });
-      setRecords(prev => prev.filter(r => r._id !== id));
-    } catch {
-      alert('Failed to delete.');
-    }
+  const remove = (id) => {
+    showConfirm('Are you sure you want to delete this education record? This cannot be undone.', async () => {
+      try {
+        await axios.delete(`/api/education/${id}`, { headers });
+        setRecords(prev => prev.filter(r => r._id !== id));
+      } catch {
+        showToast('Failed to delete education record.', 'error');
+      }
+    });
   };
 
   return (
@@ -411,7 +471,7 @@ function EducationTab({ records, setRecords, token }) {
 }
 
 /* ─── Tab: Work ───────────────────────────────────────────────── */
-function WorkTab({ records, setRecords, token }) {
+function WorkTab({ records, setRecords, token, showToast, showConfirm }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm]       = useState(BLANK_WORK);
   const [saving, setSaving]   = useState(false);
@@ -422,7 +482,10 @@ function WorkTab({ records, setRecords, token }) {
   const cancel   = () => { setEditing(null); setForm(BLANK_WORK); };
 
   const save = async () => {
-    if (!form.company) return alert('Company name is required.');
+    if (!form.company) {
+      showToast('Company name is required.', 'error');
+      return;
+    }
     setSaving(true);
     try {
       if (editing === 'new') {
@@ -434,20 +497,21 @@ function WorkTab({ records, setRecords, token }) {
       }
       cancel();
     } catch {
-      alert('Failed to save work record.');
+      showToast('Failed to save work record.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const remove = async (id) => {
-    if (!confirm('Delete this work record?')) return;
-    try {
-      await axios.delete(`/api/work/${id}`, { headers });
-      setRecords(prev => prev.filter(r => r._id !== id));
-    } catch {
-      alert('Failed to delete.');
-    }
+  const remove = (id) => {
+    showConfirm('Are you sure you want to delete this work record? This cannot be undone.', async () => {
+      try {
+        await axios.delete(`/api/work/${id}`, { headers });
+        setRecords(prev => prev.filter(r => r._id !== id));
+      } catch {
+        showToast('Failed to delete work record.', 'error');
+      }
+    });
   };
 
   return (
@@ -540,6 +604,25 @@ export default function AlumniProfile() {
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
   const [saved, setSaved]         = useState(false);
+  const [toast, setToast]         = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
+
+  const showToast = useCallback((message, type = 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  const showConfirm = useCallback((message, onConfirm) => {
+    setConfirmModal({
+      message,
+      onConfirm: () => {
+        setConfirmModal(null);
+        onConfirm();
+      },
+    });
+  }, []);
+
+  const dismissConfirm = () => setConfirmModal(null);
 
   useEffect(() => {
     Promise.all([
@@ -564,11 +647,11 @@ export default function AlumniProfile() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      alert('Failed to save profile. Please try again.');
+      showToast('Failed to save profile. Please try again.', 'error');
     } finally {
       setSaving(false);
     }
-  }, [profile]);
+  }, [profile, showToast]);
 
   if (loading) {
     return (
@@ -578,10 +661,13 @@ export default function AlumniProfile() {
     );
   }
 
-  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving };
+  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving, showToast };
 
   return (
     <div className="p-4 p-lg-5">
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
+      <ConfirmModal confirm={confirmModal} onCancel={dismissConfirm} />
+
       <div className="d-flex align-items-center justify-content-between mb-1">
         <h4 className="page-title mb-0">My Profile</h4>
         {saved && (
@@ -625,8 +711,8 @@ export default function AlumniProfile() {
         {activeTab === 'family'    && <FamilyTab    {...profileTabProps} />}
         {activeTab === 'contact'   && <ContactTab   {...profileTabProps} />}
         {activeTab === 'address'   && <AddressTab   {...profileTabProps} />}
-        {activeTab === 'education' && <EducationTab  records={education} setRecords={setEducation} token={token} />}
-        {activeTab === 'work'      && <WorkTab       records={work}      setRecords={setWork}      token={token} />}
+        {activeTab === 'education' && <EducationTab  records={education} setRecords={setEducation} token={token} showToast={showToast} showConfirm={showConfirm} />}
+        {activeTab === 'work'      && <WorkTab       records={work}      setRecords={setWork}      token={token} showToast={showToast} showConfirm={showConfirm} />}
       </div>
     </div>
   );
