@@ -20,10 +20,11 @@ const BLANK_FORM = {
   course: '', homeAddress: '', universityIdNumber: '', signature: '',
 };
 
-function SignaturePad({ value, onChange }) {
-  const canvasRef = useRef(null);
-  const drawing   = useRef(false);
-  const lastPos   = useRef(null);
+function SignatureInput({ value, onChange }) {
+  const canvasRef   = useRef(null);
+  const drawing     = useRef(false);
+  const lastPos     = useRef(null);
+  const [mode, setMode] = useState('draw'); 
 
   const getPos = (e) => {
     const canvas = canvasRef.current;
@@ -35,7 +36,6 @@ function SignaturePad({ value, onChange }) {
   };
 
   const startDraw = (e) => { e.preventDefault(); drawing.current = true; lastPos.current = getPos(e); };
-
   const draw = (e) => {
     e.preventDefault();
     if (!drawing.current) return;
@@ -51,44 +51,121 @@ function SignaturePad({ value, onChange }) {
     ctx.stroke();
     lastPos.current = pos;
   };
-
   const endDraw = (e) => {
     e.preventDefault();
     if (!drawing.current) return;
     drawing.current = false;
     onChange(canvasRef.current.toDataURL('image/png'));
   };
-
-  const clear = () => {
+  const clearCanvas = () => {
     const canvas = canvasRef.current;
     canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     onChange('');
   };
 
+  const handleUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png'];
+    if (!allowed.includes(file.type)) return alert('Only JPEG and PNG files are allowed.');
+    const reader = new FileReader();
+    reader.onload = (ev) => onChange(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    onChange(''); 
+    if (newMode === 'draw' && canvasRef.current) {
+      canvasRef.current.getContext('2d').clearRect(0, 0, 600, 120);
+    }
+  };
+
   return (
     <div>
-      <div style={{ border: '1px solid #d1d5db', borderRadius: 6, background: '#fafafa', cursor: 'crosshair', touchAction: 'none' }}>
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={120}
-          style={{ width: '100%', height: 100, display: 'block' }}
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={endDraw}
-          onMouseLeave={endDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={endDraw}
-        />
-      </div>
-      <div className="d-flex align-items-center gap-2 mt-1">
-        <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear} style={{ fontSize: 12 }}>
-          <i className="bi bi-eraser me-1" />Clear
+      
+      <div className="d-flex gap-2 mb-3">
+        <button
+          type="button"
+          className={`btn btn-sm ${mode === 'draw' ? 'btn-approve' : 'btn-outline-secondary'}`}
+          style={{ fontSize: 12 }}
+          onClick={() => switchMode('draw')}
+        >
+          <i className="bi bi-pencil me-1" />Draw Signature
         </button>
-        {value && <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>}
-        {!value && <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above using mouse or touch</span>}
+        <button
+          type="button"
+          className={`btn btn-sm ${mode === 'upload' ? 'btn-approve' : 'btn-outline-secondary'}`}
+          style={{ fontSize: 12 }}
+          onClick={() => switchMode('upload')}
+        >
+          <i className="bi bi-upload me-1" />Upload Signature
+        </button>
       </div>
+
+      {mode === 'draw' && (
+        <div>
+          <div style={{ border: '1px solid #d1d5db', borderRadius: 6, background: '#fafafa', cursor: 'crosshair', touchAction: 'none' }}>
+            <canvas
+              ref={canvasRef}
+              width={600}
+              height={120}
+              style={{ width: '100%', height: 100, display: 'block' }}
+              onMouseDown={startDraw}
+              onMouseMove={draw}
+              onMouseUp={endDraw}
+              onMouseLeave={endDraw}
+              onTouchStart={startDraw}
+              onTouchMove={draw}
+              onTouchEnd={endDraw}
+            />
+          </div>
+          <div className="d-flex align-items-center gap-2 mt-1">
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clearCanvas} style={{ fontSize: 12 }}>
+              <i className="bi bi-eraser me-1" />Clear
+            </button>
+            {value
+              ? <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>
+              : <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above using mouse or touch</span>
+            }
+          </div>
+        </div>
+      )}
+
+      {mode === 'upload' && (
+        <div>
+          <input
+            type="file"
+            accept="image/jpeg,image/png"
+            className="form-control"
+            style={{ fontSize: 13, maxWidth: 320 }}
+            onChange={handleUpload}
+          />
+          <div className="text-muted mt-1" style={{ fontSize: 12 }}>
+            Upload a clear image of your signature (JPEG or PNG)
+          </div>
+          
+          {value && (
+            <div className="mt-2">
+              <img
+                src={value}
+                alt="Uploaded signature"
+                style={{ maxHeight: 80, border: '1px solid #d1d5db', borderRadius: 6, padding: 4, background: '#fafafa' }}
+              />
+              <div className="mt-1">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-danger"
+                  style={{ fontSize: 12 }}
+                  onClick={() => onChange('')}
+                >
+                  <i className="bi bi-trash3 me-1" />Remove
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -425,10 +502,10 @@ function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
         {/* Signature */}
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-          Signature <span className="text-danger">*</span>
-        </div>
-          <Field label="Draw Your Signature">
-            <SignaturePad
+            Signature <span className="text-danger">*</span>
+          </div>
+          <Field label="Draw or Upload Your Signature">
+            <SignatureInput                              
               value={f('signature')}
               onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
             />
