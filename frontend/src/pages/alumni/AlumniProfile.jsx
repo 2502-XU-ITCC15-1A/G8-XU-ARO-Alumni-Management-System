@@ -76,6 +76,20 @@ function BasicTab({ profile, onChange, onSave, saving }) {
   const f = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
+  const handleSave = () => {
+    const missing = [];
+    if (!f('surname').trim())           missing.push('Last Name');
+    if (!f('firstName').trim())         missing.push('First Name');
+    if (!f('gender'))                   missing.push('Gender');
+    if (!f('birthdate'))                missing.push('Birthdate');
+    if (!f('universityIdNumber').trim()) missing.push('XU University ID Number');
+    if (missing.length > 0) {
+      alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
+      return;
+    }
+    onSave();
+  };
+
   return (
     <div>
       <div className="row g-3">
@@ -106,7 +120,7 @@ function BasicTab({ profile, onChange, onSave, saving }) {
         </div>
         <div className="col-md-4">
           <Field label="Birthdate *">
-          <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')}/>          
+          <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')}/>
           </Field>
         </div>
         <div className="col-md-4">
@@ -125,13 +139,13 @@ function BasicTab({ profile, onChange, onSave, saving }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="XU University ID Number">
+          <Field label="XU University ID Number *">
             <Input value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
           </Field>
         </div>
       </div>
       <div className="d-flex justify-content-end mt-2">
-        <SaveBtn saving={saving} onClick={onSave} />
+        <SaveBtn saving={saving} onClick={handleSave} />
       </div>
     </div>
   );
@@ -195,6 +209,17 @@ function ContactTab({ profile, onChange, onSave, saving }) {
   const f   = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
+  const handleSave = () => {
+    const missing = [];
+    if (!f('email').trim()) missing.push('Email Address');
+    if (!f('phone').trim()) missing.push('Phone Number');
+    if (missing.length > 0) {
+      alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
+      return;
+    }
+    onSave();
+  };
+
   return (
     <div>
       <div className="row g-3">
@@ -215,7 +240,7 @@ function ContactTab({ profile, onChange, onSave, saving }) {
         </div>
       </div>
       <div className="d-flex justify-content-end mt-2">
-        <SaveBtn saving={saving} onClick={onSave} />
+        <SaveBtn saving={saving} onClick={handleSave} />
       </div>
     </div>
   );
@@ -225,6 +250,18 @@ function ContactTab({ profile, onChange, onSave, saving }) {
 function AddressTab({ profile, onChange, onSave, saving }) {
   const addr = profile.address ?? {};
   const setAddr = (field) => (val) => onChange({ ...profile, address: { ...addr, [field]: val } });
+
+  const handleSave = () => {
+    const missing = [];
+    if (!addr.street?.trim())   missing.push('Street / House No.');
+    if (!addr.city?.trim())     missing.push('City / Municipality');
+    if (!addr.country?.trim())  missing.push('Country');
+    if (missing.length > 0) {
+      alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
+      return;
+    }
+    onSave();
+  };
 
   return (
     <div>
@@ -261,7 +298,7 @@ function AddressTab({ profile, onChange, onSave, saving }) {
         </div>
       </div>
       <div className="d-flex justify-content-end mt-2">
-        <SaveBtn saving={saving} onClick={onSave} />
+        <SaveBtn saving={saving} onClick={handleSave} />
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ axios.interceptors.request.use(config => {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID} use_fedcm_for_prompt>
       <App />
     </GoogleOAuthProvider>
   </StrictMode>,

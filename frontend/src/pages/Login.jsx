@@ -247,9 +247,22 @@ export default function Login() {
                 disabled={loading}
               >
                 <i className="bi bi-google" />
-                Sign in with Google
+                {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
               </button>
             </>
+          )}
+
+          {!isStaff && (
+            <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', marginTop: 16 }}>
+              {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', padding: 0, color: '#283971', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
+                onClick={() => { setIsSignUp(v => !v); setError(''); setSuccess(''); }}
+              >
+                {isSignUp ? 'Sign in' : 'Create one'}
+              </button>
+            </p>
           )}
 
           <button
