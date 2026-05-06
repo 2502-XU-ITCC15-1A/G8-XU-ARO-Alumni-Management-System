@@ -287,14 +287,25 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
   return null;
 }
 
-function ApplicationForm({ profile, onSubmitted, token, isRenewal }) {
+function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewal }) {
+
+  const collegeRecord = education.find(
+    edu => edu.level === 'College'
+  );
+
   const [form, setForm] = useState({
     ...BLANK_FORM,
-    lastName:           profile?.surname            || '',
-    firstName:          profile?.firstName          || '',
-    middleName:         profile?.middleName         || '',
-    bloodType:          profile?.bloodType          || '',
-    homeAddress:        [profile?.address?.street, profile?.address?.barangay, profile?.address?.city, profile?.address?.province].filter(Boolean).join(', '),
+    lastName:           profile?.surname || '',
+    firstName:          profile?.firstName || '',
+    middleName:         profile?.middleName || '',
+    bloodType:          profile?.bloodType || '',
+    course:             collegeRecord?.degree || '',
+    homeAddress: [
+      profile?.address?.street,
+      profile?.address?.barangay,
+      profile?.address?.city,
+      profile?.address?.province
+    ].filter(Boolean).join(', '),
     universityIdNumber: profile?.universityIdNumber || '',
   });
   const [submitting, setSubmitting] = useState(false);
@@ -449,6 +460,7 @@ export default function AlumniIdApplication() {
   const headers = { Authorization: `Bearer ${token}` };
 
   const [profile, setProfile]         = useState(null);
+  const [education, setEducation]     = useState([]);
   const [application, setApplication] = useState(null);
   const [loading, setLoading]         = useState(true);
   const [isRenewing, setIsRenewing]   = useState(false);
@@ -456,10 +468,12 @@ export default function AlumniIdApplication() {
   useEffect(() => {
     Promise.all([
       axios.get('/api/alumni/me', { headers }),
+      axios.get('/api/education', { headers }),
       axios.get('/api/IdApplication/my', { headers }),
     ])
-      .then(([profileRes, appRes]) => {
+      .then(([profileRes, eduRes, appRes]) => {
         setProfile(profileRes.data);
+        setEducation(eduRes.data);
         setApplication(appRes.data[0] || null);
       })
       .catch(console.error)
@@ -519,8 +533,14 @@ export default function AlumniIdApplication() {
           )}
         </>
       ) : (
-        <ApplicationForm profile={profile} onSubmitted={setApplication} token={token} isRenewal={isRenewing} />
-      )}
+        <ApplicationForm
+          profile={profile}
+          education={education}
+          onSubmitted={setApplication}
+          token={token}
+          isRenewal={isRenewing}
+        />      
+        )}
     </div>
   );
 }
