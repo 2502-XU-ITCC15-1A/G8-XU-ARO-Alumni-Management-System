@@ -150,12 +150,12 @@ function BasicTab({ profile, onChange, onSave, saving, showToast }) {
     <div>
       <div className="row g-3">
         <div className="col-md-4">
-          <Field label="Last Name *">
+          <Field label={<>Last Name <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={f('surname')} onChange={set('surname')} />
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="First Name *">
+          <Field label={<>First Name <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={f('firstName')} onChange={set('firstName')} />
           </Field>
         </div>
@@ -170,7 +170,7 @@ function BasicTab({ profile, onChange, onSave, saving, showToast }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="Gender *">
+          <Field label={<>Gender <span style={{ color: '#dc2626' }}>*</span></>}>
             <Select value={f('gender')} onChange={set('gender')} options={['Male', 'Female', 'Non-binary', 'Prefer not to say']} />
           </Field>
         </div>
@@ -195,7 +195,7 @@ function BasicTab({ profile, onChange, onSave, saving, showToast }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="XU University ID Number *">
+          <Field label={<>XU University ID Number <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
           </Field>
         </div>
@@ -280,12 +280,12 @@ function ContactTab({ profile, onChange, onSave, saving, showToast }) {
     <div>
       <div className="row g-3">
         <div className="col-md-5">
-          <Field label="Email Address *">
+          <Field label={<>Email Address <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input type="email" value={f('email')} onChange={set('email')} />
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="Phone Number *">
+          <Field label={<>Phone Number <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input type="tel" value={f('phone')} onChange={set('phone')} placeholder="+63 9XX XXX XXXX" />
           </Field>
         </div>
@@ -323,7 +323,7 @@ function AddressTab({ profile, onChange, onSave, saving, showToast }) {
     <div>
       <div className="row g-3">
         <div className="col-md-6">
-          <Field label="Street / House No. *">
+          <Field label={<>Street / House No. <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={addr.street ?? ''} onChange={setAddr('street')} placeholder="Street address" />
           </Field>
         </div>
@@ -333,7 +333,7 @@ function AddressTab({ profile, onChange, onSave, saving, showToast }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="City / Municipality *">
+          <Field label={<>City / Municipality<span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={addr.city ?? ''} onChange={setAddr('city')} />
           </Field>
         </div>
@@ -348,7 +348,7 @@ function AddressTab({ profile, onChange, onSave, saving, showToast }) {
           </Field>
         </div>
         <div className="col-md-2">
-          <Field label="Country *">
+            <Field label={<>Country <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={addr.country ?? ''} onChange={setAddr('country')} placeholder="Philippines" />
           </Field>
         </div>
@@ -436,12 +436,12 @@ function EducationTab({ records, setRecords, token, showToast, showConfirm }) {
           <h6 className="fw-bold mb-3">{editing === 'new' ? 'Add Education' : 'Edit Education'}</h6>
           <div className="row g-3">
             <div className="col-md-4">
-              <Field label="Level *">
+              <Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}>
                 <Select value={form.level} onChange={v => setForm(f => ({ ...f, level: v }))} options={EDUCATION_LEVELS} />
               </Field>
             </div>
             <div className="col-md-8">
-              <Field label="School / University *">
+              <Field label={<>School / University <span style={{ color: '#dc2626' }}>*</span></>}>
                 <Input value={form.schoolName} onChange={v => setForm(f => ({ ...f, schoolName: v }))} />
               </Field>
             </div>
@@ -547,7 +547,7 @@ function WorkTab({ records, setRecords, token, showToast, showConfirm }) {
           <h6 className="fw-bold mb-3">{editing === 'new' ? 'Add Work Experience' : 'Edit Work Experience'}</h6>
           <div className="row g-3">
             <div className="col-md-6">
-              <Field label="Company / Organization *">
+              <Field label={<>Company / Organization <span style={{ color: '#dc2626' }}>*</span></>}>
                 <Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} />
               </Field>
             </div>
