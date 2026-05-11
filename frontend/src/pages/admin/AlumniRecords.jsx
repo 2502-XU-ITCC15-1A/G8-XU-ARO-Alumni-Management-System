@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const STATUS_LABELS = {
@@ -45,6 +46,8 @@ export default function AlumniRecords() {
   const [selected, setSelected]     = useState(null);
   const [confirmId, setConfirmId]   = useState(null);
   const [deleting, setDeleting]     = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get('/api/alumni')
@@ -107,7 +110,19 @@ export default function AlumniRecords() {
       {/* Table */}
       <div className="card border-0 shadow-sm">
         <div className="card-body p-4">
-          <h6 className="fw-bold mb-4">Alumni Records ({filtered.length})</h6>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h6 className="fw-bold mb-0">
+              Alumni Records ({filtered.length})
+            </h6>
+
+            <button
+              className="btn btn-approve btn-sm"
+              onClick={() => navigate('/add-alumni-record')}
+            >
+              <i className="bi bi-plus-circle me-1" />
+              Add Alumni Record
+            </button>
+          </div>
 
           {loading ? (
             <div className="text-center py-4 text-muted small">Loading...</div>
