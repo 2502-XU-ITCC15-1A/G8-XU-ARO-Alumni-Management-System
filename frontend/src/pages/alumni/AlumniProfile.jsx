@@ -175,7 +175,7 @@ function BasicTab({ profile, onChange, onSave, saving, showToast }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label={<>Birthdate <span style={{ color: '#dc2626' }}>*</span></>}>
+          <Field label="Birthdate *">
             <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')} />
           </Field>
         </div>
