@@ -7,7 +7,6 @@ const {
     getIdApplication,
     createIdApplication,
     updateStatus,
-    uploadReceipt,
     uploadPhoto,
     deleteIdApplication
 } = require("../controllers/IdApplicationController");
@@ -16,7 +15,6 @@ router.get("/",    protect, getIdApplications);
 router.get("/my",  protect, getMyApplications);
 router.get("/:id", protect, getIdApplication);
 router.post("/",   protect, createIdApplication);
-router.post("/upload/:id",       protect, upload.single("receipt"), uploadReceipt);
 router.post("/upload-photo/:id", protect, upload.single("photo"),   uploadPhoto);
 router.put("/:id", protect, updateStatus);
 router.delete("/:id", protect, deleteIdApplication);

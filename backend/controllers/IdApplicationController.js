@@ -4,12 +4,12 @@ const Notification = require("../models/Notification");
 const { sendStatusEmail } = require("../utils/emailService");
 
 const STATUS_NOTIFICATIONS = {
-  under_review:    { title: 'Application Under Review',        message: 'Your Alumni ID application is now being reviewed by ARO staff.',                                             type: 'info'    },
-  approved:        { title: 'Application Approved',            message: 'Your Alumni ID application has been approved. Please upload your payment receipt to proceed.',              type: 'success' },
-  rejected:        { title: 'Application Rejected',            message: 'Your Alumni ID application has been rejected.',                                                              type: 'error'   },
-  payment_pending: { title: 'Receipt Uploaded',                message: 'Your payment receipt has been submitted and is awaiting verification by the Book Center.',                  type: 'info'    },
-  printing:        { title: 'Payment Verified — ID Printing',  message: 'Your payment has been verified. Your Alumni ID card is now being printed.',                                 type: 'success' },
-  released:        { title: 'Alumni ID Ready for Pick-up',     message: 'Your Alumni ID card is ready! Please visit the Alumni Relations Office to pick it up.',                     type: 'success' },
+  under_review:    { title: 'Application Under Review',        message: 'Your Alumni ID application is now being reviewed by ARO staff.',                                                                                    type: 'info'    },
+  approved:        { title: 'Application Approved',            message: 'Your Alumni ID application has been approved. Please visit the XU Book Center to pay the ₱150 Alumni ID fee and proceed with your ID card.',       type: 'success' },
+  rejected:        { title: 'Application Rejected',            message: 'Your Alumni ID application has been rejected.',                                                                                                      type: 'error'   },
+  payment_pending: { title: 'Payment Confirmed',               message: 'Your payment has been confirmed by the XU Book Center. Your Alumni ID card is now being processed.',                                                 type: 'info'    },
+  printing:        { title: 'ID Printing in Progress',         message: 'Your Alumni ID card is now being printed. You will be notified once it is ready for pick-up.',                                                      type: 'success' },
+  released:        { title: 'Alumni ID Ready for Pick-up',     message: 'Your Alumni ID card is ready! Please visit the Alumni Relations Office to pick it up.',                                                              type: 'success' },
 };
 
 const createNotification = (userId, status, remarks) => {
@@ -73,29 +73,6 @@ exports.createIdApplication = async (req, res) => {
     }
 };
 
-exports.uploadReceipt = async (req, res) => {
-    try {
-        const receiptPath = req.file.path.replace(/\\/g, '/');
-        const updated = await IdApplication.findByIdAndUpdate(
-            req.params.id,
-            {
-                receiptImage: receiptPath,
-                status: "payment_pending"
-            },
-            { returnDocument: 'after' }
-        ).populate('userId', 'name email');
-
-        if (updated?.userId) {
-            sendStatusEmail(updated.userId.email, updated.userId.name, 'payment_pending')
-                .catch(err => console.error('Email notification failed:', err));
-            createNotification(updated.userId._id, 'payment_pending');
-        }
-
-        res.json(updated);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
 
 exports.updateStatus = async (req, res) => {
     try {

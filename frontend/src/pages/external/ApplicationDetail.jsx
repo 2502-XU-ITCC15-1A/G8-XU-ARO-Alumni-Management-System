@@ -23,34 +23,18 @@ function PaymentStatus({ app }) {
     return (
       <div className="alert d-flex align-items-center gap-2 mb-4" style={{ background: '#ede9fe', border: '1px solid #c4b5fd', fontSize: 13 }}>
         <i className="bi bi-printer-fill fs-5" style={{ color: '#7c3aed' }} />
-        <div><strong>In Printing.</strong> This alumni ID is currently being printed.</div>
+        <div><strong>In Printing.</strong> Payment confirmed. This alumni ID is currently being printed.</div>
       </div>
     );
   }
-  if ((app.status === 'payment' || app.status === 'payment_pending') && !app.paymentVerified) {
-    return (
-      <div className="alert alert-info d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
-        <i className="bi bi-clock-fill fs-5" />
-        <div><strong>Receipt Uploaded.</strong> Payment is awaiting verification by Book Center staff.</div>
-      </div>
-    );
-  }
-  if (app.status === 'approved') {
+  if (app.status === 'approved' && !app.paymentVerified) {
     return (
       <div className="alert alert-warning d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
         <i className="bi bi-pause-circle-fill fs-5" />
         <div>
-          <strong>On Hold.</strong> No payment receipt uploaded yet.
-          ID printing is on hold until payment is confirmed.
+          <strong>Awaiting Payment.</strong> Alumni has not yet paid at the Book Center.
+          ID printing is on hold until payment is received.
         </div>
-      </div>
-    );
-  }
-  if (app.paymentVerified) {
-    return (
-      <div className="alert alert-success d-flex align-items-center gap-2 mb-4" style={{ fontSize: 13 }}>
-        <i className="bi bi-check-circle-fill fs-5" />
-        <div><strong>Payment Verified.</strong> Ready to process ID printing.</div>
       </div>
     );
   }
@@ -76,16 +60,25 @@ export default function ApplicationDetail() {
 
   useEffect(() => { fetchApp(); }, [id]);
 
-  const handleAction = async (newStatus) => {
+  const handleConfirmPayment = async () => {
     setActing(true);
     try {
-      const payload = newStatus === 'printing'
-        ? { status: 'printing', paymentVerified: true }
-        : { status: newStatus };
-      const res = await axios.put(`/api/IdApplication/${id}`, payload);
+      const res = await axios.put(`/api/bookcenter/${id}/verify-payment`);
       setApp(res.data);
     } catch {
-      alert('Failed to update status. Please try again.');
+      alert('Failed to confirm payment. Please try again.');
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const handleRelease = async () => {
+    setActing(true);
+    try {
+      const res = await axios.put(`/api/IdApplication/${id}`, { status: 'released' });
+      setApp(res.data);
+    } catch {
+      alert('Failed to release ID. Please try again.');
     } finally {
       setActing(false);
     }
@@ -116,10 +109,9 @@ export default function ApplicationDetail() {
   );
   if (!app) return null;
 
-  const canProcess = (app.status === 'payment' || (app.status === 'payment_pending' && !app.paymentVerified));
-  const canProceedToPrinting = app.paymentVerified && (app.status === 'payment_pending' || app.status === 'payment');
-  const canRelease = app.status === 'printing';
-  const isReleased = app.status === 'released';
+  const canConfirmPayment = app.status === 'approved' && !app.paymentVerified;
+  const canRelease        = app.status === 'printing';
+  const isReleased        = app.status === 'released';
 
   const f = (v) => v || '';
 
@@ -249,45 +241,10 @@ export default function ApplicationDetail() {
 
           {/* Payment info footer */}
           <div className="xu-form-section xu-payment-info">
-            <div className="xu-label mb-1">Please pay at the finance office</div>
-            <div style={{ fontSize: 12, color: '#374151' }}>
-              5106-9112 &nbsp; Php 50.00<br />
-              5101-9114 &nbsp; Php 100.00<br />
-              Bookstore &nbsp; Php 100.00
-            </div>
+            <div className="xu-label mb-1">Please pay at the XU Book Center — ₱150.00</div>
           </div>
         </div>
       </div>
-
-      {/* Receipt Image */}
-      {app.receiptImage && (
-        <div className="card border-0 shadow-sm mb-4">
-          <div className="card-body p-4">
-            <div className="fw-semibold mb-2" style={{ fontSize: 14 }}>
-              <i className="bi bi-receipt me-2" />Payment Receipt
-              {app.paymentVerified
-                ? <span className="badge bg-success ms-2" style={{ fontSize: 11 }}>Verified</span>
-                : <span className="badge bg-warning text-dark ms-2" style={{ fontSize: 11 }}>Pending Verification</span>
-              }
-            </div>
-            <div className="text-center border rounded p-3 bg-light">
-              <img
-                src={`/${app.receiptImage.replace(/\\/g, '/')}`}
-                alt="Payment Receipt"
-                className="img-fluid rounded"
-                style={{ maxHeight: 400, objectFit: 'contain' }}
-                onError={e => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
-              <div style={{ display: 'none', color: '#9ca3af', fontSize: 13 }}>
-                <i className="bi bi-image me-1" />Unable to load receipt image
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Alumni Photo Upload */}
       {app.status !== 'released' && (
@@ -304,7 +261,6 @@ export default function ApplicationDetail() {
               Upload a clear photo of the alumni for their ID card. Use a plain background, face clearly visible.
             </p>
 
-            {/* Preview current photo */}
             {app.alumniPhoto && (
               <div className="mb-3 d-flex align-items-center gap-3">
                 <img
@@ -372,25 +328,14 @@ export default function ApplicationDetail() {
           Return
         </button>
 
-        {canProcess && (
+        {canConfirmPayment && (
           <button
             className="btn btn-sm btn-approve"
             disabled={acting}
-            onClick={() => handleAction('printing')}
+            onClick={handleConfirmPayment}
           >
-            <i className="bi bi-check-circle me-1" />
-            {acting ? 'Processing…' : 'Verify Payment & Process'}
-          </button>
-        )}
-
-        {canProceedToPrinting && (
-          <button
-            className="btn btn-sm btn-approve"
-            disabled={acting}
-            onClick={() => handleAction('printing')}
-          >
-            <i className="bi bi-printer-fill me-1" />
-            {acting ? 'Processing…' : 'Proceed to Printing'}
+            <i className="bi bi-cash-coin me-1" />
+            {acting ? 'Confirming…' : 'Confirm Payment & Start Printing'}
           </button>
         )}
 
@@ -398,7 +343,7 @@ export default function ApplicationDetail() {
           <button
             className="btn btn-sm btn-success"
             disabled={acting}
-            onClick={() => handleAction('released')}
+            onClick={handleRelease}
           >
             <i className="bi bi-bag-check me-1" />
             {acting ? 'Releasing…' : 'Release ID'}
@@ -411,7 +356,7 @@ export default function ApplicationDetail() {
           </span>
         )}
 
-        {app.status === 'approved' && (
+        {canConfirmPayment && (
           <span className="d-flex align-items-center gap-1 text-warning fw-semibold" style={{ fontSize: 13 }}>
             <i className="bi bi-pause-circle-fill" /> On Hold — Awaiting Payment
           </span>

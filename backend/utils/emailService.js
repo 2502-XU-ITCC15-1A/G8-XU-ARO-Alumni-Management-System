@@ -21,7 +21,13 @@ const STATUS_CONFIG = {
         heading: 'Application Approved!',
         color: '#16a34a',
         icon: '✅',
-        message: 'Congratulations! Your alumni ID application has been approved. Please proceed to the XU Book Center to complete your payment and get your ID processed.'
+        message: 'Congratulations! Your alumni ID application has been approved by the Alumni Relations Office.<br><br>' +
+                 'To proceed with your Alumni ID card, please follow these steps:<br><br>' +
+                 '<strong>1.</strong> Visit the <strong>XU Book Center</strong> in person.<br>' +
+                 '<strong>2.</strong> Present this email or your name and University ID number to the Book Center staff.<br>' +
+                 '<strong>3.</strong> Pay the Alumni ID fee of <strong>₱150.00</strong>.<br>' +
+                 '<strong>4.</strong> The Book Center staff will process and print your Alumni ID card upon payment.<br><br>' +
+                 'Please note that ID printing will only proceed once payment has been confirmed by the Book Center.'
     },
     rejected: {
         subject: 'Update on Your Alumni ID Application',
@@ -31,11 +37,11 @@ const STATUS_CONFIG = {
         message: 'We regret to inform you that your alumni ID application has not been approved at this time.'
     },
     payment_pending: {
-        subject: 'Payment Receipt Received – Pending Verification',
-        heading: 'Receipt Received',
+        subject: 'Payment Confirmed – Your Alumni ID is Being Processed',
+        heading: 'Payment Confirmed',
         color: '#d97706',
         icon: '🧾',
-        message: 'Your payment receipt has been received and is currently being verified by the XU Book Center. We will notify you once the verification is complete.'
+        message: 'Your payment has been received and confirmed by the XU Book Center. Your Alumni ID card is now being processed for printing. We will notify you once it is ready for pick-up.'
     },
     printing: {
         subject: 'Your Alumni ID Card is Being Printed',

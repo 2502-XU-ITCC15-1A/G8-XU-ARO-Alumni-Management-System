@@ -4,8 +4,8 @@ import axios from 'axios';
 const STATUS_STEPS = [
   { key: 'pending',      label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
   { key: 'under_review', label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
-  { key: 'approved',     label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please upload your payment receipt below.' },
-  { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
+  { key: 'approved',     label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please visit the XU Book Center to pay the ₱150 Alumni ID fee.' },
+  { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment has been confirmed by the Book Center.' },
   { key: 'printing',     label: 'Printing',     icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
   { key: 'released',     label: 'Released',     icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
 ];
@@ -210,39 +210,15 @@ function StatusTracker({ application }) {
   );
 }
 
-function ReceiptUpload({ applicationId, application, onUpdated, token }) {
-  const [file, setFile]           = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const headers = { Authorization: `Bearer ${token}` };
-
-  const upload = async () => {
-    if (!file) return alert('Please select a receipt image first.');
-    const allowed = ['image/jpeg', 'image/png'];
-    if (!allowed.includes(file.type)) return alert('Only JPEG and PNG files are allowed.');
-    const fd = new FormData();
-    fd.append('receipt', file);
-    setUploading(true);
-    try {
-      const res = await axios.post(`/api/IdApplication/upload/${applicationId}`, fd, {
-        headers: { ...headers, 'Content-Type': 'multipart/form-data' },
-      });
-      onUpdated(res.data);
-      setFile(null);
-    } catch {
-      alert('Upload failed. Please try again.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  if (application.paymentVerified && application.status !== 'approved') {
+function PaymentInstructions({ application }) {
+  if (application.paymentVerified && application.status === 'printing') {
     return (
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4 d-flex align-items-center gap-3">
           <i className="bi bi-check-circle-fill text-success" style={{ fontSize: 28 }} />
           <div>
-            <div className="fw-bold">Payment Verified</div>
-            <div className="text-muted" style={{ fontSize: 13 }}>Your payment receipt has been verified by the Book Center.</div>
+            <div className="fw-bold">Payment Confirmed</div>
+            <div className="text-muted" style={{ fontSize: 13 }}>Your payment has been confirmed by the XU Book Center. Your ID card is now being printed.</div>
           </div>
         </div>
       </div>
@@ -253,32 +229,19 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
     return (
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
-          <h6 className="fw-bold mb-1">Upload Payment Receipt</h6>
-          <p className="text-muted mb-3" style={{ fontSize: 13 }}>
-            Your application has been approved. Please pay the Alumni ID fee of <strong>₱150</strong> at the Finance Office and upload your payment receipt here to proceed.
-          </p>
-          {application.receiptImage && (
-            <div className="mb-3 rounded p-2" style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', fontSize: 13, color: '#166534' }}>
-              <i className="bi bi-image me-1" />Receipt already uploaded — upload again to replace it.
-            </div>
-          )}
-          <div className="d-flex gap-2 align-items-center flex-wrap">
-            <input
-              type="file"
-              accept="image/jpeg,image/png"
-              className="form-control"
-              style={{ maxWidth: 280, fontSize: 13 }}
-              onChange={e => setFile(e.target.files[0])}
-            />
-            <button
-              className="btn btn-approve"
-              onClick={upload}
-              disabled={uploading || !file}
-              style={{ fontSize: 13 }}
-            >
-              {uploading ? <><span className="spinner-border spinner-border-sm me-2" />Uploading...</> : <><i className="bi bi-upload me-1" />Upload Receipt</>}
-            </button>
+          <div className="d-flex align-items-center gap-2 mb-3">
+            <i className="bi bi-cash-coin text-success" style={{ fontSize: 24 }} />
+            <h6 className="fw-bold mb-0">Payment Instructions</h6>
           </div>
+          <p className="text-muted mb-3" style={{ fontSize: 13 }}>
+            Your application has been approved. To proceed with your Alumni ID card, please follow these steps:
+          </p>
+          <ol className="mb-0" style={{ fontSize: 13, color: '#374151', paddingLeft: '1.2rem', lineHeight: 2 }}>
+            <li>Visit the <strong>XU Book Center</strong> in person.</li>
+            <li>Present your name and University ID number to the Book Center staff.</li>
+            <li>Pay the Alumni ID fee of <strong>₱150.00</strong>.</li>
+            <li>The Book Center will process and print your Alumni ID upon payment confirmation.</li>
+          </ol>
         </div>
       </div>
     );
@@ -504,12 +467,7 @@ export default function AlumniIdApplication() {
       {application ? (
         <>
           <StatusTracker application={application} />
-          <ReceiptUpload
-            applicationId={application._id}
-            application={application}
-            onUpdated={setApplication}
-            token={token}
-          />
+          <PaymentInstructions application={application} />
 
           {application.status === 'released' && (
             <RenewCard application={application} onRenew={handleRenew} />
