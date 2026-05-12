@@ -30,6 +30,9 @@ const applicationSchema = new mongoose.Schema({
     receiptImage:    String,
     paymentVerified: { type: Boolean, default: false },
 
+    // Photo uploaded by the alumni for ID printing
+    idPhoto: String,
+
     // Alumni photo (uploaded by Book Center for ID printing)
     alumniPhoto: String,
 

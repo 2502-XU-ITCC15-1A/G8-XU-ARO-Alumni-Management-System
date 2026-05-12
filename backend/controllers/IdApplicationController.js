@@ -128,6 +128,38 @@ exports.uploadPhoto = async (req, res) => {
     }
 };
 
+exports.uploadAlumniIdPhoto = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+        const photoPath = req.file.path.replace(/\\/g, '/');
+        const updated = await IdApplication.findOneAndUpdate(
+            { _id: req.params.id, userId: req.user._id },
+            { idPhoto: photoPath },
+            { returnDocument: 'after' }
+        );
+        if (!updated) return res.status(404).json({ message: 'Application not found.' });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.uploadAlumniSignature = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+        const sigPath = req.file.path.replace(/\\/g, '/');
+        const updated = await IdApplication.findOneAndUpdate(
+            { _id: req.params.id, userId: req.user._id },
+            { signature: sigPath },
+            { returnDocument: 'after' }
+        );
+        if (!updated) return res.status(404).json({ message: 'Application not found.' });
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 exports.deleteIdApplication = async (req, res) => {
     try {
         const deleted = await IdApplication.findByIdAndDelete(req.params.id);

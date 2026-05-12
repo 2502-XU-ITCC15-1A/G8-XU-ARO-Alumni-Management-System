@@ -250,11 +250,64 @@ function PaymentInstructions({ application }) {
   return null;
 }
 
+function PhotoUpload({ label, hint, value, onChange }) {
+  const inputRef = useRef(null);
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const preview = URL.createObjectURL(file);
+    onChange({ file, preview });
+  };
+
+  const clear = () => {
+    if (value?.preview) URL.revokeObjectURL(value.preview);
+    onChange(null);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div>
+      {value?.preview ? (
+        <div className="d-flex align-items-start gap-3">
+          <img
+            src={value.preview}
+            alt="preview"
+            style={{ height: 100, maxWidth: 160, objectFit: 'contain', border: '1px solid #d1d5db', borderRadius: 6, background: '#fafafa' }}
+          />
+          <div>
+            <div className="text-success mb-1" style={{ fontSize: 12 }}>
+              <i className="bi bi-check-circle me-1" />{value.file.name}
+            </div>
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear} style={{ fontSize: 12 }}>
+              <i className="bi bi-x-circle me-1" />Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          style={{
+            border: '2px dashed #d1d5db', borderRadius: 6, padding: '20px 16px',
+            textAlign: 'center', cursor: 'pointer', background: '#fafafa',
+            transition: 'border-color 0.15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#1e2d5e'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = '#d1d5db'}
+        >
+          <i className="bi bi-cloud-upload" style={{ fontSize: 24, color: '#9ca3af' }} />
+          <div className="mt-1" style={{ fontSize: 13, color: '#6b7280' }}>{label}</div>
+          {hint && <div style={{ fontSize: 11, color: '#9ca3af' }}>{hint}</div>}
+        </div>
+      )}
+      <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/jpg" style={{ display: 'none' }} onChange={handleFile} />
+    </div>
+  );
+}
+
 function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewal }) {
 
-  const collegeRecord = education.find(
-    edu => edu.level === 'College'
-  );
+  const collegeRecord = education.find(edu => edu.level === 'College');
 
   const [form, setForm] = useState({
     ...BLANK_FORM,
@@ -271,7 +324,12 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
     ].filter(Boolean).join(', '),
     universityIdNumber: profile?.universityIdNumber || '',
   });
-  const [submitting, setSubmitting] = useState(false);
+
+  const [sigMode,       setSigMode]       = useState('draw');
+  const [sigUpload,     setSigUpload]     = useState(null);
+  const [photoUpload,   setPhotoUpload]   = useState(null);
+  const [submitting,    setSubmitting]    = useState(false);
+
   const headers = { Authorization: `Bearer ${token}` };
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -293,12 +351,32 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
       const userId = user.id || user._id;
       const payload = {
         ...form,
+        signature: sigMode === 'draw' ? form.signature : '',
         userId,
         isRenewal: isRenewal || false,
         previousApplicationId: previousApplicationId || null,
       };
       const res = await axios.post('/api/IdApplication', payload, { headers });
-      onSubmitted(res.data);
+      const appId = res.data._id;
+
+      if (photoUpload?.file) {
+        const fd = new FormData();
+        fd.append('photo', photoUpload.file);
+        await axios.post(`/api/IdApplication/upload-id-photo/${appId}`, fd, {
+          headers: { ...headers, 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      if (sigMode === 'upload' && sigUpload?.file) {
+        const fd = new FormData();
+        fd.append('signature', sigUpload.file);
+        await axios.post(`/api/IdApplication/upload-id-signature/${appId}`, fd, {
+          headers: { ...headers, 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      const finalRes = await axios.get(`/api/IdApplication/${appId}`, { headers });
+      onSubmitted(finalRes.data);
     } catch {
       alert('Failed to submit application. Please try again.');
     } finally {
@@ -390,14 +468,55 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
 
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-            Signature
+            ID Photo
           </div>
-          <Field label="Draw Your Signature">
-            <SignaturePad
-              value={f('signature')}
-              onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+          <Field label="Upload Your Photo">
+            <PhotoUpload
+              label="Click to upload a photo for your Alumni ID"
+              hint="PNG or JPEG, plain background preferred"
+              value={photoUpload}
+              onChange={setPhotoUpload}
             />
           </Field>
+        </div>
+
+        <div className="mb-4">
+          <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
+            E-Signature
+          </div>
+
+          <div className="d-flex gap-2 mb-3">
+            {['draw', 'upload'].map(mode => (
+              <button
+                key={mode}
+                type="button"
+                className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
+                style={{ fontSize: 12 }}
+                onClick={() => setSigMode(mode)}
+              >
+                <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
+                {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
+              </button>
+            ))}
+          </div>
+
+          {sigMode === 'draw' ? (
+            <Field label="Draw Your Signature">
+              <SignaturePad
+                value={f('signature')}
+                onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+              />
+            </Field>
+          ) : (
+            <Field label="Upload Signature Image">
+              <PhotoUpload
+                label="Click to upload your e-signature image"
+                hint="PNG or JPEG with transparent or white background"
+                value={sigUpload}
+                onChange={setSigUpload}
+              />
+            </Field>
+          )}
         </div>
 
         <div className="d-flex justify-content-end">
