@@ -244,8 +244,10 @@
 
 .role-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
+  text-align: center;
+  gap: 16px;
   margin-bottom: 16px;
 }
 
@@ -259,6 +261,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.role-logo-img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .role-university {
@@ -363,6 +372,14 @@
   font-weight: 800;
   color: #A19158;
   letter-spacing: 5px;
+  margin-bottom: 14px;
+}
+
+.login-panel-logo-img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  border-radius: 50%;
   margin-bottom: 14px;
 }
 
