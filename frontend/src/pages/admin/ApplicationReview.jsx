@@ -62,7 +62,7 @@ export default function ApplicationReview() {
 
   const STAT_CARDS = [
     { label: 'Total Applications', value: counts.total,    cls: 'app-stat-plain',    valClass: 'text-dark'    },
-    { label: 'Pending',            value: counts.pending,  cls: 'app-stat-pending',  valClass: 'text-warning' },
+    { label: 'Pending',            value: counts.pending,  cls: 'app-stat-pending',  valClass: 'text-orange' },
     { label: 'Approved',           value: counts.approved, cls: 'app-stat-approved', valClass: 'text-success' },
     { label: 'Rejected',           value: counts.rejected, cls: 'app-stat-rejected', valClass: 'text-danger'  },
   ];
