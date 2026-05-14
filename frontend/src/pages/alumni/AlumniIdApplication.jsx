@@ -362,7 +362,7 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
       if (photoUpload?.file) {
         const fd = new FormData();
         fd.append('photo', photoUpload.file);
-        await axios.post(`/api/IdApplication/upload-id-photo/${appId}`, fd, {
+        await axios.post(`/api/IdApplication/upload-photo/${appId}`, fd, {
           headers: { ...headers, 'Content-Type': 'multipart/form-data' },
         });
       }

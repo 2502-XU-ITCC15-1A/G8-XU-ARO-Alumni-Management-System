@@ -35,17 +35,6 @@ export default function ApplicationReview() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAction = async (id, status) => {
-    try {
-      const res = await axios.put(`/api/IdApplication/${id}`, { status, remarks });
-      setApps(prev => prev.map(a => a._id === id ? res.data : a));
-      setSelected(null);
-      setRemarks('');
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const openModal = (app) => {
     setSelected(app);
     setRemarks('');
@@ -81,6 +70,24 @@ export default function ApplicationReview() {
         .filter(Boolean).join(', ') || '—';
     }
     return app.homeAddress || '—';
+  };
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleAction = async (id, status) => {
+    if (isProcessing) return;
+    
+    setIsProcessing(true);
+    try {
+      const res = await axios.put(`/api/IdApplication/${id}`, { status, remarks });
+      setApps(prev => prev.map(a => a._id === id ? res.data : a));
+      setSelected(null);
+      setRemarks('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -151,10 +158,19 @@ export default function ApplicationReview() {
                         </button>
                         {(app.status === 'pending' || app.status === 'under_review') && (
                           <>
-                            <button className="action-btn text-success" title="Approve" onClick={() => handleAction(app._id, 'approved')}>
+                            <button 
+                              className="action-btn text-success" 
+                              onClick={() => handleAction(app._id, 'approved')}
+                              disabled={isProcessing}
+                            >
                               <i className="bi bi-check-lg fs-6" />
                             </button>
-                            <button className="action-btn text-danger" title="Reject" onClick={() => handleAction(app._id, 'rejected')}>
+
+                            <button 
+                              className="action-btn text-danger" 
+                              onClick={() => handleAction(app._id, 'rejected')}
+                              disabled={isProcessing}
+                            >
                               <i className="bi bi-x-lg fs-6" />
                             </button>
                           </>
@@ -203,7 +219,6 @@ export default function ApplicationReview() {
                     ))}
                   </div>
 
-                  {/* remarks input for rejection */}
                   {(selected.status === 'pending' || selected.status === 'under_review') && (
                     <div className="mt-4">
                       <label className="form-label fw-semibold small">
@@ -234,15 +249,17 @@ export default function ApplicationReview() {
                         <button
                           className="btn btn-danger btn-sm d-flex align-items-center gap-1"
                           onClick={() => handleAction(selected._id, 'rejected')}
-                          disabled={!remarks.trim()}
+                          disabled={isProcessing || !remarks.trim()}
                         >
-                          <i className="bi bi-x-lg" /> Reject &amp; Notify
+                          <i className="bi bi-x-lg" /> {isProcessing ? 'Processing...' : 'Reject & Notify'}
                         </button>
+
                         <button
                           className="btn btn-approve btn-sm d-flex align-items-center gap-1"
                           onClick={() => handleAction(selected._id, 'approved')}
+                          disabled={isProcessing}
                         >
-                          <i className="bi bi-check-lg" /> Approve &amp; Notify
+                          <i className="bi bi-check-lg" /> {isProcessing ? 'Processing...' : 'Approve & Notify'}
                         </button>
                       </>
                     )}

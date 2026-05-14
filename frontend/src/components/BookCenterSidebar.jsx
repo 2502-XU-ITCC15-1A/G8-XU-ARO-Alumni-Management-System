@@ -5,6 +5,8 @@ const navItems = [
   { path: '/external-portal',              label: 'Dashboard',    icon: 'bi-grid-fill' },
   { path: '/external-portal/applications', label: 'Applications', icon: 'bi-credit-card-2-front' },
   { path: '/external-portal/id-processing', label: 'ID Processing', icon: 'bi-printer-fill' },
+  { path: '/external-portal/system-logs',   label: 'System Logs',  icon: 'bi-journal-text' },
+
 ];
 
 export default function BookCenterSidebar({ isOpen, onClose }) {

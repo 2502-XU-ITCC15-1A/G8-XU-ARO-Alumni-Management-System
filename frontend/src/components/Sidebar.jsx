@@ -4,9 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 const navItems = [
   { path: '/dashboard',          label: 'Dashboard',          icon: 'bi-grid-fill' },
   { path: '/alumni-records',     label: 'Alumni Records',     icon: 'bi-people' },
-  { path: '/add-alumni-record',  label: 'Add Alumni Record',  icon: 'bi-person-plus-fill' },
   { path: '/application-review', label: 'Application Review', icon: 'bi-file-earmark-text' },
   { path: '/user-management',    label: 'User Management',    icon: 'bi-person-gear' },
+  { path: '/admin/system-logs',  label: 'System Logs',        icon: 'bi-journal-text' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -60,6 +60,7 @@ export default function Sidebar({ isOpen, onClose }) {
           </Link>
         ))}
       </nav>
+      
 
       <div style={{ position: 'relative' }}>
 

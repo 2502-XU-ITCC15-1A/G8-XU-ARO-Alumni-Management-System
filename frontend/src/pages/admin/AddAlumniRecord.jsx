@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 const EDUCATION_LEVELS = [
@@ -194,7 +196,10 @@ function SaveBtn({ saving, children, onClick }) {
 }
 
 export default function AddAlumniRecord() {
+  const navigate = useNavigate();
   const token = localStorage.getItem('token');
+
+  
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem('alumni_profile');
@@ -357,12 +362,22 @@ export default function AddAlumniRecord() {
     <div className="p-4 p-lg-5">
       <Toast toast={toast} onDismiss={() => setToast(null)} />
 
-      <div className="mb-4">
-        <h4 className="page-title mb-1">Add Alumni Record</h4>
+      <div className="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h4 className="page-title mb-1">Add Alumni Record</h4>
 
-        <p className="text-muted" style={{ fontSize: 14 }}>
-          Create a complete alumni profile record.
-        </p>
+          <p className="text-muted mb-0" style={{ fontSize: 14 }}>
+            Create a complete alumni profile record.
+          </p>
+        </div>
+
+        <button
+          className="btn btn-outline-danger"
+          onClick={() => setShowClearModal(true)}
+        >
+          <i className="bi bi-trash me-1" />
+          Clear Saved Data
+        </button>
       </div>
 
       <div className="card border-0 shadow-sm p-4 mb-4" style={{ background: '#ffffff' }}>
@@ -769,9 +784,12 @@ export default function AddAlumniRecord() {
 </div>
 
       <div className="d-flex justify-content-end mt-4 gap-2">
-        <button className="btn btn-outline-danger px-4" onClick={() => setShowClearModal(true)}>
-          <i className="bi bi-trash me-1" />
-            Clear Saved Data
+        <button
+          className="btn btn-outline-secondary px-4"
+          onClick={() => navigate(-1)}
+        >
+          <i className="bi bi-arrow-left me-1" />
+          Cancel
         </button>
 
         <button className="btn btn-approve px-4"  onClick={handleSubmit}  disabled={saving} >
