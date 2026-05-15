@@ -547,6 +547,15 @@ export default function AlumniIdApplication() {
   const [loading, setLoading]         = useState(true);
   const [isRenewing, setIsRenewing]   = useState(false);
 
+  const fetchStatus = async () => {
+    try {
+      const appRes = await axios.get('/api/IdApplication/my', { headers });
+      setApplication(appRes.data[0] || null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     Promise.all([
       axios.get('/api/alumni/me', { headers }),
@@ -561,6 +570,17 @@ export default function AlumniIdApplication() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!application) return;
+
+    const shouldPoll = !['released', 'rejected'].includes(application.status);
+    
+    if (shouldPoll) {
+      const interval = setInterval(fetchStatus, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [application?.status, application?._id]);
 
   const handleRenew = (oldApplication) => {
     sessionStorage.setItem('previousApplicationId', oldApplication._id);
@@ -588,26 +608,34 @@ export default function AlumniIdApplication() {
           <StatusTracker application={application} />
           <PaymentInstructions application={application} />
 
-          {application.status === 'released' && (
-            <RenewCard application={application} onRenew={handleRenew} />
-          )}
-
-          {application.status === 'rejected' && (
-            <div className="card border-0 shadow-sm">
-              <div className="card-body p-4">
-                <h6 className="fw-bold mb-2">Re-apply</h6>
-                <p className="text-muted mb-3" style={{ fontSize: 13 }}>
-                  Your previous application was rejected. You may contact the Alumni Relations Office for more information, or re-apply by submitting a new application.
-                </p>
-                <button
-                  className="btn btn-approve"
-                  onClick={() => setApplication(null)}
-                >
-                  Submit New Application
-                </button>
-              </div>
-            </div>
-          )}
+         {application.status === 'rejected' && (
+  <div className="card border-0 shadow-sm">
+    <div className="card-body p-4">
+      <h6 className="fw-bold mb-2">Re-apply</h6>
+      <p className="text-muted mb-4" style={{ fontSize: 13 }}>
+        Your previous application was rejected. You may contact the Alumni Relations Office for more information, or re-apply by submitting a new application.
+      </p>
+      
+      {/* The Upgraded Button */}
+      <button
+        className="btn d-inline-flex align-items-center shadow-sm"
+        style={{ 
+          backgroundColor: '#1e2d5e', 
+          color: '#fff', 
+          padding: '10px 20px', 
+          fontSize: '14px', 
+          fontWeight: '600',
+          borderRadius: '8px',
+          border: 'none'
+        }}
+        onClick={() => setApplication(null)}
+      >
+        <i className="bi bi-plus-lg me-2"></i>
+        Submit New Application
+      </button>
+    </div>
+  </div>
+)}
         </>
       ) : (
         <ApplicationForm
@@ -617,7 +645,7 @@ export default function AlumniIdApplication() {
           token={token}
           isRenewal={isRenewing}
         />      
-        )}
+      )}
     </div>
   );
 }

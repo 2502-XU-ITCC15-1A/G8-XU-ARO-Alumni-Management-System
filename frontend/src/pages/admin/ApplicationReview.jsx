@@ -27,17 +27,51 @@ export default function ApplicationReview() {
   const [filter, setFilter]     = useState('all');
   const [selected, setSelected] = useState(null);
   const [remarks, setRemarks]   = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const fetchApps = async (isSilent = false) => {
+    try {
+      const res = await axios.get('/api/IdApplication');
+      setApps(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (!isSilent) setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    axios.get('/api/IdApplication')
-      .then(res => setApps(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchApps();
   }, []);
+
+  useEffect(() => {
+    if (isProcessing || selected) return;
+
+    const interval = setInterval(() => {
+      fetchApps(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isProcessing, selected]);
 
   const openModal = (app) => {
     setSelected(app);
     setRemarks('');
+  };
+
+  const handleAction = async (id, status) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const res = await axios.put(`/api/IdApplication/${id}`, { status, remarks });
+      setApps(prev => prev.map(a => a._id === id ? res.data : a));
+      setSelected(null);
+      setRemarks('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const counts = {
@@ -70,24 +104,6 @@ export default function ApplicationReview() {
         .filter(Boolean).join(', ') || '—';
     }
     return app.homeAddress || '—';
-  };
-
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleAction = async (id, status) => {
-    if (isProcessing) return;
-    
-    setIsProcessing(true);
-    try {
-      const res = await axios.put(`/api/IdApplication/${id}`, { status, remarks });
-      setApps(prev => prev.map(a => a._id === id ? res.data : a));
-      setSelected(null);
-      setRemarks('');
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   return (
@@ -130,7 +146,6 @@ export default function ApplicationReview() {
       <div className="card border-0 shadow-sm">
         <div className="card-body p-4">
           <h6 className="fw-bold mb-4">Applications ({filtered.length})</h6>
-
           {loading ? (
             <div className="text-center py-4 text-muted small">Loading...</div>
           ) : filtered.length === 0 ? (
@@ -165,7 +180,6 @@ export default function ApplicationReview() {
                             >
                               <i className="bi bi-check-lg fs-6" />
                             </button>
-
                             <button 
                               className="action-btn text-danger" 
                               onClick={() => handleAction(app._id, 'rejected')}
@@ -201,14 +215,14 @@ export default function ApplicationReview() {
                 <div className="modal-body p-4">
                   <div className="row g-4">
                     {[
-                      ['Full Name',        getFullName(selected)],
-                      ['Email',            selected.userId?.email || '—'],
-                      ['Student Number',   selected.alumniProfile?.universityIdNumber || selected.universityIdNumber || '—'],
-                      ['Program',          selected.course || '—'],
-                      ['Home Address',     getAddress(selected)],
-                      ['Application Date', formatDate(selected.createdAt)],
-                      ['Current Status',   <StatusBadge status={selected.status} />],
-                      ['Remarks',          selected.remarks || '—'],
+                      ['Full Name',         getFullName(selected)],
+                      ['Email',             selected.userId?.email || '—'],
+                      ['Student Number',    selected.alumniProfile?.universityIdNumber || selected.universityIdNumber || '—'],
+                      ['Program',           selected.course || '—'],
+                      ['Home Address',      getAddress(selected)],
+                      ['Application Date',  formatDate(selected.createdAt)],
+                      ['Current Status',    <StatusBadge status={selected.status} />],
+                      ['Remarks',           selected.remarks || '—'],
                     ].map(([label, value]) => (
                       <div key={label} className="col-6">
                         <div className="fw-semibold text-dark small mb-1">{label}</div>
@@ -218,7 +232,6 @@ export default function ApplicationReview() {
                       </div>
                     ))}
                   </div>
-
                   {(selected.status === 'pending' || selected.status === 'under_review') && (
                     <div className="mt-4">
                       <label className="form-label fw-semibold small">
@@ -235,7 +248,6 @@ export default function ApplicationReview() {
                     </div>
                   )}
                 </div>
-
                 <div className="modal-footer bg-light border-top flex-column align-items-stretch gap-2">
                   <p className="text-muted small mb-0">
                     Approving or rejecting will send a notification to the applicant.
@@ -253,7 +265,6 @@ export default function ApplicationReview() {
                         >
                           <i className="bi bi-x-lg" /> {isProcessing ? 'Processing...' : 'Reject & Notify'}
                         </button>
-
                         <button
                           className="btn btn-approve btn-sm d-flex align-items-center gap-1"
                           onClick={() => handleAction(selected._id, 'approved')}

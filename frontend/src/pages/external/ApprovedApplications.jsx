@@ -10,8 +10,8 @@ const FILTER_OPTIONS = [
 ];
 
 function paymentBadge(app) {
-  if (app.status === 'released')                  return { text: 'Released',         cls: 'status-released' };
-  if (app.status === 'printing')                  return { text: 'In Printing',      cls: 'status-printing' };
+  if (app.status === 'released')                  return { text: 'Released',          cls: 'status-released' };
+  if (app.status === 'printing')                  return { text: 'In Printing',       cls: 'status-printing' };
   if (app.paymentVerified)                        return { text: 'Payment Confirmed', cls: 'status-approved' };
   return                                                 { text: 'Awaiting Payment', cls: 'status-pending' };
 }
@@ -31,7 +31,6 @@ function ConfirmPaymentModal({ app, onClose, onConfirm, confirming }) {
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }} />
       <div style={{ position: 'fixed', inset: 0, zIndex: 1055, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', pointerEvents: 'none' }}>
         <div style={{ width: '100%', maxWidth: 440, borderRadius: 14, backgroundColor: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', pointerEvents: 'all', overflow: 'hidden' }}>
-          {/* Header */}
           <div className="d-flex align-items-center justify-content-between px-4 py-3" style={{ backgroundColor: '#1e2d5e', borderRadius: '14px 14px 0 0' }}>
             <span className="fw-semibold text-white" style={{ fontSize: 15 }}>
               <i className="bi bi-cash-coin me-2" />Confirm Payment Received
@@ -40,8 +39,6 @@ function ConfirmPaymentModal({ app, onClose, onConfirm, confirming }) {
               <i className="bi bi-x-lg" />
             </button>
           </div>
-
-          {/* Body */}
           <div className="p-4">
             <div className="mb-4 p-3 rounded" style={{ backgroundColor: '#f8fafc', border: '1px solid #e5e7eb' }}>
               <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Applicant</div>
@@ -57,8 +54,6 @@ function ConfirmPaymentModal({ app, onClose, onConfirm, confirming }) {
               </div>
             </div>
           </div>
-
-          {/* Footer */}
           <div className="d-flex justify-content-end gap-2 px-4 pb-4">
             <button className="btn btn-sm btn-outline-secondary" onClick={onClose}>Cancel</button>
             <button className="btn btn-sm btn-approve" disabled={confirming} onClick={onConfirm}>
@@ -83,15 +78,34 @@ export default function ApprovedApplications() {
   const [deleting, setDeleting]         = useState(false);
   const navigate                        = useNavigate();
 
-  const fetchApps = () => {
-    setLoading(true);
+  const fetchApps = (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     axios.get('/api/IdApplication')
-      .then(r => setApps(r.data.filter(a => ['approved', 'payment_pending', 'printing', 'released'].includes(a.status))))
+      .then(r => {
+        const approvedData = r.data.filter(a => 
+          ['approved', 'payment_pending', 'printing', 'released'].includes(a.status)
+        );
+        setApps(approvedData);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!isSilent) setLoading(false);
+      });
   };
 
-  useEffect(() => { fetchApps(); }, []);
+  useEffect(() => {
+    fetchApps();
+  }, []);
+
+  useEffect(() => {
+    if (confirming || deleting || confirmApp || confirmDelete) return;
+
+    const interval = setInterval(() => {
+      fetchApps(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [confirming, deleting, confirmApp, confirmDelete]);
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
@@ -99,7 +113,7 @@ export default function ApprovedApplications() {
     try {
       await axios.delete(`/api/IdApplication/${confirmDelete._id}`);
       setConfirmDelete(null);
-      fetchApps();
+      fetchApps(true);
     } catch {
       alert('Failed to delete application.');
     } finally {
@@ -113,7 +127,7 @@ export default function ApprovedApplications() {
     try {
       await axios.put(`/api/bookcenter/${confirmApp._id}/verify-payment`);
       setConfirmApp(null);
-      fetchApps();
+      fetchApps(true);
     } catch {
       alert('Failed to confirm payment.');
     } finally {
@@ -144,12 +158,11 @@ export default function ApprovedApplications() {
         Alumni ID applications approved by XU-ARO — confirm payment when alumni pays at the Book Center
       </p>
 
-      {/* Stats */}
       <div className="row g-3 mb-4">
         {[
-          { label: 'Total',            value: counts.all,      cls: 'app-stat-plain' },
+          { label: 'Total',            value: counts.all,       cls: 'app-stat-plain' },
           { label: 'Awaiting Payment', value: counts.awaiting, cls: 'app-stat-pending' },
-          { label: 'In Printing',      value: counts.printing, cls: 'app-stat-plain' },
+          { label: 'In Printing',       value: counts.printing, cls: 'app-stat-plain' },
           { label: 'Released',         value: counts.released, cls: 'app-stat-approved' },
         ].map(s => (
           <div key={s.label} className="col-6 col-xl-3">
@@ -258,7 +271,6 @@ export default function ApprovedApplications() {
         </div>
       </div>
 
-      {/* Confirm Payment Modal */}
       <ConfirmPaymentModal
         app={confirmApp}
         onClose={() => setConfirmApp(null)}
@@ -266,7 +278,6 @@ export default function ApprovedApplications() {
         confirming={confirming}
       />
 
-      {/* Delete Confirmation Modal */}
       {confirmDelete && (
         <>
           <div onClick={() => setConfirmDelete(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1050 }} />
