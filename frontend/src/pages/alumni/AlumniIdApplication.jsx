@@ -616,7 +616,6 @@ export default function AlumniIdApplication() {
         Your previous application was rejected. You may contact the Alumni Relations Office for more information, or re-apply by submitting a new application.
       </p>
       
-      {/* The Upgraded Button */}
       <button
         className="btn d-inline-flex align-items-center shadow-sm"
         style={{ 
