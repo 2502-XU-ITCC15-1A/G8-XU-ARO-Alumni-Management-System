@@ -114,15 +114,7 @@ export default function AlumniRecords() {
             <h6 className="fw-bold mb-0">
               Alumni Records ({filtered.length})
             </h6>
-
-            <button
-              className="btn btn-approve btn-sm"
-              onClick={() => navigate('/add-alumni-record')}
-            >
-              <i className="bi bi-plus-circle me-1" />
-              Add Alumni Record
-            </button>
-          </div>
+            </div>
 
           {loading ? (
             <div className="text-center py-4 text-muted small">Loading...</div>
@@ -151,9 +143,6 @@ export default function AlumniRecords() {
                       <td>
                         <button className="action-btn text-primary" onClick={() => setSelected(a)}>
                           <i className="bi bi-eye fs-6" />
-                        </button>
-                        <button className="action-btn text-warning" onClick={() => navigate(`/edit-alumni-record/${a._id}`)} title="Edit">
-                          <i className="bi bi-pencil-square fs-6" />
                         </button>
                         <button className="action-btn text-danger" onClick={() => setConfirmId(a._id)}>
                           <i className="bi bi-trash fs-6" />
