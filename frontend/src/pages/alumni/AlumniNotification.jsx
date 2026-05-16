@@ -36,21 +36,44 @@ export default function AlumniNotification() {
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const fetchData = async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
-    try {
-      const [notifRes, countRes] = await Promise.all([
-        axios.get('/api/notifications/my', { headers }),
-        axios.get('/api/notifications/unread-count', { headers })
-      ]);
-      setNotifications(notifRes.data || []);
-      setUnreadCount(countRes.data.count || 0);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      if (!isSilent) setLoading(false);
-    }
+  const triggerNotificationUpdate = () => {
+    window.dispatchEvent(new Event('notifications:update'));
   };
+
+  const fetchData = async (isSilent = false) => {
+  if (!isSilent) setLoading(true);
+
+  try {
+    const [notifRes, countRes] = await Promise.all([
+      axios.get('/api/notifications/my', { headers }),
+      axios.get('/api/notifications/unread-count', { headers })
+    ]);
+
+    const newNotifications = notifRes.data || [];
+
+    setNotifications(prev => {
+      const prevIds = new Set(prev.map(n => n._id));
+      const hasNew = newNotifications.some(n => !prevIds.has(n._id));
+
+      if (hasNew) {
+        console.log("🔔 New notification arrived");
+      }
+
+      return newNotifications;
+    });
+
+    setUnreadCount(countRes.data.count || 0);
+
+    if (isSilent) {
+      window.dispatchEvent(new Event('notifications:update'));
+    }
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    if (!isSilent) setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
@@ -58,8 +81,8 @@ export default function AlumniNotification() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchData(true);
-    }, 5000);
+  fetchData(true);
+}, 2000);
 
     return () => clearInterval(interval);
   }, []);
@@ -86,10 +109,6 @@ export default function AlumniNotification() {
     } catch (err) {
       console.error(err);
     }
-  };
-
-  const triggerNotificationUpdate = () => {
-    window.dispatchEvent(new Event('notifications:update'));
   };
 
   return (

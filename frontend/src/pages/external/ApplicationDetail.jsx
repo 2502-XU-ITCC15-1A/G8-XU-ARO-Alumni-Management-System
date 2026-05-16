@@ -104,7 +104,6 @@ export default function ApplicationDetail() {
     }
   };
 
-  // Helper to force image download directly across different storage patterns
   const handleDownloadFile = async (url, defaultName) => {
     try {
       const response = await fetch(url);
@@ -118,7 +117,6 @@ export default function ApplicationDetail() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      // Fallback if fetch is blocked by CORS limits
       const link = document.createElement('a');
       link.href = url;
       link.download = defaultName;
@@ -144,7 +142,6 @@ export default function ApplicationDetail() {
 
   return (
     <div className="p-4">
-      {/* Header */}
       <div className="d-flex align-items-center gap-3 mb-1">
         <button
           className="btn btn-sm btn-outline-secondary"
@@ -160,9 +157,7 @@ export default function ApplicationDetail() {
 
       <PaymentStatus app={app} />
 
-      {/* ── XU FORM ── */}
       <div className="card border-0 shadow-sm mb-4">
-        {/* Form header */}
         <div className="card-body border-bottom pb-3">
           <div className="d-flex align-items-center gap-3">
             <div style={{
@@ -181,7 +176,6 @@ export default function ApplicationDetail() {
         </div>
 
         <div className="card-body">
-          {/* Row 1: Name */}
           <div className="xu-form-section mb-3">
             <div className="row g-0">
               <div className="col-4 xu-cell">
@@ -199,7 +193,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 2: Graduation years */}
           <div className="xu-form-section mb-3">
             <div className="xu-section-title">YEAR OF GRADUATION AT XAVIER UNIVERSITY</div>
             <div className="row g-0">
@@ -212,7 +205,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 3: Course */}
           <div className="xu-form-section mb-3">
             <div className="xu-cell">
               <div className="xu-label">COURSE</div>
@@ -220,7 +212,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 4: Home Address */}
           <div className="xu-form-section mb-3">
             <div className="xu-cell">
               <div className="xu-label">HOME ADDRESS</div>
@@ -228,7 +219,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 5: ID Number / Valid Until / Verified By */}
           <div className="xu-form-section mb-3">
             <div className="row g-0">
               <div className="col-5 xu-cell">
@@ -248,7 +238,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 6: Blood Type */}
           <div className="xu-form-section mb-3">
             <div className="row g-0">
               <div className="col-12 xu-cell">
@@ -295,14 +284,12 @@ export default function ApplicationDetail() {
   </div>
 </div>
 
-          {/* Payment info footer */}
           <div className="xu-form-section xu-payment-info">
             <div className="xu-label mb-1">Please pay at the XU Book Center — ₱150.00</div>
           </div>
         </div>
       </div>
 
-      {/* Alumni Photo Upload */}
       {app.status !== 'released' && (
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4">
@@ -356,7 +343,6 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Show uploaded photo for released IDs */}
       {app.status === 'released' && app.alumniPhoto && (
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4 d-flex align-items-center gap-3">
@@ -375,7 +361,6 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Action buttons */}
       <div className="d-flex gap-2 justify-content-end">
         <button
           className="btn btn-outline-secondary btn-sm"

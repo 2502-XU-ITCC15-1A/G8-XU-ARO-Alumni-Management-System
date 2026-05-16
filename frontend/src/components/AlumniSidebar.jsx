@@ -37,105 +37,65 @@ export default function AlumniSidebar({ isOpen, onClose }) {
   const email = user.email || '';
   const initial = name.charAt(0).toUpperCase();
 
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const token = localStorage.getItem('token');
+ useEffect(() => {
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
 
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
+  let isMounted = true;
 
-        const res = await axios.get(
-          '/api/notifications/unread-count',
-          { headers }
-        );
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await axios.get('/api/notifications/unread-count', { headers });
 
-        setUnreadCount(res.data.count || 0);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+      if (!isMounted) return;
+      setUnreadCount(res.data.count || 0);
 
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchUnreadCount();
+
+  const interval = setInterval(fetchUnreadCount, 3000);
+
+  const handleUpdate = () => {
     fetchUnreadCount();
+  };
 
-    const handleUpdate = () => {
-      fetchUnreadCount();
-    };
+  window.addEventListener('notifications:update', handleUpdate);
 
-    window.addEventListener(
-      'notifications:update',
-      handleUpdate
-    );
-
-    return () => {
-      window.removeEventListener(
-        'notifications:update',
-        handleUpdate
-      );
-    };
-  }, []);
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+    window.removeEventListener('notifications:update', handleUpdate);
+  };
+}, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('user');
-
     navigate('/');
   };
 
-  const triggerNotificationUpdate = () => {
-    window.dispatchEvent(
-      new Event('notifications:update')
-    );
-  };
-
   return (
-    <div
-      className={`sidebar ${
-        isOpen ? 'sidebar-open' : ''
-      }`}
-    >
+    <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-brand d-flex align-items-start justify-content-between">
         <div>
-          <div
-            className="text-white fw-bold"
-            style={{
-              fontSize: 20,
-              lineHeight: 1.3,
-            }}
-          >
-            XU Alumni
-            <br />
-            Portal
+          <div className="text-white fw-bold" style={{ fontSize: 20, lineHeight: 1.3 }}>
+            XU Alumni<br />Portal
           </div>
-
-          <div
-            style={{
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: 12,
-              marginTop: 4,
-            }}
-          >
+          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
             Alumni Self-Service
           </div>
         </div>
-
         <button
           className="d-md-none"
           onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'rgba(255,255,255,0.6)',
-            padding: 0,
-            lineHeight: 1,
-          }}
+          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', padding: 0, lineHeight: 1 }}
         >
-          <i
-            className="bi bi-x-lg"
-            style={{ fontSize: 18 }}
-          />
+          <i className="bi bi-x-lg" style={{ fontSize: 18 }} />
         </button>
       </div>
 
@@ -145,30 +105,21 @@ export default function AlumniSidebar({ isOpen, onClose }) {
             key={item.path}
             to={item.path}
             onClick={onClose}
-            className={`sidebar-nav-link ${
-              pathname === item.path ? 'active' : ''
-            }`}
+            className={`sidebar-nav-link d-flex align-items-center justify-content-between ${pathname === item.path ? 'active' : ''}`}
           >
-            <i
-              className={`bi ${item.icon}`}
-              style={{ fontSize: 16 }}
-            />
+            <div className="d-flex align-items-center gap-2">
+              <i className={`bi ${item.icon}`} style={{ fontSize: 16 }} />
+              <span>{item.label}</span>
+            </div>
 
-            {item.label}
-
-            {item.path ===
-              '/alumni-portal/notifications' &&
-              unreadCount > 0 && (
-                <span
-                  style={{
-                    marginLeft: 'auto',
-                    fontSize: 11,
-                    fontWeight: 600,
-                  }}
-                >
-                  {unreadCount}
-                </span>
-              )}
+            {item.path === '/alumni-portal/notifications' && unreadCount > 0 && (
+              <span 
+                className="badge rounded-pill bg-danger" 
+                style={{ fontSize: 10, fontWeight: 600 }}
+              >
+                {unreadCount}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
@@ -176,10 +127,7 @@ export default function AlumniSidebar({ isOpen, onClose }) {
       <div style={{ position: 'relative' }}>
         {showMenu && (
           <div className="sidebar-user-menu">
-            <button
-              className="sidebar-logout-btn"
-              onClick={handleLogout}
-            >
+            <button className="sidebar-logout-btn" onClick={handleLogout}>
               <i className="bi bi-box-arrow-right" />
               Log out
             </button>
@@ -187,53 +135,17 @@ export default function AlumniSidebar({ isOpen, onClose }) {
         )}
 
         <button
-          className={`sidebar-footer ${
-            showMenu
-              ? 'sidebar-footer-active'
-              : ''
-          }`}
-          onClick={() =>
-            setShowMenu((v) => !v)
-          }
+          className={`sidebar-footer ${showMenu ? 'sidebar-footer-active' : ''}`}
+          onClick={() => setShowMenu((v) => !v)}
         >
-          <div className="sidebar-avatar">
-            {initial}
+          <div className="sidebar-avatar">{initial}</div>
+          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+            <div className="text-white fw-semibold text-truncate" style={{ fontSize: 13 }}>{name}</div>
+            <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{email}</div>
           </div>
-
-          <div
-            style={{
-              flex: 1,
-              minWidth: 0,
-              textAlign: 'left',
-            }}
-          >
-            <div
-              className="text-white fw-semibold text-truncate"
-              style={{ fontSize: 13 }}
-            >
-              {name}
-            </div>
-
-            <div
-              className="text-truncate"
-              style={{
-                color: 'rgba(255,255,255,0.5)',
-                fontSize: 11,
-              }}
-            >
-              {email}
-            </div>
-          </div>
-
           <i
-            className={`bi bi-chevron-${
-              showMenu ? 'down' : 'up'
-            }`}
-            style={{
-              color: 'rgba(255,255,255,0.4)',
-              fontSize: 11,
-              flexShrink: 0,
-            }}
+            className={`bi bi-chevron-${showMenu ? 'down' : 'up'}`}
+            style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, flexShrink: 0 }}
           />
         </button>
       </div>

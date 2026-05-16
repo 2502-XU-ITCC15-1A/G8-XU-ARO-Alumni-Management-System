@@ -4,8 +4,13 @@ const getSystemLogs = async (req, res) => {
     try {
         const role = req.user.role;
 
+        // Base query: Match logs performed by the current user's role
+        // ADDITION: Also look for payment verification actions regardless of role
         const logs = await SystemLog.find({
-            "performedBy.role": role
+            $or: [
+                { "performedBy.role": role },
+                { action: "PAYMENT_VERIFIED" }
+            ]
         })
         .sort({ createdAt: -1 })
         .limit(500);

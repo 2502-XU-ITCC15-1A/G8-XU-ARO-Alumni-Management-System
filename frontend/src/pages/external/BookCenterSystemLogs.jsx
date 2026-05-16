@@ -107,23 +107,57 @@ export default function BookCenterSystemLogs() {
     }
   };
 
+  const processLogData = (log) => {
+    let target = log.target || '—';
+    let details = log.details || '';
+
+    const isReleased = (log.action || '').toUpperCase() === 'ID_RELEASED';
+
+    if (isReleased) {
+      const studentName = log.target;
+
+      if (studentName && /^[a-zA-Z\s.]+$/.test(studentName)) {
+        const nameKeywords = studentName.toLowerCase().split(' ').filter(k => k.length > 2);
+        
+        const matchingPaymentLog = logs.find(l => {
+          const isPayment = (l.action || '').toUpperCase().includes('PAYMENT');
+          return isPayment && l.details && nameKeywords.every(kw => l.details.toLowerCase().includes(kw));
+        });
+
+        if (matchingPaymentLog && matchingPaymentLog.target) {
+          target = matchingPaymentLog.target;
+          details = `Status changed to released. Applicant: ${studentName}`; 
+        }
+      }
+    }
+
+    return { target, details };
+  };
+
   const filtered = logs
     .filter(log => {
       if (!log.action) return false;
+      
       const normalizedAction = log.action.toUpperCase().replace(/[\s-]/g, '_');
+      
+      if (normalizedAction.includes('VERIFY') || normalizedAction.includes('PAYMENT')) {
+        return true;
+      }
+
       return BOOK_CENTER_ACTIONS.some(allowedAction => 
         normalizedAction === allowedAction || 
-        normalizedAction.includes(allowedAction) ||
-        (allowedAction === 'PAYMENT_VERIFIED' && normalizedAction.includes('VERIFY'))
+        normalizedAction.includes(allowedAction)
       );
     })
     .filter(log => {
       const q = search.toLowerCase();
+      const data = processLogData(log);
+      
       return (
         (log.action || '').toLowerCase().includes(q) ||
-        (log.target || '').toLowerCase().includes(q) ||
-        (log.performedBy?.name || '').toLowerCase().includes(q) ||
-        (log.details || '').toLowerCase().includes(q)
+        data.target.toLowerCase().includes(q) ||
+        data.details.toLowerCase().includes(q) ||
+        (log.performedBy?.name || '').toLowerCase().includes(q)
       );
     });
 
@@ -178,25 +212,28 @@ export default function BookCenterSystemLogs() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(log => (
-                    <tr key={log._id}>
-                      <td className="text-secondary">
-                        {fmtDate(log.createdAt)}
-                      </td>
-                      <td className="text-primary fw-medium">
-                        {log.performedBy?.name || '—'}
-                      </td>
-                      <td>
-                        {getActionBadge(log.action)}
-                      </td>
-                      <td className="text-secondary">
-                        {log.target || '—'}
-                      </td>
-                      <td className="text-muted small" style={{ whiteSpace: 'pre-wrap' }}>
-                        {renderDetails(log.details)}
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map(log => {
+                    const displayData = processLogData(log);
+                    return (
+                      <tr key={log._id}>
+                        <td className="text-secondary">
+                          {fmtDate(log.createdAt)}
+                        </td>
+                        <td className="text-primary fw-medium">
+                          {log.performedBy?.name || '—'}
+                        </td>
+                        <td>
+                          {getActionBadge(log.action)}
+                        </td>
+                        <td className="text-secondary fw-semibold">
+                          {displayData.target}
+                        </td>
+                        <td className="text-muted small" style={{ whiteSpace: 'pre-wrap' }}>
+                          {renderDetails(displayData.details)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

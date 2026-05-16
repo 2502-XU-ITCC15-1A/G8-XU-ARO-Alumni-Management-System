@@ -1,6 +1,7 @@
 const IdApplication = require("../models/IdApplication");
 const { sendStatusEmail } = require("../utils/emailService");
 const Notification = require("../models/Notification");
+const SystemLog = require("../models/SystemLog");
 
 exports.getBookCenterApplications = async (req, res) => {
     try {
@@ -16,7 +17,6 @@ exports.getBookCenterApplications = async (req, res) => {
     }
 };
 
-// Confirm that alumni has paid in person at the Book Center → start printing
 exports.verifyPayment = async (req, res) => {
     try {
         const { id } = req.params;
@@ -45,6 +45,16 @@ exports.verifyPayment = async (req, res) => {
             }).catch(console.error);
         }
 
+        await SystemLog.create({
+            action: 'PAYMENT_VERIFIED',
+            performedBy: {
+                name: req.user?.name || 'XU Book Center Staff',
+                id: req.user?.id || req.user?._id || null
+            },
+            target: updated.universityIdNumber || 'N/A',
+            details: `Verified ₱150 payment fee for applicant: ${updated.firstName} ${updated.lastName}`
+        }).catch(err => console.error('Failed to create system log:', err));
+
         res.json(updated);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -68,6 +78,17 @@ exports.startPrinting = async (req, res) => {
             { returnDocument: 'after' }
         );
 
+
+        await SystemLog.create({
+            action: 'ID_PRINTING_STARTED',
+            performedBy: {
+                name: req.user?.name || 'XU Book Center Staff',
+                id: req.user?.id || req.user?._id || null
+            },
+            target: updated.universityIdNumber || 'N/A',
+            details: `Started ID card printing process for: ${updated.firstName} ${updated.lastName}`
+        }).catch(err => console.error('Failed to create system log:', err));
+
         res.json(updated);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -86,13 +107,24 @@ exports.releaseId = async (req, res) => {
 
         if (!updated) return res.status(404).json({ message: "Application not found" });
 
+
+        await SystemLog.create({
+            action: 'ID_RELEASED',
+            performedBy: {
+                name: req.user?.name || 'XU Book Center Staff',
+                id: req.user?.id || req.user?._id || null
+            },
+            target: updated.universityIdNumber || 'N/A',
+            details: `Alumni ID card successfully released to: ${updated.firstName} ${updated.lastName}`
+        }).catch(err => console.error('Failed to create system log:', err));
+
         res.json(updated);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
 
-// Put application on hold — alumni has not yet paid; stays in approved status
+
 exports.holdApplication = async (req, res) => {
     try {
         const { id } = req.params;
@@ -110,4 +142,3 @@ exports.holdApplication = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
- 

@@ -24,6 +24,7 @@ function SignaturePad({ value, onChange }) {
   const canvasRef = useRef(null);
   const drawing   = useRef(false);
   const lastPos   = useRef(null);
+  const BRUSH_SIZE = 3; 
 
   const getPos = (e) => {
     const canvas = canvasRef.current;
@@ -34,7 +35,22 @@ function SignaturePad({ value, onChange }) {
     return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
   };
 
-  const startDraw = (e) => { e.preventDefault(); drawing.current = true; lastPos.current = getPos(e); };
+  const startDraw = (e) => { 
+    e.preventDefault(); 
+    drawing.current = true; 
+    const pos = getPos(e);
+    lastPos.current = pos;
+
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineWidth = BRUSH_SIZE;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#1e2d5e';
+    
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
 
   const draw = (e) => {
     e.preventDefault();
@@ -44,10 +60,6 @@ function SignaturePad({ value, onChange }) {
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#1e2d5e';
-    ctx.lineWidth   = 2;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
     ctx.stroke();
     lastPos.current = pos;
   };
@@ -86,8 +98,11 @@ function SignaturePad({ value, onChange }) {
         <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear} style={{ fontSize: 12 }}>
           <i className="bi bi-eraser me-1" />Clear
         </button>
-        {value && <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>}
-        {!value && <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above using mouse or touch</span>}
+        {value ? (
+          <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>
+        ) : (
+          <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above</span>
+        )}
       </div>
     </div>
   );
@@ -210,6 +225,8 @@ function StatusTracker({ application }) {
   );
 }
 
+
+
 function PaymentInstructions({ application }) {
   if (application.paymentVerified && application.status === 'printing') {
     return (
@@ -252,10 +269,20 @@ function PaymentInstructions({ application }) {
 
 function PhotoUpload({ label, hint, value, onChange }) {
   const inputRef = useRef(null);
+  const [error, setError] = useState(''); 
 
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/jfif'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload a PNG or JPG image.');
+      if (inputRef.current) inputRef.current.value = ''; 
+      return;
+    }
+
+    setError('');
     const preview = URL.createObjectURL(file);
     onChange({ file, preview });
   };
@@ -263,6 +290,7 @@ function PhotoUpload({ label, hint, value, onChange }) {
   const clear = () => {
     if (value?.preview) URL.revokeObjectURL(value.preview);
     onChange(null);
+    setError(''); 
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -288,19 +316,37 @@ function PhotoUpload({ label, hint, value, onChange }) {
         <div
           onClick={() => inputRef.current?.click()}
           style={{
-            border: '2px dashed #d1d5db', borderRadius: 6, padding: '20px 16px',
-            textAlign: 'center', cursor: 'pointer', background: '#fafafa',
-            transition: 'border-color 0.15s',
+            border: error ? '2px dashed #dc3545' : '2px dashed #d1d5db', 
+            borderRadius: 6, padding: '20px 16px',
+            textAlign: 'center', cursor: 'pointer', background: error ? '#fff5f5' : '#fafafa',
+            transition: 'all 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = '#1e2d5e'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = '#d1d5db'}
+          onMouseEnter={e => e.currentTarget.style.borderColor = error ? '#dc3545' : '#1e2d5e'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = error ? '#dc3545' : '#d1d5db'}
         >
-          <i className="bi bi-cloud-upload" style={{ fontSize: 24, color: '#9ca3af' }} />
-          <div className="mt-1" style={{ fontSize: 13, color: '#6b7280' }}>{label}</div>
-          {hint && <div style={{ fontSize: 11, color: '#9ca3af' }}>{hint}</div>}
+          <i className={`bi ${error ? 'bi-exclamation-circle' : 'bi-cloud-upload'}`} 
+             style={{ fontSize: 24, color: error ? '#dc3545' : '#9ca3af' }} 
+          />
+          <div className="mt-1" style={{ fontSize: 13, color: error ? '#dc3545' : '#6b7280' }}>
+            {error ? error : label}
+          </div>
+          {!error && hint && <div style={{ fontSize: 11, color: '#9ca3af' }}>{hint}</div>}
         </div>
       )}
-      <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/jpg" style={{ display: 'none' }} onChange={handleFile} />
+
+      {error && (
+        <div className="text-danger mt-1" style={{ fontSize: 11, fontWeight: '500' }}>
+          <i className="bi bi-x-circle me-1" />{error}
+        </div>
+      )}
+
+      <input 
+        ref={inputRef} 
+        type="file" 
+        accept=".png,.jpg,.jpeg,.jfif,image/png,image/jpeg,image/jfif" 
+        style={{ display: 'none' }} 
+        onChange={handleFile} 
+        />
     </div>
   );
 }
@@ -309,21 +355,88 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
 
   const collegeRecord = education.find(edu => edu.level === 'College');
 
-  const [form, setForm] = useState({
-    ...BLANK_FORM,
-    lastName:           profile?.surname || '',
-    firstName:          profile?.firstName || '',
-    middleName:         profile?.middleName || '',
-    bloodType:          profile?.bloodType || '',
-    course:             collegeRecord?.degree || '',
-    homeAddress: [
-      profile?.address?.street,
-      profile?.address?.barangay,
-      profile?.address?.city,
-      profile?.address?.province
-    ].filter(Boolean).join(', '),
-    universityIdNumber: profile?.universityIdNumber || '',
-  });
+const EDUCATION_PRIORITY = [
+  'Post-Graduate',
+  'College',
+  'Senior High School',
+  'Junior High School',
+  'Grade School',
+];
+
+const highestEducation = [...education]
+  .sort(
+    (a, b) =>
+      EDUCATION_PRIORITY.indexOf(a.level) -
+      EDUCATION_PRIORITY.indexOf(b.level)
+  )[0];
+
+const getCourseDisplay = (edu) => {
+  if (!edu) return '';
+
+  if (
+    edu.level === 'Grade School' ||
+    edu.level === 'Junior High School'
+  ) {
+    return;
+  }
+
+  if (edu.level === 'Senior High School') {
+    return edu.degree || '';
+  }
+
+  if (
+    edu.level === 'College' ||
+    edu.level === 'Post-Graduate'
+  ) {
+    return edu.degree || '';
+  }
+
+  return edu.degree || '';
+};
+
+const [form, setForm] = useState({
+  ...BLANK_FORM,
+
+  lastName: profile?.surname || '',
+  firstName: profile?.firstName || '',
+  middleName: profile?.middleName || '',
+
+  bloodType: profile?.bloodType || '',
+
+  course: getCourseDisplay(highestEducation),
+
+  gradGradeSchool:
+    education.find(e => e.level === 'Grade School')
+      ?.yearGraduated || '',
+
+  gradJHS:
+    education.find(e => e.level === 'Junior High School')
+      ?.yearGraduated || '',
+
+  gradSHS:
+    education.find(e => e.level === 'Senior High School')
+      ?.yearGraduated || '',
+
+  gradCollege:
+    education.find(e => e.level === 'College')
+      ?.yearGraduated || '',
+
+  gradPostGrad:
+    education.find(e => e.level === 'Post-Graduate')
+      ?.yearGraduated || '',
+
+  homeAddress: [
+    profile?.address?.street,
+    profile?.address?.barangay,
+    profile?.address?.city,
+    profile?.address?.province
+  ]
+    .filter(Boolean)
+    .join(', '),
+
+  universityIdNumber:
+    profile?.universityIdNumber || '',
+});
 
   const [sigMode,       setSigMode]       = useState('draw');
   const [sigUpload,     setSigUpload]     = useState(null);
@@ -426,8 +539,21 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
               </Field>
             </div>
             <div className="col-md-4">
-              <Field label="Degree / Course" required>
-                <input className="form-control" style={{ fontSize: 14 }} value={f('course')} onChange={set('course')} placeholder="e.g. BS Computer Science" />
+              <Field
+                label={
+                  highestEducation?.level === 'Senior High School'
+                    ? 'Strand'
+                    : 'Degree / Course'
+                }
+                required
+              >
+              <input
+                className="form-control"
+                style={{ fontSize: 14 }}
+                value={f('course')}
+                onChange={set('course')}
+                placeholder="Enter degree / strand if unavailable"
+              />         
               </Field>
             </div>
             <div className="col-12">
@@ -473,51 +599,54 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
           <Field label="Upload Your Photo">
             <PhotoUpload
               label="Click to upload a photo for your Alumni ID"
-              hint="PNG or JPEG, plain background preferred"
+              hint="PNG, JFIF, or JPEG, plain background preferred"
               value={photoUpload}
               onChange={setPhotoUpload}
             />
           </Field>
         </div>
 
-        <div className="mb-4">
-          <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-            E-Signature
-          </div>
+<div className="mb-4">
+  <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
+    E-Signature
+  </div>
 
-          <div className="d-flex gap-2 mb-3">
-            {['draw', 'upload'].map(mode => (
-              <button
-                key={mode}
-                type="button"
-                className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
-                style={{ fontSize: 12 }}
-                onClick={() => setSigMode(mode)}
-              >
-                <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
-                {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
-              </button>
-            ))}
-          </div>
+  <div className="d-flex gap-2 mb-3">
+    {['draw', 'upload'].map(mode => (
+      <button
+        key={mode}
+        type="button"
+        className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
+        style={{ fontSize: 12 }}
+        onClick={() => setSigMode(mode)}
+      >
+        <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
+        {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
+      </button>
+    ))}
+  </div>
 
-          {sigMode === 'draw' ? (
-            <Field label="Draw Your Signature">
-              <SignaturePad
-                value={f('signature')}
-                onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
-              />
-            </Field>
-          ) : (
-            <Field label="Upload Signature Image">
-              <PhotoUpload
-                label="Click to upload your e-signature image"
-                hint="PNG or JPEG with transparent or white background"
-                value={sigUpload}
-                onChange={setSigUpload}
-              />
-            </Field>
-          )}
-        </div>
+  <div className={sigMode === 'draw' ? '' : 'd-none'}>
+    <Field label="Draw Your Signature" key="sig-pad-field">
+      <SignaturePad
+        value={f('signature')}
+        onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+      />
+    </Field>
+  </div>
+
+  <div className={sigMode === 'upload' ? '' : 'd-none'}>
+    <Field label="Upload Signature Image" key="sig-upload-field">
+      <PhotoUpload
+        key="sig-upload-input"
+        label="Click to upload your e-signature image"
+        hint="PNG, JFIF, or JPEG with transparent or white background"
+        value={sigUpload}
+        onChange={sigUpload => setSigUpload(sigUpload)}
+      />
+    </Field>
+  </div>
+</div>
 
         <div className="d-flex justify-content-end">
           <button
@@ -606,35 +735,42 @@ export default function AlumniIdApplication() {
       {application ? (
         <>
           <StatusTracker application={application} />
+          
           <PaymentInstructions application={application} />
 
-         {application.status === 'rejected' && (
-  <div className="card border-0 shadow-sm">
-    <div className="card-body p-4">
-      <h6 className="fw-bold mb-2">Re-apply</h6>
-      <p className="text-muted mb-4" style={{ fontSize: 13 }}>
-        Your previous application was rejected. You may contact the Alumni Relations Office for more information, or re-apply by submitting a new application.
-      </p>
-      
-      <button
-        className="btn d-inline-flex align-items-center shadow-sm"
-        style={{ 
-          backgroundColor: '#1e2d5e', 
-          color: '#fff', 
-          padding: '10px 20px', 
-          fontSize: '14px', 
-          fontWeight: '600',
-          borderRadius: '8px',
-          border: 'none'
-        }}
-        onClick={() => setApplication(null)}
-      >
-        <i className="bi bi-plus-lg me-2"></i>
-        Submit New Application
-      </button>
-    </div>
-  </div>
-)}
+          {application.status === 'released' && (
+            <RenewCard application={application} onRenew={handleRenew} />
+          )}
+
+          {application.status === 'rejected' && (
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-4">
+                <h6 className="fw-bold mb-2">Re-apply</h6>
+                <p className="text-muted mb-4" style={{ fontSize: 13 }}>
+                  Your previous application was rejected. You may contact the Alumni Relations Office for more information, or re-apply by submitting a new application.
+                </p>
+                <button
+                  className="btn d-inline-flex align-items-center shadow-sm"
+                  style={{ 
+                    backgroundColor: '#1e2d5e', 
+                    color: '#fff', 
+                    padding: '10px 20px', 
+                    fontSize: '14px', 
+                    fontWeight: '600',
+                    borderRadius: '8px',
+                    border: 'none'
+                  }}
+                  onClick={() => {
+                    setApplication(null);
+                    setIsRenewing(false);
+                  }}
+                >
+                  <i className="bi bi-plus-lg me-2"></i>
+                  Submit New Application
+                </button>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <ApplicationForm
