@@ -19,6 +19,7 @@ app.use('/uploads', require('express').static('uploads'));
 const applicationsRoute = require('./routes/applications');
 app.use('/api/applications', applicationsRoute);
 
+app.use("/api/system-logs", require("./routes/systemLogsRoutes"));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/alumni", require("./routes/alumniRoutes"));
 app.use("/api/education", require("./routes/educationRoutes"));

@@ -16,14 +16,17 @@ import PrivateRoute from './components/PrivateRoute';
 import Dashboard from './pages/admin/Dashboard';
 import AlumniRecords from './pages/admin/AlumniRecords';
 import AddAlumniRecord from './pages/admin/AddAlumniRecord';
+import EditAlumniRecord from './pages/admin/EditAlumniRecord';
 import ApplicationReview from './pages/admin/ApplicationReview';
 import UserManagement from './pages/admin/UserManagement';
+import SystemLogs from './pages/admin/SystemLogs';
 
 // Book Center pages
 import BookCenterDashboard from './pages/external/BookCenterDashboard';
 import ApprovedApplications from './pages/external/ApprovedApplications';
 import ApplicationDetail from './pages/external/ApplicationDetail';
 import IDProcessing from './pages/external/IDProcessing';
+import BookCenterSystemLogs from './pages/external/BookCenterSystemLogs';
 
 // Alumni pages
 import AlumniDashboard from './pages/alumni/AlumniDashboard';
@@ -49,6 +52,8 @@ export default function App() {
             <Route path="/add-alumni-record" element={<AddAlumniRecord />} />
             <Route path="/application-review" element={<ApplicationReview />} />
             <Route path="/user-management" element={<UserManagement />} />
+            <Route path="/edit-alumni-record/:id" element={<EditAlumniRecord />}/>
+            <Route path="/admin/system-logs" element={<SystemLogs />} />
           </Route>
         </Route>
 
@@ -59,6 +64,7 @@ export default function App() {
             <Route path="/external-portal/applications" element={<ApprovedApplications />} />
             <Route path="/external-portal/applications/:id" element={<ApplicationDetail />} />
             <Route path="/external-portal/id-processing" element={<IDProcessing />} />
+            <Route path="/external-portal/system-logs" element={<BookCenterSystemLogs />} />
           </Route>
         </Route>
 

@@ -14,6 +14,23 @@
   background-color: #f8f9fa;
 }
 
+.flatpickr-calendar {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.flatpickr-day.selected {
+  background: #1e2d5e !important; 
+  border-color: #1e2d5e !important;
+}
+
+.flatpickr-months .flatpickr-month {
+  background: #f9fafb !important;
+  color: #1e2d5e !important;
+  font-weight: 700;
+}
+
 /* ── Mobile topbar ───────────────────────────────── */
 .mobile-topbar {
   position: fixed;

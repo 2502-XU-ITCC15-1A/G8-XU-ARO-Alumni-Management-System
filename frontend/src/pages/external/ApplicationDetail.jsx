@@ -104,6 +104,27 @@ export default function ApplicationDetail() {
     }
   };
 
+  const handleDownloadFile = async (url, defaultName) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = defaultName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = defaultName;
+      link.target = '_blank';
+      link.click();
+    }
+  };
+
   if (loading) return (
     <div className="p-4 text-muted">Loading…</div>
   );
@@ -115,9 +136,12 @@ export default function ApplicationDetail() {
 
   const f = (v) => v || '';
 
+  const idPhotoSrc = app.idPhoto ? (app.idPhoto.startsWith('http') ? app.idPhoto : `/${app.idPhoto}`) : null;
+  const signatureSrc = app.signature ? (app.signature.startsWith('data:') || app.signature.startsWith('http') ? app.signature : `/${app.signature}`) : null;
+  const idSafeString = f(app.universityIdNumber).replace(/[^a-zA-Z0-9]/g, '_');
+
   return (
     <div className="p-4">
-      {/* Header */}
       <div className="d-flex align-items-center gap-3 mb-1">
         <button
           className="btn btn-sm btn-outline-secondary"
@@ -133,9 +157,7 @@ export default function ApplicationDetail() {
 
       <PaymentStatus app={app} />
 
-      {/* ── XU FORM ── */}
       <div className="card border-0 shadow-sm mb-4">
-        {/* Form header */}
         <div className="card-body border-bottom pb-3">
           <div className="d-flex align-items-center gap-3">
             <div style={{
@@ -154,7 +176,6 @@ export default function ApplicationDetail() {
         </div>
 
         <div className="card-body">
-          {/* Row 1: Name */}
           <div className="xu-form-section mb-3">
             <div className="row g-0">
               <div className="col-4 xu-cell">
@@ -172,7 +193,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 2: Graduation years */}
           <div className="xu-form-section mb-3">
             <div className="xu-section-title">YEAR OF GRADUATION AT XAVIER UNIVERSITY</div>
             <div className="row g-0">
@@ -185,7 +205,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 3: Course */}
           <div className="xu-form-section mb-3">
             <div className="xu-cell">
               <div className="xu-label">COURSE</div>
@@ -193,7 +212,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 4: Home Address */}
           <div className="xu-form-section mb-3">
             <div className="xu-cell">
               <div className="xu-label">HOME ADDRESS</div>
@@ -201,7 +219,6 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 5: ID Number / Valid Until / Verified By */}
           <div className="xu-form-section mb-3">
             <div className="row g-0">
               <div className="col-5 xu-cell">
@@ -221,32 +238,58 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          {/* Row 6: Blood Type / Signature */}
           <div className="xu-form-section mb-3">
             <div className="row g-0">
-              <div className="col-5 xu-cell">
+              <div className="col-12 xu-cell">
                 <div className="xu-label">BLOOD TYPE</div>
                 <div className="xu-value">{f(app.bloodType)}</div>
-              </div>
-              <div className="col-7 xu-cell xu-cell-border-l">
-                <div className="xu-label">SIGNATURE</div>
-                <div className="xu-value">
-                  {app.signature?.startsWith('data:')
-                    ? <img src={app.signature} alt="Signature" style={{ maxHeight: 56, maxWidth: '100%', objectFit: 'contain' }} />
-                    : <span style={{ fontFamily: 'cursive', fontSize: 15 }}>{f(app.signature)}</span>}
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Payment info footer */}
+<div className="xu-form-section mb-3 border-top pt-3">
+  <div className="xu-section-title mb-2">ATTACHED APPLICATION DOCUMENTS</div>
+  <div className="row">
+    <div className="col-md-12 mb-3">
+      <div className="p-3 border rounded bg-light text-center">
+        <div className="d-flex align-items-center justify-content-between mb-2">
+          <div className="xu-label fw-bold mb-0">ALUMNI SIGNATURE</div>
+          {signatureSrc && (
+            <button 
+              type="button" 
+              className="btn btn-sm btn-outline-primary px-2 py-0" 
+              style={{ fontSize: 11 }}
+              onClick={() => handleDownloadFile(signatureSrc, `Alumni_Signature_${idSafeString}.png`)}
+            >
+              <i className="bi bi-download me-1" />Download
+            </button>
+          )}
+        </div>
+        {signatureSrc ? (
+          <div className="d-flex align-items-center justify-content-center" style={{ height: 180, background: '#fff', borderRadius: 4, border: '1px solid #d1d5db' }}>
+            <img 
+              src={signatureSrc} 
+              alt="Alumni E-Signature" 
+              style={{ maxHeight: 140, maxWidth: '90%', objectFit: 'contain' }}
+              onError={(e) => { e.target.src = 'https://placehold.co/300x100?text=Signature+Error'; }}
+            />
+          </div>
+        ) : (
+          <div className="text-muted py-4" style={{ fontSize: 13 }}>
+            <i className="bi bi-pencil me-1" /> No Signature Captured
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
+
           <div className="xu-form-section xu-payment-info">
             <div className="xu-label mb-1">Please pay at the XU Book Center — ₱150.00</div>
           </div>
         </div>
       </div>
 
-      {/* Alumni Photo Upload */}
       {app.status !== 'released' && (
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4">
@@ -300,7 +343,6 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Show uploaded photo for released IDs */}
       {app.status === 'released' && app.alumniPhoto && (
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4 d-flex align-items-center gap-3">
@@ -319,7 +361,6 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Action buttons */}
       <div className="d-flex gap-2 justify-content-end">
         <button
           className="btn btn-outline-secondary btn-sm"

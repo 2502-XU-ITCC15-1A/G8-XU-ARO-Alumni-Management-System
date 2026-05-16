@@ -44,6 +44,49 @@ exports.getProfiles = async (req, res) => {
     }
 };
 
+exports.getProfileById = async (req, res) => {
+    try {
+        const profile = await Alumni.findById(req.params.id);
+
+        if (!profile) {
+            return res.status(404).json({
+                message: "Alumni not found"
+            });
+        }
+
+        res.json(profile);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const updated = await Alumni.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!updated) {
+            return res.status(404).json({
+                message: "Alumni not found"
+            });
+        }
+
+        res.json(updated);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
 exports.createProfile = async (req, res) => {
     try {
         const profile = await Alumni.create(req.body);

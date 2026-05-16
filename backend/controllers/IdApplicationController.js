@@ -1,7 +1,9 @@
+const SystemLog = require("../models/SystemLog");
 const IdApplication = require("../models/IdApplication");
 const AlumniProfile = require("../models/AlumniProfile");
 const Notification = require("../models/Notification");
 const { sendStatusEmail } = require("../utils/emailService");
+
 
 const STATUS_NOTIFICATIONS = {
   under_review:    { title: 'Application Under Review',        message: 'Your Alumni ID application is now being reviewed by ARO staff.',                                                                                    type: 'info'    },
@@ -83,13 +85,36 @@ exports.updateStatus = async (req, res) => {
         if (status !== undefined)          fields.status = status;
         if (remarks !== undefined)         fields.remarks = remarks;
         if (paymentVerified !== undefined) fields.paymentVerified = paymentVerified;
-        if (status)                        fields.verifiedBy = "XU_BookCenter";
+        if (paymentVerified) {              fields.verifiedBy = "XU_BookCenter"; }
         if (status === 'released') {
             const THREE_YEARS_MS = 3 * 365.25 * 24 * 60 * 60 * 1000;
             fields.validUntil = new Date(Date.now() + THREE_YEARS_MS);
         }
 
         const updated = await IdApplication.findByIdAndUpdate(id, fields, { returnDocument: 'after' }).populate('userId', 'name email');
+        
+const logData = {
+    performedBy: {
+        userId: req.user._id,
+        name: req.user.name || "Unknown",
+        role: req.user.role || "unknown",
+    },
+    target: updated.userId?.name || "Unknown User",
+};
+
+let statusAction = "UNKNOWN_ACTION";
+if (status === "approved") statusAction = "APPLICATION_APPROVED";
+if (status === "rejected") statusAction = "APPLICATION_REJECTED";
+if (status === "printing") statusAction = "ID_PRINTING_STARTED";
+if (status === "released") statusAction = "ID_RELEASED";
+
+if (status) {
+    await SystemLog.create({
+        ...logData,
+        action: statusAction,
+        details: `Status changed to ${status}. Remarks: ${remarks || "None"}`
+    });
+}
 
         if (updated?.userId) {
             if (status) {
@@ -159,6 +184,8 @@ exports.uploadAlumniSignature = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+
 
 exports.deleteIdApplication = async (req, res) => {
     try {

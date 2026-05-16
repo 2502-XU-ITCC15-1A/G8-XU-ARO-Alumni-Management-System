@@ -77,6 +77,44 @@ export default function AlumniDashboard() {
     }
   };
 
+  useEffect(() => {
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
+
+  let isMounted = true;
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get('/api/notifications/my', { headers });
+
+      if (!isMounted) return;
+
+      setNotifications(prev => {
+        const prevIds = new Set(prev.map(n => n._id));
+        const hasNew = res.data.some(n => !prevIds.has(n._id));
+
+        if (hasNew) {
+          window.dispatchEvent(new Event('notifications:update'));
+        }
+
+        return res.data;
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchNotifications();
+
+  const interval = setInterval(fetchNotifications, 3000);
+
+  return () => {
+    isMounted = false;
+    clearInterval(interval);
+  };
+}, []);
+
   const unreadCount = notifications.filter(n => !n.read).length;
   const pct = profileCompleteness(profile, education, work);
   const appMeta = application ? STATUS_META[application.status] : null;

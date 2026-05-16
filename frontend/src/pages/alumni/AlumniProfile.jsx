@@ -24,36 +24,8 @@ const BLANK_PROFILE = {
 const BLANK_EDU  = { level: '', schoolName: '', degree: '', yearGraduated: '' };
 const BLANK_WORK = { company: '', department: '', position: '', address: '', phone: '', email: '' };
 
-const EDUCATION_LEVELS = ['Grade School', 'Junior High School', 'Senior High School', 'College', 'Post-Graduate', 'Vocational', 'Other'];
+const EDUCATION_LEVELS = ['Grade School', 'Junior High School', 'Senior High School', 'College', 'Post-Graduate'];
 
-/* ─── Toast ───────────────────────────────────────────────────── */
-function Toast({ toast, onDismiss }) {
-  if (!toast) return null;
-  const styles = {
-    error:   { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626', icon: 'bi-x-circle-fill' },
-    success: { bg: '#f0fdf4', border: '#86efac', text: '#16a34a', icon: 'bi-check-circle-fill' },
-    warning: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706', icon: 'bi-exclamation-triangle-fill' },
-  };
-  const s = styles[toast.type] ?? styles.error;
-  return (
-    <div style={{
-      position: 'fixed', top: 24, right: 24, zIndex: 9999,
-      background: s.bg, border: `1px solid ${s.border}`, borderRadius: 10,
-      padding: '14px 18px', maxWidth: 380, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-      display: 'flex', alignItems: 'flex-start', gap: 10, animation: 'fadeInDown 0.2s ease',
-    }}>
-      <i className={`bi ${s.icon}`} style={{ color: s.text, fontSize: 17, marginTop: 1 }} />
-      <div style={{ flex: 1, fontSize: 13, color: s.text, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-        {toast.message}
-      </div>
-      <button onClick={onDismiss} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: s.text, fontSize: 18, lineHeight: 1 }}>
-        <i className="bi bi-x" />
-      </button>
-    </div>
-  );
-}
-
-/* ─── ConfirmModal ────────────────────────────────────────────── */
 function ConfirmModal({ confirm, onCancel }) {
   if (!confirm) return null;
   return (
@@ -127,20 +99,22 @@ function SaveBtn({ saving, onClick }) {
   );
 }
 
-/* ─── Tab: Basic Info ─────────────────────────────────────────── */
-function BasicTab({ profile, onChange, onSave, saving, showToast }) {
+
+function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
   const f = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
   const handleSave = () => {
     const missing = [];
-    if (!f('surname').trim())            missing.push('Last Name');
+    if (!f('surname').trim())           missing.push('Last Name');
     if (!f('firstName').trim())          missing.push('First Name');
     if (!f('gender'))                    missing.push('Gender');
     if (!f('birthdate'))                 missing.push('Birthdate');
     if (!f('universityIdNumber').trim()) missing.push('XU University ID Number');
+    
     if (missing.length > 0) {
-      showToast(`Please fill in the required fields:\n• ${missing.join('\n• ')}`, 'error');
+      setStatus({ type: 'error', message: `Please fill in the required fields: ${missing.join(', ')}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     onSave();
@@ -207,7 +181,6 @@ function BasicTab({ profile, onChange, onSave, saving, showToast }) {
   );
 }
 
-/* ─── Tab: Family ─────────────────────────────────────────────── */
 function FamilyTab({ profile, onChange, onSave, saving }) {
   const spouseName = profile.spouseName ?? '';
   const children   = profile.childrenNames ?? [];
@@ -260,8 +233,7 @@ function FamilyTab({ profile, onChange, onSave, saving }) {
   );
 }
 
-/* ─── Tab: Contact ────────────────────────────────────────────── */
-function ContactTab({ profile, onChange, onSave, saving, showToast }) {
+function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
   const f   = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
@@ -270,7 +242,8 @@ function ContactTab({ profile, onChange, onSave, saving, showToast }) {
     if (!f('email').trim()) missing.push('Email Address');
     if (!f('phone').trim()) missing.push('Phone Number');
     if (missing.length > 0) {
-      showToast(`Please fill in the required fields:\n• ${missing.join('\n• ')}`, 'error');
+      setStatus({ type: 'error', message: `Please fill in the required fields: ${missing.join(', ')}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     onSave();
@@ -290,7 +263,7 @@ function ContactTab({ profile, onChange, onSave, saving, showToast }) {
           </Field>
         </div>
         <div className="col-md-3">
-          <Field label="Facebook Profile">
+          <Field label="Facebook Profile Link">
             <Input value={f('facebook')} onChange={set('facebook')} placeholder="facebook.com/..." />
           </Field>
         </div>
@@ -302,8 +275,7 @@ function ContactTab({ profile, onChange, onSave, saving, showToast }) {
   );
 }
 
-/* ─── Tab: Address ────────────────────────────────────────────── */
-function AddressTab({ profile, onChange, onSave, saving, showToast }) {
+function AddressTab({ profile, onChange, onSave, saving, setStatus }) {
   const addr = profile.address ?? {};
   const setAddr = (field) => (val) => onChange({ ...profile, address: { ...addr, [field]: val } });
 
@@ -313,7 +285,8 @@ function AddressTab({ profile, onChange, onSave, saving, showToast }) {
     if (!addr.city?.trim())    missing.push('City / Municipality');
     if (!addr.country?.trim()) missing.push('Country');
     if (missing.length > 0) {
-      showToast(`Please fill in the required fields:\n• ${missing.join('\n• ')}`, 'error');
+      setStatus({ type: 'error', message: `Please fill in the required fields: ${missing.join(', ')}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     onSave();
@@ -360,130 +333,121 @@ function AddressTab({ profile, onChange, onSave, saving, showToast }) {
   );
 }
 
-/* ─── Tab: Education ──────────────────────────────────────────── */
-function EducationTab({ records, setRecords, token, showToast, showConfirm }) {
+function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
   const [editing, setEditing] = useState(null);
-  const [form, setForm]       = useState(BLANK_EDU);
-  const [saving, setSaving]   = useState(false);
+  const [form, setForm] = useState(BLANK_EDU);
+  const [saving, setSaving] = useState(false);
   const headers = { Authorization: `Bearer ${token}` };
 
-  const openNew  = () => { setEditing('new'); setForm(BLANK_EDU); };
-  const openEdit = (r) => { setEditing(r._id); setForm({ ...r }); };
-  const cancel   = () => { setEditing(null); setForm(BLANK_EDU); };
+  const isHigherEd = ['College', 'Post-Graduate'].includes(form.level);
+  const isSHS = form.level === 'Senior High School';
+  const hideField = ['Grade School', 'Junior High School'].includes(form.level);
 
-  const save = async () => {
-    if (!form.schoolName || !form.level) {
-      showToast('School name and level are required.', 'error');
-      return;
-    }
-    setSaving(true);
-    try {
-      if (editing === 'new') {
-        const res = await axios.post('/api/education', form, { headers });
-        setRecords(prev => [...prev, res.data]);
-      } else {
-        const res = await axios.put(`/api/education/${editing}`, form, { headers });
-        setRecords(prev => prev.map(r => r._id === editing ? res.data : r));
-      }
-      cancel();
-    } catch {
-      showToast('Failed to save education record.', 'error');
-    } finally {
-      setSaving(false);
-    }
+  const getPlaceholder = () => {
+    if (isSHS) return "e.g. STEM, HUMSS, ABM";
+    if (form.level === 'College') return "e.g. BS Psychology";
+    if (form.level === 'Post-Graduate') return "e.g. Juris Doctor, Doctor of Medicine, MA in Nursing";
+    return "";
   };
 
-  const remove = (id) => {
-    showConfirm('Are you sure you want to delete this education record? This cannot be undone.', async () => {
-      try {
-        await axios.delete(`/api/education/${id}`, { headers });
-        setRecords(prev => prev.filter(r => r._id !== id));
-      } catch {
-        showToast('Failed to delete education record.', 'error');
-      }
-    });
+  const save = async () => {
+    const missing = [];
+    if (!form.schoolName.trim()) missing.push('School Name');
+    if (!form.level) missing.push('Level');
+    if ((isHigherEd || isSHS) && !form.degree?.trim()) missing.push(isSHS ? 'Strand' : 'Degree');
+
+    if (missing.length > 0) {
+      setStatus({ type: 'error', message: `Required: ${missing.join(', ')}` });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = editing === 'new' 
+        ? await axios.post('/api/education', form, { headers })
+        : await axios.put(`/api/education/${editing}`, form, { headers });
+      setRecords(prev => editing === 'new' ? [...prev, res.data] : prev.map(r => r._id === editing ? res.data : r));
+      setStatus({ type: 'success', message: 'Education saved!' });
+      setEditing(null);
+    } catch {
+      setStatus({ type: 'error', message: 'Save failed.' });
+    } finally {
+      setSaving(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
     <div>
-      {records.length === 0 && !editing && (
-        <p className="text-muted" style={{ fontSize: 13 }}>No education records added yet.</p>
-      )}
-
-      {records.map(r => (
+      {!editing && records.map(r => (
         <div key={r._id} className="card border-0 bg-light mb-2 p-3">
-          <div className="d-flex align-items-start justify-content-between">
+          <div className="d-flex justify-content-between align-items-start">
             <div>
-              <div className="fw-semibold" style={{ fontSize: 14 }}>{r.schoolName}</div>
-              <div className="text-muted" style={{ fontSize: 12 }}>
-                {r.level}{r.degree ? ` · ${r.degree}` : ''}{r.yearGraduated ? ` · ${r.yearGraduated}` : ''}
-              </div>
+              <div className="fw-semibold">{r.schoolName}</div>
+              <div className="text-muted small">{r.level} {r.degree ? `• ${r.degree}` : ''} {r.yearGraduated && `(${r.yearGraduated})`}</div>
             </div>
             <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-outline-secondary px-2" onClick={() => openEdit(r)}>
-                <i className="bi bi-pencil" />
-              </button>
-              <button className="btn btn-sm btn-outline-danger px-2" onClick={() => remove(r._id)}>
-                <i className="bi bi-trash3" />
-              </button>
+              <button className="btn btn-sm btn-outline-secondary" onClick={() => setEditing(r._id) || setForm(r)}><i className="bi bi-pencil" /></button>
+              <button className="btn btn-sm btn-outline-danger" onClick={() => showConfirm('Delete record?', () => axios.delete(`/api/education/${r._id}`, { headers }).then(() => setRecords(p => p.filter(x => x._id !== r._id))))}><i className="bi bi-trash3" /></button>
             </div>
           </div>
         </div>
       ))}
-
       {editing ? (
-        <div className="card border p-4 mt-3">
-          <h6 className="fw-bold mb-3">{editing === 'new' ? 'Add Education' : 'Edit Education'}</h6>
+        <div className="card border p-4 mt-2">
           <div className="row g-3">
-            <div className="col-md-4">
-              <Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}>
-                <Select value={form.level} onChange={v => setForm(f => ({ ...f, level: v }))} options={EDUCATION_LEVELS} />
+            <div className="col-md-4"><Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}><Select value={form.level} options={EDUCATION_LEVELS} onChange={v => setForm(f => ({ ...f, level: v, degree: ['Grade School', 'Junior High School'].includes(v) ? '' : f.degree }))} /></Field></div>
+              <div className="col-md-8">
+              <Field label={<>School <span style={{ color: '#dc2626' }}>*</span></>}>
+                <input
+                  className="form-control"
+                  value="Xavier University - Ateneo de Cagayan"
+                  readOnly
+                  tabIndex={-1}
+                  style={{
+                    fontSize: 14,
+                    backgroundColor: '#f3f4f6',
+                    cursor: 'not-allowed',
+                    pointerEvents: 'none'
+                  }}
+                />
               </Field>
             </div>
-            <div className="col-md-8">
-              <Field label={<>School / University <span style={{ color: '#dc2626' }}>*</span></>}>
-                <Input value={form.schoolName} onChange={v => setForm(f => ({ ...f, schoolName: v }))} />
-              </Field>
-            </div>
-            <div className="col-md-6">
-              <Field label="Degree / Program">
-                <Input value={form.degree} onChange={v => setForm(f => ({ ...f, degree: v }))} placeholder="e.g. BS Computer Science" />
-              </Field>
-            </div>
-            <div className="col-md-3">
-              <Field label="Year Graduated">
-                <Input type="number" value={form.yearGraduated} onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} placeholder="YYYY" />
-              </Field>
-            </div>
+            {!hideField && (
+              <div className="col-md-8">
+                <Field label={<>{isSHS ? 'Strand' : 'Degree / Program'} <span style={{ color: '#dc2626' }}>*</span></>}>
+                  <Input 
+                    value={form.degree} 
+                    onChange={v => setForm(f => ({ ...f, degree: v }))} 
+                    placeholder={getPlaceholder()} 
+                  />
+                </Field>
+              </div>
+            )}
+            <div className="col-md-4"><Field label="Year Graduated"><Input type="number" value={form.yearGraduated} onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} placeholder="YYYY" /></Field></div>
           </div>
-          <div className="d-flex gap-2 mt-2">
-            <SaveBtn saving={saving} onClick={save} />
-            <button className="btn btn-outline-secondary" onClick={cancel}>Cancel</button>
-          </div>
+          <div className="d-flex gap-2 mt-3"><SaveBtn saving={saving} onClick={save} /><button className="btn btn-outline-secondary" onClick={() => setEditing(null)}>Cancel</button></div>
         </div>
-      ) : (
-        <button className="btn btn-outline-secondary btn-sm mt-2" onClick={openNew}>
-          <i className="bi bi-plus-lg me-1" />Add Education Record
-        </button>
-      )}
+      ) : <button className="btn btn-outline-secondary btn-sm mt-2" onClick={() => setEditing('new') || setForm(BLANK_EDU)}>+ Add Education</button>}
     </div>
   );
 }
 
-/* ─── Tab: Work ───────────────────────────────────────────────── */
-function WorkTab({ records, setRecords, token, showToast, showConfirm }) {
+function WorkTab({ records, setRecords, token, setStatus, showConfirm }) {
   const [editing, setEditing] = useState(null);
-  const [form, setForm]       = useState(BLANK_WORK);
-  const [saving, setSaving]   = useState(false);
+  const [form, setForm] = useState(BLANK_WORK);
+  const [saving, setSaving] = useState(false);
   const headers = { Authorization: `Bearer ${token}` };
 
-  const openNew  = () => { setEditing('new'); setForm(BLANK_WORK); };
+  const openNew = () => { setEditing('new'); setForm(BLANK_WORK); };
   const openEdit = (r) => { setEditing(r._id); setForm({ ...r }); };
-  const cancel   = () => { setEditing(null); setForm(BLANK_WORK); };
+  const cancel = () => { setEditing(null); setForm(BLANK_WORK); };
 
   const save = async () => {
     if (!form.company) {
-      showToast('Company name is required.', 'error');
+      setStatus({ type: 'error', message: 'Company name is required.' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     setSaving(true);
@@ -495,122 +459,88 @@ function WorkTab({ records, setRecords, token, showToast, showConfirm }) {
         const res = await axios.put(`/api/work/${editing}`, form, { headers });
         setRecords(prev => prev.map(r => r._id === editing ? res.data : r));
       }
+      setStatus({ type: 'success', message: 'Work experience updated!' });
+      setTimeout(() => setStatus(null), 3000);
       cancel();
     } catch {
-      showToast('Failed to save work record.', 'error');
+      setStatus({ type: 'error', message: 'Failed to save work experience.' });
     } finally {
       setSaving(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  };
-
-  const remove = (id) => {
-    showConfirm('Are you sure you want to delete this work record? This cannot be undone.', async () => {
-      try {
-        await axios.delete(`/api/work/${id}`, { headers });
-        setRecords(prev => prev.filter(r => r._id !== id));
-      } catch {
-        showToast('Failed to delete work record.', 'error');
-      }
-    });
   };
 
   return (
     <div>
-      {records.length === 0 && !editing && (
-        <p className="text-muted" style={{ fontSize: 13 }}>No work records added yet.</p>
-      )}
-
-      {records.map(r => (
+      {records.length === 0 && !editing && <p className="text-muted" style={{ fontSize: 13 }}>No work history added.</p>}
+      {!editing && records.map(r => (
         <div key={r._id} className="card border-0 bg-light mb-2 p-3">
           <div className="d-flex align-items-start justify-content-between">
             <div>
-              <div className="fw-semibold" style={{ fontSize: 14 }}>{r.company}</div>
-              <div className="text-muted" style={{ fontSize: 12 }}>
-                {[r.position, r.department].filter(Boolean).join(' · ')}
-              </div>
-              {r.address && <div className="text-muted" style={{ fontSize: 11 }}>{r.address}</div>}
+              <div className="fw-semibold" style={{ fontSize: 14 }}>{r.position}</div>
+              <div className="text-muted" style={{ fontSize: 12 }}>{r.company} {r.department ? `| ${r.department}` : ''}</div>
             </div>
             <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-outline-secondary px-2" onClick={() => openEdit(r)}>
-                <i className="bi bi-pencil" />
-              </button>
-              <button className="btn btn-sm btn-outline-danger px-2" onClick={() => remove(r._id)}>
-                <i className="bi bi-trash3" />
-              </button>
+              <button className="btn btn-sm btn-outline-secondary px-2" onClick={() => openEdit(r)}><i className="bi bi-pencil" /></button>
+              <button className="btn btn-sm btn-outline-danger px-2" onClick={() => {
+                showConfirm('Delete this work experience?', async () => {
+                  try {
+                    await axios.delete(`/api/work/${r._id}`, { headers });
+                    setRecords(prev => prev.filter(item => item._id !== r._id));
+                    setStatus({ type: 'success', message: 'Experience removed.' });
+                    setTimeout(() => setStatus(null), 3000);
+                  } catch { setStatus({ type: 'error', message: 'Failed to delete.' }); }
+                });
+              }}><i className="bi bi-trash3" /></button>
             </div>
           </div>
         </div>
       ))}
 
-      {editing ? (
-        <div className="card border p-4 mt-3">
-          <h6 className="fw-bold mb-3">{editing === 'new' ? 'Add Work Experience' : 'Edit Work Experience'}</h6>
+      {editing && (
+        <div className="card border p-4 mt-2">
           <div className="row g-3">
             <div className="col-md-6">
-              <Field label={<>Company / Organization <span style={{ color: '#dc2626' }}>*</span></>}>
-                <Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} />
-              </Field>
+              <Field label="Company / Employer *"><Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} /></Field>
             </div>
             <div className="col-md-6">
-              <Field label="Department">
-                <Input value={form.department} onChange={v => setForm(f => ({ ...f, department: v }))} />
-              </Field>
+              <Field label="Department"><Input value={form.department} onChange={v => setForm(f => ({ ...f, department: v }))} /></Field>
             </div>
-            <div className="col-md-4">
-              <Field label="Position / Title">
-                <Input value={form.position} onChange={v => setForm(f => ({ ...f, position: v }))} />
-              </Field>
+            <div className="col-md-6">
+              <Field label="Position Title"><Input value={form.position} onChange={v => setForm(f => ({ ...f, position: v }))} /></Field>
             </div>
-            <div className="col-md-4">
-              <Field label="Work Phone">
-                <Input type="tel" value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} />
-              </Field>
+            <div className="col-md-6">
+              <Field label="Office Phone"><Input value={form.phone} onChange={v => setForm(f => ({ ...f, phone: v }))} /></Field>
             </div>
-            <div className="col-md-4">
-              <Field label="Work Email">
-                <Input type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} />
-              </Field>
-            </div>
-            <div className="col-12">
-              <Field label="Office Address">
-                <Input value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} />
-              </Field>
+            <div className="col-md-12">
+              <Field label="Office Address"><Input value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} /></Field>
             </div>
           </div>
-          <div className="d-flex gap-2 mt-2">
+          <div className="d-flex gap-2 mt-3">
             <SaveBtn saving={saving} onClick={save} />
-            <button className="btn btn-outline-secondary" onClick={cancel}>Cancel</button>
+            <button className="btn btn-outline-secondary px-4" onClick={cancel} disabled={saving}>Cancel</button>
           </div>
         </div>
-      ) : (
-        <button className="btn btn-outline-secondary btn-sm mt-2" onClick={openNew}>
-          <i className="bi bi-plus-lg me-1" />Add Work Experience
-        </button>
       )}
+      {!editing && <button className="btn btn-outline-secondary btn-sm mt-2" onClick={openNew}><i className="bi bi-plus-lg me-1" />Add Work Experience</button>}
     </div>
   );
 }
 
-/* ─── Main Page ───────────────────────────────────────────────── */
 export default function AlumniProfile() {
   const location = useLocation();
-  const token    = localStorage.getItem('token');
-  const headers  = { Authorization: `Bearer ${token}` };
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
 
   const [activeTab, setActiveTab] = useState(location.state?.tab || 'basic');
-  const [profile, setProfile]     = useState(BLANK_PROFILE);
+  const [profile, setProfile] = useState(BLANK_PROFILE);
+  const [originalProfile, setOriginalProfile] = useState(BLANK_PROFILE);
   const [education, setEducation] = useState([]);
-  const [work, setWork]           = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
-  const [saved, setSaved]         = useState(false);
-  const [toast, setToast]         = useState(null);
+  const [work, setWork] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState(null); 
   const [confirmModal, setConfirmModal] = useState(null);
-
-  const showToast = useCallback((message, type = 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
-  }, []);
 
   const showConfirm = useCallback((message, onConfirm) => {
     setConfirmModal({
@@ -631,7 +561,10 @@ export default function AlumniProfile() {
       axios.get('/api/work', { headers }),
     ])
       .then(([profileRes, eduRes, workRes]) => {
-        if (profileRes.data) setProfile(profileRes.data);
+        if (profileRes.data) {
+          setProfile(profileRes.data);
+          setOriginalProfile(profileRes.data);
+        }
         setEducation(eduRes.data);
         setWork(workRes.data);
       })
@@ -640,18 +573,31 @@ export default function AlumniProfile() {
   }, []);
 
   const saveProfile = useCallback(async () => {
+    const isUnchanged = JSON.stringify(profile) === JSON.stringify(originalProfile);
+    
+    if (isUnchanged) {
+      setStatus({ type: 'warning', message: 'No changes were made to your profile.' });
+      setTimeout(() => setStatus(null), 3000);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setSaving(true);
+    setStatus(null);
+
     try {
       const res = await axios.put('/api/alumni/me', profile, { headers });
       setProfile(res.data);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } catch {
-      showToast('Failed to save profile. Please try again.', 'error');
+      setOriginalProfile(res.data);
+      setStatus({ type: 'success', message: 'Profile changes saved successfully!' });
+      setTimeout(() => setStatus(null), 3000);
+    } catch (err) {
+      setStatus({ type: 'error', message: 'Failed to save profile. Please check your connection and try again.' });
     } finally {
       setSaving(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [profile, showToast]);
+  }, [profile, originalProfile]);
 
   if (loading) {
     return (
@@ -661,58 +607,68 @@ export default function AlumniProfile() {
     );
   }
 
-  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving, showToast };
+  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving, setStatus };
+
+  const getStatusStyles = () => {
+    if (status?.type === 'success') return { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a', icon: 'bi-check-circle-fill' };
+    if (status?.type === 'warning') return { bg: '#fffbeb', border: '#fde68a', text: '#d97706', icon: 'bi-exclamation-circle-fill' };
+    if (status?.type === 'error')   return { bg: '#fef2f2', border: '#fecaca', text: '#dc2626', icon: 'bi-x-circle-fill' };
+    return {};
+  };
+
+  const s = getStatusStyles();
 
   return (
     <div className="p-4 p-lg-5">
-      <Toast toast={toast} onDismiss={() => setToast(null)} />
       <ConfirmModal confirm={confirmModal} onCancel={dismissConfirm} />
 
-      <div className="d-flex align-items-center justify-content-between mb-1">
+      <div className="mb-1">
         <h4 className="page-title mb-0">My Profile</h4>
-        {saved && (
-          <span className="text-success fw-semibold" style={{ fontSize: 13 }}>
-            <i className="bi bi-check-circle-fill me-1" />Saved
-          </span>
-        )}
       </div>
       <p className="text-muted mb-4" style={{ fontSize: 14 }}>
         Keep your information up to date — it will be used for your Alumni ID application.
       </p>
 
-      {/* Tab strip */}
       <div className="d-flex gap-1 flex-wrap mb-4" style={{ borderBottom: '2px solid #e5e7eb' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => { setActiveTab(tab.id); setStatus(null); }}
             className="d-flex align-items-center gap-2 px-3 py-2"
             style={{
-              background: 'none',
-              border: 'none',
+              background: 'none', border: 'none',
               borderBottom: activeTab === tab.id ? '2px solid #1e2d5e' : '2px solid transparent',
               marginBottom: -2,
               color: activeTab === tab.id ? '#1e2d5e' : '#6b7280',
               fontWeight: activeTab === tab.id ? 700 : 400,
-              fontSize: 13,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
+              fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
             }}
           >
-            <i className={`bi ${tab.icon}`} />
-            {tab.label}
+            <i className={`bi ${tab.icon}`} /> {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
+      {status && (
+        <div 
+          className="d-flex align-items-center gap-2 px-3 py-2 mb-3" 
+          style={{ 
+            backgroundColor: s.bg, border: `1px solid ${s.border}`, 
+            borderRadius: '8px', color: s.text, fontSize: 13, fontWeight: 600,
+            animation: 'fadeIn 0.3s ease'
+          }}
+        >
+          <i className={`bi ${s.icon}`} /> {status.message}
+        </div>
+      )}
+
       <div className="card border-0 shadow-sm p-4">
         {activeTab === 'basic'     && <BasicTab     {...profileTabProps} />}
         {activeTab === 'family'    && <FamilyTab    {...profileTabProps} />}
         {activeTab === 'contact'   && <ContactTab   {...profileTabProps} />}
         {activeTab === 'address'   && <AddressTab   {...profileTabProps} />}
-        {activeTab === 'education' && <EducationTab  records={education} setRecords={setEducation} token={token} showToast={showToast} showConfirm={showConfirm} />}
-        {activeTab === 'work'      && <WorkTab       records={work}      setRecords={setWork}      token={token} showToast={showToast} showConfirm={showConfirm} />}
+        {activeTab === 'education' && <EducationTab  records={education} setRecords={setEducation} token={token} setStatus={setStatus} showConfirm={showConfirm} />}
+        {activeTab === 'work'      && <WorkTab       records={work}      setRecords={setWork}      token={token} setStatus={setStatus} showConfirm={showConfirm} />}
       </div>
     </div>
   );
