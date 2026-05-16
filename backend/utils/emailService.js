@@ -5,14 +5,14 @@ const STATUS_CONFIG = {
         subject: 'Your Alumni ID Application is Under Review',
         heading: 'Application Under Review',
         color: '#2563eb',
-        icon: '🔍',
+        icon: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7" stroke="white" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
         message: 'Your alumni ID application is currently being reviewed by our team. We will notify you once a decision has been made.'
     },
     approved: {
         subject: 'Your Alumni ID Application Has Been Approved',
         heading: 'Application Approved!',
         color: '#16a34a',
-        icon: '✅',
+        icon: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/><path d="M7 12l3.5 3.5L17 9" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         message: 'Congratulations! Your alumni ID application has been approved by the Alumni Relations Office.<br><br>' +
                  'To proceed with your Alumni ID card, please follow these steps:<br><br>' +
                  '<strong>1.</strong> Visit the <strong>XU Book Center</strong> in person.<br>' +
@@ -25,28 +25,28 @@ const STATUS_CONFIG = {
         subject: 'Update on Your Alumni ID Application',
         heading: 'Application Not Approved',
         color: '#dc2626',
-        icon: '❌',
+        icon: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/><path d="M9 9l6 6M15 9l-6 6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
         message: 'We regret to inform you that your alumni ID application has not been approved at this time.'
     },
     payment_pending: {
         subject: 'Payment Confirmed – Your Alumni ID is Being Processed',
         heading: 'Payment Confirmed',
         color: '#d97706',
-        icon: '🧾',
+        icon: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="18" height="14" rx="2" stroke="white" stroke-width="2"/><path d="M3 9h18" stroke="white" stroke-width="2"/><path d="M7 14h4" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>',
         message: 'Your payment has been received and confirmed by the XU Book Center. Your Alumni ID card is now being processed for printing. We will notify you once it is ready for pick-up.'
     },
     printing: {
         subject: 'Your Alumni ID Card is Being Printed',
         heading: 'ID Printing in Progress',
         color: '#7c3aed',
-        icon: '🖨️',
+        icon: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 9V4h12v5" stroke="white" stroke-width="2" stroke-linejoin="round"/><rect x="3" y="9" width="18" height="8" rx="1" stroke="white" stroke-width="2"/><path d="M6 14h12v6H6z" stroke="white" stroke-width="2" stroke-linejoin="round"/><circle cx="17" cy="13" r="1" fill="white"/></svg>',
         message: 'Great news! Your alumni ID card is now being printed. You will be notified as soon as it is ready for pickup.'
     },
     released: {
         subject: 'Your Alumni ID Card is Ready for Pickup',
         heading: 'ID Card Ready for Pickup!',
         color: '#16a34a',
-        icon: '🎉',
+        icon: '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="9" r="5" stroke="white" stroke-width="2"/><path d="M8.5 14.5L7 21l5-2.5L17 21l-1.5-6.5" stroke="white" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 9l2 2 3.5-3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
         message: 'Your alumni ID card is ready! Please visit the XU Alumni Relations Office to claim it. Bring a valid government-issued ID when picking up your card.'
     }
 };
@@ -74,8 +74,8 @@ const buildEmailHtml = (applicantName, status, remarks) => {
         <!-- Header -->
         <tr>
           <td style="background:${config.color};padding:28px 32px;text-align:center;">
-            <p style="margin:0;font-size:32px;">${config.icon}</p>
-            <h1 style="margin:8px 0 0;color:#ffffff;font-size:20px;font-weight:700;">${config.heading}</h1>
+            <div style="margin:0 auto 8px;display:inline-block;">${config.icon}</div>
+            <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;">${config.heading}</h1>
           </td>
         </tr>
 
