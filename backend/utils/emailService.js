@@ -1,13 +1,5 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
 const STATUS_CONFIG = {
     under_review: {
         subject: 'Your Alumni ID Application is Under Review',
@@ -125,6 +117,17 @@ const sendStatusEmail = async (toEmail, applicantName, status, remarks = '') => 
 
     const html = buildEmailHtml(applicantName, status, remarks);
     if (!html) return;
+
+    const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.EMAIL_USER,
+            // Strip spaces from Gmail App Password (displayed with spaces but sent without)
+            pass: process.env.EMAIL_PASS.replace(/\s/g, '')
+        }
+    });
 
     try {
         await transporter.sendMail({
