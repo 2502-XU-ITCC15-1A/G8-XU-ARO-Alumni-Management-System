@@ -1,5 +1,4 @@
-const nodemailer = require('nodemailer');
-const dns = require('dns').promises;
+const { google } = require('googleapis');
 
 const STATUS_CONFIG = {
     under_review: {
@@ -107,9 +106,19 @@ const buildEmailHtml = (applicantName, status, remarks) => {
 </html>`;
 };
 
+const createGmailClient = () => {
+    const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        'https://developers.google.com/oauthplayground'
+    );
+    oauth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+    return google.gmail({ version: 'v1', auth: oauth2Client });
+};
+
 const sendStatusEmail = async (toEmail, applicantName, status, remarks = '') => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.warn('Email credentials not configured. Skipping email notification.');
+    if (!process.env.GMAIL_CLIENT_ID || !process.env.GMAIL_CLIENT_SECRET || !process.env.GMAIL_REFRESH_TOKEN) {
+        console.warn('Gmail API credentials not configured. Skipping email notification.');
         return;
     }
 
@@ -119,24 +128,23 @@ const sendStatusEmail = async (toEmail, applicantName, status, remarks = '') => 
     const html = buildEmailHtml(applicantName, status, remarks);
     if (!html) return;
 
-    const { address } = await dns.lookup('smtp.gmail.com', { family: 4 });
-    const transporter = nodemailer.createTransport({
-        host: address,
-        port: 587,
-        secure: false,
-        tls: { servername: 'smtp.gmail.com' },
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS.replace(/\s/g, '')
-        }
-    });
+    const rawMessage = [
+        `From: "XU Alumni Management System" <${process.env.EMAIL_USER}>`,
+        `To: ${toEmail}`,
+        `Subject: ${config.subject}`,
+        'MIME-Version: 1.0',
+        'Content-Type: text/html; charset=UTF-8',
+        '',
+        html
+    ].join('\n');
+
+    const encodedMessage = Buffer.from(rawMessage).toString('base64url');
 
     try {
-        await transporter.sendMail({
-            from: `"XU Alumni Management System" <${process.env.EMAIL_USER}>`,
-            to: toEmail,
-            subject: config.subject,
-            html
+        const gmail = createGmailClient();
+        await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: { raw: encodedMessage }
         });
         console.log(`Email sent to ${toEmail} for status: ${status}`);
     } catch (err) {
