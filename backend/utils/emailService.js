@@ -122,9 +122,9 @@ const sendStatusEmail = async (toEmail, applicantName, status, remarks = '') => 
         host: 'smtp.gmail.com',
         port: 587,
         secure: false,
+        family: 4,
         auth: {
             user: process.env.EMAIL_USER,
-            // Strip spaces from Gmail App Password (displayed with spaces but sent without)
             pass: process.env.EMAIL_PASS.replace(/\s/g, '')
         }
     });
