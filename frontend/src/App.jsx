@@ -15,8 +15,8 @@ import PrivateRoute from './components/PrivateRoute';
 // Admin pages
 import Dashboard from './pages/admin/Dashboard';
 import AlumniRecords from './pages/admin/AlumniRecords';
-import AddAlumniRecord from './pages/admin/AddAlumniRecord';
-import EditAlumniRecord from './pages/admin/EditAlumniRecord';
+// import AddAlumniRecord from './pages/admin/AddAlumniRecord';
+//import EditAlumniRecord from './pages/admin/EditAlumniRecord';
 import ApplicationReview from './pages/admin/ApplicationReview';
 import UserManagement from './pages/admin/UserManagement';
 import SystemLogs from './pages/admin/SystemLogs';
@@ -49,10 +49,10 @@ export default function App() {
           <Route element={<AdminLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/alumni-records" element={<AlumniRecords />} />
-            <Route path="/add-alumni-record" element={<AddAlumniRecord />} />
+           {/*} <Route path="/add-alumni-record" element={<AddAlumniRecord />} />*/}
             <Route path="/application-review" element={<ApplicationReview />} />
             <Route path="/user-management" element={<UserManagement />} />
-            <Route path="/edit-alumni-record/:id" element={<EditAlumniRecord />}/>
+           {/*} <Route path="/edit-alumni-record/:id" element={<EditAlumniRecord />}/>*/}
             <Route path="/admin/system-logs" element={<SystemLogs />} />
           </Route>
         </Route>
