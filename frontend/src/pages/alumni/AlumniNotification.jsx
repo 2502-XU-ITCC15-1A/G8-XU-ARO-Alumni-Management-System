@@ -34,54 +34,82 @@ export default function AlumniNotification() {
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);  
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const triggerNotificationUpdate = () => {
+    window.dispatchEvent(new Event('notifications:update'));
+  };
+
+  const fetchData = async (isSilent = false) => {
+  if (!isSilent) setLoading(true);
+
+  try {
+    const [notifRes, countRes] = await Promise.all([
+      axios.get('/api/notifications/my', { headers }),
+      axios.get('/api/notifications/unread-count', { headers })
+    ]);
+
+    const newNotifications = notifRes.data || [];
+
+    setNotifications(prev => {
+      const prevIds = new Set(prev.map(n => n._id));
+      const hasNew = newNotifications.some(n => !prevIds.has(n._id));
+
+      if (hasNew) {
+        console.log("🔔 New notification arrived");
+      }
+
+      return newNotifications;
+    });
+
+    setUnreadCount(countRes.data.count || 0);
+
+    if (isSilent) {
+      window.dispatchEvent(new Event('notifications:update'));
+    }
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    if (!isSilent) setLoading(false);
+  }
+};
 
   useEffect(() => {
-    axios
-      .get('/api/notifications/my', { headers })
-      .then(res => setNotifications(res.data || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchData();
+  }, []);
 
-    axios
-      .get('/api/notifications/unread-count', { headers })
-      .then(res => setUnreadCount(res.data.count || 0))
-      .catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const interval = setInterval(() => {
+  fetchData(true);
+}, 2000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const markAllAsRead = async () => {
-  try {
-    await axios.patch('/api/notifications/read-all', {}, { headers });
-
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
-
-    triggerNotificationUpdate();
-  } catch (err) {
-    console.error(err);
-  }
-};
+    try {
+      await axios.patch('/api/notifications/read-all', {}, { headers });
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+      triggerNotificationUpdate();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const markAsRead = async (id) => {
-  try {
-    await axios.patch(`/api/notifications/${id}/read`, {}, { headers });
-
-    setNotifications(prev =>
-      prev.map(n => (n._id === id ? { ...n, read: true } : n))
-    );
-
-    setUnreadCount(prev => Math.max(prev - 1, 0));
-
-    triggerNotificationUpdate(); 
-  } catch (err) {
-    console.error(err);
-  }
-};
- 
-  const triggerNotificationUpdate = () => {
-  window.dispatchEvent(new Event('notifications:update'));
-};
+    try {
+      await axios.patch(`/api/notifications/${id}/read`, {}, { headers });
+      setNotifications(prev =>
+        prev.map(n => (n._id === id ? { ...n, read: true } : n))
+      );
+      setUnreadCount(prev => Math.max(prev - 1, 0));
+      triggerNotificationUpdate();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="p-4 p-lg-5">
@@ -115,7 +143,7 @@ export default function AlumniNotification() {
         <div className="card border-0 shadow-sm">
           <div className="card-body p-0">
             {notifications.map((notif, idx) => {
-              const meta = TYPE_META[notif.type] || TYPE_META.info; 
+              const meta = TYPE_META[notif.type] || TYPE_META.info;
 
               return (
                 <div
@@ -151,19 +179,23 @@ export default function AlumniNotification() {
                     </div>
                   </div>
 
-                  {!notif.read && (
-                    <button
-                      className="btn btn-sm"
-                      style={{
-                        backgroundColor: '#1e2d5e',
-                        color: '#fff',
-                        fontSize: 12,
-                      }}
-                      onClick={() => markAsRead(notif._id)}
-                    >
-                      Mark as read
-                    </button>
-                  )}
+                  <div style={{ flexShrink: 0, minWidth: '100px', textAlign: 'right' }}>
+                    {!notif.read && (
+                      <button
+                        className="btn btn-sm"
+                        style={{
+                          backgroundColor: '#1e2d5e',
+                          color: '#fff',
+                          fontSize: 12,
+                          whiteSpace: 'nowrap',
+                          width: '100%'
+                        }}
+                        onClick={() => markAsRead(notif._id)}
+                      >
+                        Mark as read
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

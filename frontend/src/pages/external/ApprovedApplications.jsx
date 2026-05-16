@@ -3,87 +3,63 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const FILTER_OPTIONS = [
-  { value: 'all',        label: 'All' },
-  { value: 'on_hold',    label: 'On Hold' },
-  { value: 'unverified', label: 'Receipt Uploaded' },
-  { value: 'verified',   label: 'Payment Verified' },
-  { value: 'printing',   label: 'In Printing' },
-  { value: 'released',   label: 'Released' },
+  { value: 'all',       label: 'All' },
+  { value: 'awaiting',  label: 'Awaiting Payment' },
+  { value: 'printing',  label: 'In Printing' },
+  { value: 'released',  label: 'Released' },
 ];
 
 function paymentBadge(app) {
-  if (app.status === 'released')                                                   return { text: 'Released',        cls: 'status-released' };
-  if (app.status === 'printing')                                                   return { text: 'In Printing',     cls: 'status-printing' };
-  if (app.status === 'approved' && !app.receiptImage)                             return { text: 'On Hold',         cls: 'status-pending' };
-  if (app.status === 'payment' || app.status === 'payment_pending')               return { text: 'Receipt Uploaded', cls: 'status-under_review' };
-  if (app.receiptImage && !app.paymentVerified)                                   return { text: 'Receipt Uploaded', cls: 'status-under_review' };
-  if (app.paymentVerified)                                                         return { text: 'Payment Verified', cls: 'status-approved' };
-  return                                                                                  { text: 'On Hold',         cls: 'status-pending' };
+  if (app.status === 'released')                  return { text: 'Released',          cls: 'status-released' };
+  if (app.status === 'printing')                  return { text: 'In Printing',       cls: 'status-printing' };
+  if (app.paymentVerified)                        return { text: 'Payment Confirmed', cls: 'status-approved' };
+  return                                                 { text: 'Awaiting Payment', cls: 'status-pending' };
 }
 
 function appFilter(app, filter) {
-  if (filter === 'all')        return true;
-  if (filter === 'on_hold')    return app.status === 'approved' && !app.receiptImage;
-  if (filter === 'unverified') return app.status === 'payment' || app.status === 'payment_pending' || (app.receiptImage && !app.paymentVerified);
-  if (filter === 'verified')   return app.paymentVerified;
-  if (filter === 'printing')   return app.status === 'printing';
-  if (filter === 'released')   return app.status === 'released';
+  if (filter === 'all')      return true;
+  if (filter === 'awaiting') return !app.paymentVerified && app.status === 'approved';
+  if (filter === 'printing') return app.status === 'printing';
+  if (filter === 'released') return app.status === 'released';
   return true;
 }
 
-function VerifyModal({ app, onClose, onVerify, verifying }) {
+function ConfirmPaymentModal({ app, onClose, onConfirm, confirming }) {
   if (!app) return null;
   return (
     <>
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }} />
       <div style={{ position: 'fixed', inset: 0, zIndex: 1055, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', pointerEvents: 'none' }}>
-        <div style={{ width: '100%', maxWidth: 480, maxHeight: '90vh', overflowY: 'auto', borderRadius: 14, backgroundColor: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', pointerEvents: 'all' }}>
-          {/* Header */}
+        <div style={{ width: '100%', maxWidth: 440, borderRadius: 14, backgroundColor: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', pointerEvents: 'all', overflow: 'hidden' }}>
           <div className="d-flex align-items-center justify-content-between px-4 py-3" style={{ backgroundColor: '#1e2d5e', borderRadius: '14px 14px 0 0' }}>
             <span className="fw-semibold text-white" style={{ fontSize: 15 }}>
-              <i className="bi bi-receipt me-2" />Verify Payment
+              <i className="bi bi-cash-coin me-2" />Confirm Payment Received
             </span>
             <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 18, cursor: 'pointer' }}>
               <i className="bi bi-x-lg" />
             </button>
           </div>
-
-          {/* Body */}
           <div className="p-4">
-            <div className="mb-3 p-3 rounded" style={{ backgroundColor: '#f8fafc', border: '1px solid #e5e7eb' }}>
+            <div className="mb-4 p-3 rounded" style={{ backgroundColor: '#f8fafc', border: '1px solid #e5e7eb' }}>
               <div style={{ fontSize: 11, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Applicant</div>
               <div className="fw-semibold" style={{ fontSize: 14, color: '#111827' }}>{app.userId?.name || '—'}</div>
               <div style={{ fontSize: 12, color: '#6b7280' }}>{app.userId?.email || ''}</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>ID No.: {app.universityIdNumber || '—'}</div>
             </div>
-
-            {app.receiptImage ? (
-              <div className="border rounded overflow-hidden" style={{ backgroundColor: '#f9fafb' }}>
-                <img
-                  src={`/${app.receiptImage.replace(/\\/g, '/')}`}
-                  alt="Payment Receipt"
-                  style={{ width: '100%', maxHeight: 340, objectFit: 'contain', display: 'block' }}
-                  onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                />
-                <div style={{ display: 'none', alignItems: 'center', justifyContent: 'center', padding: '2rem', color: '#9ca3af', fontSize: 13 }}>
-                  <i className="bi bi-image me-2" />Unable to load receipt image
-                </div>
+            <div className="alert alert-warning d-flex align-items-start gap-2 mb-0" style={{ fontSize: 13 }}>
+              <i className="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0" />
+              <div>
+                Confirm that <strong>{app.userId?.name || 'this alumni'}</strong> has paid the <strong>₱150.00</strong> Alumni ID fee in person.
+                This will mark payment as confirmed and immediately start printing.
               </div>
-            ) : (
-              <div className="alert alert-warning d-flex align-items-center gap-2" style={{ fontSize: 13 }}>
-                <i className="bi bi-exclamation-triangle-fill" />No receipt image on file.
-              </div>
-            )}
+            </div>
           </div>
-
-          {/* Footer */}
           <div className="d-flex justify-content-end gap-2 px-4 pb-4">
             <button className="btn btn-sm btn-outline-secondary" onClick={onClose}>Cancel</button>
-            {app.receiptImage && (
-              <button className="btn btn-sm btn-approve" disabled={verifying} onClick={onVerify}>
-                <i className="bi bi-check-lg me-1" />
-                {verifying ? 'Verifying…' : 'Confirm Payment Verified'}
-              </button>
-            )}
+            <button className="btn btn-sm btn-approve" disabled={confirming} onClick={onConfirm}>
+              <i className="bi bi-check-lg me-1" />
+              {confirming ? 'Confirming…' : 'Confirm Payment & Start Printing'}
+            </button>
           </div>
         </div>
       </div>
@@ -92,25 +68,44 @@ function VerifyModal({ app, onClose, onVerify, verifying }) {
 }
 
 export default function ApprovedApplications() {
-  const [apps, setApps]             = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [search, setSearch]         = useState('');
-  const [filter, setFilter]         = useState('all');
-  const [receiptApp, setReceiptApp] = useState(null);
-  const [verifying, setVerifying]   = useState(false);
+  const [apps, setApps]                 = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [search, setSearch]             = useState('');
+  const [filter, setFilter]             = useState('all');
+  const [confirmApp, setConfirmApp]     = useState(null);
+  const [confirming, setConfirming]     = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [deleting, setDeleting]     = useState(false);
-  const navigate                    = useNavigate();
+  const [deleting, setDeleting]         = useState(false);
+  const navigate                        = useNavigate();
 
-  const fetchApps = () => {
-    setLoading(true);
+  const fetchApps = (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     axios.get('/api/IdApplication')
-      .then(r => setApps(r.data.filter(a => ['approved', 'payment', 'payment_pending', 'printing', 'released'].includes(a.status))))
+      .then(r => {
+        const approvedData = r.data.filter(a => 
+          ['approved', 'payment_pending', 'printing', 'released'].includes(a.status)
+        );
+        setApps(approvedData);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!isSilent) setLoading(false);
+      });
   };
 
-  useEffect(() => { fetchApps(); }, []);
+  useEffect(() => {
+    fetchApps();
+  }, []);
+
+  useEffect(() => {
+    if (confirming || deleting || confirmApp || confirmDelete) return;
+
+    const interval = setInterval(() => {
+      fetchApps(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [confirming, deleting, confirmApp, confirmDelete]);
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
@@ -118,7 +113,7 @@ export default function ApprovedApplications() {
     try {
       await axios.delete(`/api/IdApplication/${confirmDelete._id}`);
       setConfirmDelete(null);
-      fetchApps();
+      fetchApps(true);
     } catch {
       alert('Failed to delete application.');
     } finally {
@@ -126,17 +121,17 @@ export default function ApprovedApplications() {
     }
   };
 
-  const handleVerifyPayment = async () => {
-    if (!receiptApp) return;
-    setVerifying(true);
+  const handleConfirmPayment = async () => {
+    if (!confirmApp) return;
+    setConfirming(true);
     try {
-      await axios.put(`/api/IdApplication/${receiptApp._id}`, { paymentVerified: true, status: 'printing' });
-      setReceiptApp(null);
-      fetchApps();
+      await axios.put(`/api/bookcenter/${confirmApp._id}/verify-payment`);
+      setConfirmApp(null);
+      fetchApps(true);
     } catch {
-      alert('Failed to verify payment.');
+      alert('Failed to confirm payment.');
     } finally {
-      setVerifying(false);
+      setConfirming(false);
     }
   };
 
@@ -150,28 +145,25 @@ export default function ApprovedApplications() {
   });
 
   const counts = {
-    all:        apps.length,
-    on_hold:    apps.filter(a => a.status === 'approved' && !a.receiptImage).length,
-    unverified: apps.filter(a => a.status === 'payment' || a.status === 'payment_pending' || (a.receiptImage && !a.paymentVerified)).length,
-    verified:   apps.filter(a => a.paymentVerified).length,
-    printing:   apps.filter(a => a.status === 'printing').length,
-    released:   apps.filter(a => a.status === 'released').length,
+    all:      apps.length,
+    awaiting: apps.filter(a => !a.paymentVerified && a.status === 'approved').length,
+    printing: apps.filter(a => a.status === 'printing').length,
+    released: apps.filter(a => a.status === 'released').length,
   };
 
   return (
     <div className="p-4">
       <h4 className="page-title">Approved Applications</h4>
       <p className="text-muted mb-4" style={{ fontSize: 13 }}>
-        Alumni ID applications approved by XU-ARO — verify payment before processing
+        Alumni ID applications approved by XU-ARO — confirm payment when alumni pays at the Book Center
       </p>
 
-      {/* Stats */}
       <div className="row g-3 mb-4">
         {[
-          { label: 'Total',                value: counts.all,        cls: 'app-stat-plain' },
-          { label: 'On Hold',              value: counts.on_hold,    cls: 'app-stat-pending' },
-          { label: 'Pending Verification', value: counts.unverified, cls: 'app-stat-plain' },
-          { label: 'Payment Verified',     value: counts.verified,   cls: 'app-stat-approved' },
+          { label: 'Total',            value: counts.all,       cls: 'app-stat-plain' },
+          { label: 'Awaiting Payment', value: counts.awaiting, cls: 'app-stat-pending' },
+          { label: 'In Printing',       value: counts.printing, cls: 'app-stat-plain' },
+          { label: 'Released',         value: counts.released, cls: 'app-stat-approved' },
         ].map(s => (
           <div key={s.label} className="col-6 col-xl-3">
             <div className={`app-stat-card ${s.cls}`}>
@@ -246,19 +238,19 @@ export default function ApprovedApplications() {
                         >
                           <i className="bi bi-eye me-1" />View
                         </button>
-                        {(app.status === 'payment' || app.status === 'payment_pending') && !app.paymentVerified && (
+                        {app.status === 'approved' && !app.paymentVerified && (
                           <button
                             className="btn btn-sm btn-approve"
                             style={{ fontSize: 12 }}
-                            onClick={() => setReceiptApp(app)}
-                            title="Verify payment"
+                            onClick={() => setConfirmApp(app)}
+                            title="Confirm payment received"
                           >
-                            <i className="bi bi-receipt me-1" />Verify
+                            <i className="bi bi-cash-coin me-1" />Confirm Payment
                           </button>
                         )}
-                        {app.status === 'approved' && !app.receiptImage && (
-                          <span style={{ fontSize: 11, color: '#9ca3af' }}>
-                            <i className="bi bi-pause-circle me-1" />On Hold
+                        {(app.status === 'printing' || app.status === 'released') && (
+                          <span style={{ fontSize: 11, color: '#6b7280' }}>
+                            <i className="bi bi-check-circle-fill text-success me-1" />Paid
                           </span>
                         )}
                         <button
@@ -279,15 +271,13 @@ export default function ApprovedApplications() {
         </div>
       </div>
 
-      {/* Verify Payment Modal */}
-      <VerifyModal
-        app={receiptApp}
-        onClose={() => setReceiptApp(null)}
-        onVerify={handleVerifyPayment}
-        verifying={verifying}
+      <ConfirmPaymentModal
+        app={confirmApp}
+        onClose={() => setConfirmApp(null)}
+        onConfirm={handleConfirmPayment}
+        confirming={confirming}
       />
 
-      {/* Delete Confirmation Modal */}
       {confirmDelete && (
         <>
           <div onClick={() => setConfirmDelete(null)} style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1050 }} />

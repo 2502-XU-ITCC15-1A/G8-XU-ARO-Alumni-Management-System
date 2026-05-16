@@ -4,8 +4,8 @@ import axios from 'axios';
 const STATUS_STEPS = [
   { key: 'pending',      label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
   { key: 'under_review', label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
-  { key: 'approved',     label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please upload your payment receipt below.' },
-  { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment receipt is awaiting verification by the Book Center.' },
+  { key: 'approved',     label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please visit the XU Book Center to pay the ₱150 Alumni ID fee.' },
+  { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment has been confirmed by the Book Center.' },
   { key: 'printing',     label: 'Printing',     icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
   { key: 'released',     label: 'Released',     icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
 ];
@@ -24,6 +24,7 @@ function SignaturePad({ value, onChange }) {
   const canvasRef = useRef(null);
   const drawing   = useRef(false);
   const lastPos   = useRef(null);
+  const BRUSH_SIZE = 3; 
 
   const getPos = (e) => {
     const canvas = canvasRef.current;
@@ -34,7 +35,22 @@ function SignaturePad({ value, onChange }) {
     return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
   };
 
-  const startDraw = (e) => { e.preventDefault(); drawing.current = true; lastPos.current = getPos(e); };
+  const startDraw = (e) => { 
+    e.preventDefault(); 
+    drawing.current = true; 
+    const pos = getPos(e);
+    lastPos.current = pos;
+
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineWidth = BRUSH_SIZE;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#1e2d5e';
+    
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
 
   const draw = (e) => {
     e.preventDefault();
@@ -44,10 +60,6 @@ function SignaturePad({ value, onChange }) {
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#1e2d5e';
-    ctx.lineWidth   = 2;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
     ctx.stroke();
     lastPos.current = pos;
   };
@@ -86,8 +98,11 @@ function SignaturePad({ value, onChange }) {
         <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear} style={{ fontSize: 12 }}>
           <i className="bi bi-eraser me-1" />Clear
         </button>
-        {value && <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>}
-        {!value && <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above using mouse or touch</span>}
+        {value ? (
+          <span className="text-success" style={{ fontSize: 12 }}><i className="bi bi-check-circle me-1" />Signature captured</span>
+        ) : (
+          <span className="text-muted" style={{ fontSize: 12 }}>Draw your signature above</span>
+        )}
       </div>
     </div>
   );
@@ -210,39 +225,17 @@ function StatusTracker({ application }) {
   );
 }
 
-function ReceiptUpload({ applicationId, application, onUpdated, token }) {
-  const [file, setFile]           = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const headers = { Authorization: `Bearer ${token}` };
 
-  const upload = async () => {
-    if (!file) return alert('Please select a receipt image first.');
-    const allowed = ['image/jpeg', 'image/png'];
-    if (!allowed.includes(file.type)) return alert('Only JPEG and PNG files are allowed.');
-    const fd = new FormData();
-    fd.append('receipt', file);
-    setUploading(true);
-    try {
-      const res = await axios.post(`/api/IdApplication/upload/${applicationId}`, fd, {
-        headers: { ...headers, 'Content-Type': 'multipart/form-data' },
-      });
-      onUpdated(res.data);
-      setFile(null);
-    } catch {
-      alert('Upload failed. Please try again.');
-    } finally {
-      setUploading(false);
-    }
-  };
 
-  if (application.paymentVerified && application.status !== 'approved') {
+function PaymentInstructions({ application }) {
+  if (application.paymentVerified && application.status === 'printing') {
     return (
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4 d-flex align-items-center gap-3">
           <i className="bi bi-check-circle-fill text-success" style={{ fontSize: 28 }} />
           <div>
-            <div className="fw-bold">Payment Verified</div>
-            <div className="text-muted" style={{ fontSize: 13 }}>Your payment receipt has been verified by the Book Center.</div>
+            <div className="fw-bold">Payment Confirmed</div>
+            <div className="text-muted" style={{ fontSize: 13 }}>Your payment has been confirmed by the XU Book Center. Your ID card is now being printed.</div>
           </div>
         </div>
       </div>
@@ -253,32 +246,19 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
     return (
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-4">
-          <h6 className="fw-bold mb-1">Upload Payment Receipt</h6>
-          <p className="text-muted mb-3" style={{ fontSize: 13 }}>
-            Your application has been approved. Please pay the Alumni ID fee of <strong>₱150</strong> at the Finance Office and upload your payment receipt here to proceed.
-          </p>
-          {application.receiptImage && (
-            <div className="mb-3 rounded p-2" style={{ backgroundColor: '#f0fdf4', border: '1px solid #86efac', fontSize: 13, color: '#166534' }}>
-              <i className="bi bi-image me-1" />Receipt already uploaded — upload again to replace it.
-            </div>
-          )}
-          <div className="d-flex gap-2 align-items-center flex-wrap">
-            <input
-              type="file"
-              accept="image/jpeg,image/png"
-              className="form-control"
-              style={{ maxWidth: 280, fontSize: 13 }}
-              onChange={e => setFile(e.target.files[0])}
-            />
-            <button
-              className="btn btn-approve"
-              onClick={upload}
-              disabled={uploading || !file}
-              style={{ fontSize: 13 }}
-            >
-              {uploading ? <><span className="spinner-border spinner-border-sm me-2" />Uploading...</> : <><i className="bi bi-upload me-1" />Upload Receipt</>}
-            </button>
+          <div className="d-flex align-items-center gap-2 mb-3">
+            <i className="bi bi-cash-coin text-success" style={{ fontSize: 24 }} />
+            <h6 className="fw-bold mb-0">Payment Instructions</h6>
           </div>
+          <p className="text-muted mb-3" style={{ fontSize: 13 }}>
+            Your application has been approved. To proceed with your Alumni ID card, please follow these steps:
+          </p>
+          <ol className="mb-0" style={{ fontSize: 13, color: '#374151', paddingLeft: '1.2rem', lineHeight: 2 }}>
+            <li>Visit the <strong>XU Book Center</strong> in person.</li>
+            <li>Present your name and University ID number to the Book Center staff.</li>
+            <li>Pay the Alumni ID fee of <strong>₱150.00</strong>.</li>
+            <li>The Book Center will process and print your Alumni ID upon payment confirmation.</li>
+          </ol>
         </div>
       </div>
     );
@@ -287,28 +267,182 @@ function ReceiptUpload({ applicationId, application, onUpdated, token }) {
   return null;
 }
 
+function PhotoUpload({ label, hint, value, onChange }) {
+  const inputRef = useRef(null);
+  const [error, setError] = useState(''); 
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/jfif'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload a PNG or JPG image.');
+      if (inputRef.current) inputRef.current.value = ''; 
+      return;
+    }
+
+    setError('');
+    const preview = URL.createObjectURL(file);
+    onChange({ file, preview });
+  };
+
+  const clear = () => {
+    if (value?.preview) URL.revokeObjectURL(value.preview);
+    onChange(null);
+    setError(''); 
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div>
+      {value?.preview ? (
+        <div className="d-flex align-items-start gap-3">
+          <img
+            src={value.preview}
+            alt="preview"
+            style={{ height: 100, maxWidth: 160, objectFit: 'contain', border: '1px solid #d1d5db', borderRadius: 6, background: '#fafafa' }}
+          />
+          <div>
+            <div className="text-success mb-1" style={{ fontSize: 12 }}>
+              <i className="bi bi-check-circle me-1" />{value.file.name}
+            </div>
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={clear} style={{ fontSize: 12 }}>
+              <i className="bi bi-x-circle me-1" />Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          style={{
+            border: error ? '2px dashed #dc3545' : '2px dashed #d1d5db', 
+            borderRadius: 6, padding: '20px 16px',
+            textAlign: 'center', cursor: 'pointer', background: error ? '#fff5f5' : '#fafafa',
+            transition: 'all 0.15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = error ? '#dc3545' : '#1e2d5e'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = error ? '#dc3545' : '#d1d5db'}
+        >
+          <i className={`bi ${error ? 'bi-exclamation-circle' : 'bi-cloud-upload'}`} 
+             style={{ fontSize: 24, color: error ? '#dc3545' : '#9ca3af' }} 
+          />
+          <div className="mt-1" style={{ fontSize: 13, color: error ? '#dc3545' : '#6b7280' }}>
+            {error ? error : label}
+          </div>
+          {!error && hint && <div style={{ fontSize: 11, color: '#9ca3af' }}>{hint}</div>}
+        </div>
+      )}
+
+      {error && (
+        <div className="text-danger mt-1" style={{ fontSize: 11, fontWeight: '500' }}>
+          <i className="bi bi-x-circle me-1" />{error}
+        </div>
+      )}
+
+      <input 
+        ref={inputRef} 
+        type="file" 
+        accept=".png,.jpg,.jpeg,.jfif,image/png,image/jpeg,image/jfif" 
+        style={{ display: 'none' }} 
+        onChange={handleFile} 
+        />
+    </div>
+  );
+}
+
 function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewal }) {
 
-  const collegeRecord = education.find(
-    edu => edu.level === 'College'
-  );
+  const collegeRecord = education.find(edu => edu.level === 'College');
 
-  const [form, setForm] = useState({
-    ...BLANK_FORM,
-    lastName:           profile?.surname || '',
-    firstName:          profile?.firstName || '',
-    middleName:         profile?.middleName || '',
-    bloodType:          profile?.bloodType || '',
-    course:             collegeRecord?.degree || '',
-    homeAddress: [
-      profile?.address?.street,
-      profile?.address?.barangay,
-      profile?.address?.city,
-      profile?.address?.province
-    ].filter(Boolean).join(', '),
-    universityIdNumber: profile?.universityIdNumber || '',
-  });
-  const [submitting, setSubmitting] = useState(false);
+const EDUCATION_PRIORITY = [
+  'Post-Graduate',
+  'College',
+  'Senior High School',
+  'Junior High School',
+  'Grade School',
+];
+
+const highestEducation = [...education]
+  .sort(
+    (a, b) =>
+      EDUCATION_PRIORITY.indexOf(a.level) -
+      EDUCATION_PRIORITY.indexOf(b.level)
+  )[0];
+
+const getCourseDisplay = (edu) => {
+  if (!edu) return '';
+
+  if (
+    edu.level === 'Grade School' ||
+    edu.level === 'Junior High School'
+  ) {
+    return;
+  }
+
+  if (edu.level === 'Senior High School') {
+    return edu.degree || '';
+  }
+
+  if (
+    edu.level === 'College' ||
+    edu.level === 'Post-Graduate'
+  ) {
+    return edu.degree || '';
+  }
+
+  return edu.degree || '';
+};
+
+const [form, setForm] = useState({
+  ...BLANK_FORM,
+
+  lastName: profile?.surname || '',
+  firstName: profile?.firstName || '',
+  middleName: profile?.middleName || '',
+
+  bloodType: profile?.bloodType || '',
+
+  course: getCourseDisplay(highestEducation),
+
+  gradGradeSchool:
+    education.find(e => e.level === 'Grade School')
+      ?.yearGraduated || '',
+
+  gradJHS:
+    education.find(e => e.level === 'Junior High School')
+      ?.yearGraduated || '',
+
+  gradSHS:
+    education.find(e => e.level === 'Senior High School')
+      ?.yearGraduated || '',
+
+  gradCollege:
+    education.find(e => e.level === 'College')
+      ?.yearGraduated || '',
+
+  gradPostGrad:
+    education.find(e => e.level === 'Post-Graduate')
+      ?.yearGraduated || '',
+
+  homeAddress: [
+    profile?.address?.street,
+    profile?.address?.barangay,
+    profile?.address?.city,
+    profile?.address?.province
+  ]
+    .filter(Boolean)
+    .join(', '),
+
+  universityIdNumber:
+    profile?.universityIdNumber || '',
+});
+
+  const [sigMode,       setSigMode]       = useState('draw');
+  const [sigUpload,     setSigUpload]     = useState(null);
+  const [photoUpload,   setPhotoUpload]   = useState(null);
+  const [submitting,    setSubmitting]    = useState(false);
+
   const headers = { Authorization: `Bearer ${token}` };
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -330,12 +464,32 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
       const userId = user.id || user._id;
       const payload = {
         ...form,
+        signature: sigMode === 'draw' ? form.signature : '',
         userId,
         isRenewal: isRenewal || false,
         previousApplicationId: previousApplicationId || null,
       };
       const res = await axios.post('/api/IdApplication', payload, { headers });
-      onSubmitted(res.data);
+      const appId = res.data._id;
+
+      if (photoUpload?.file) {
+        const fd = new FormData();
+        fd.append('photo', photoUpload.file);
+        await axios.post(`/api/IdApplication/upload-photo/${appId}`, fd, {
+          headers: { ...headers, 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      if (sigMode === 'upload' && sigUpload?.file) {
+        const fd = new FormData();
+        fd.append('signature', sigUpload.file);
+        await axios.post(`/api/IdApplication/upload-id-signature/${appId}`, fd, {
+          headers: { ...headers, 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
+      const finalRes = await axios.get(`/api/IdApplication/${appId}`, { headers });
+      onSubmitted(finalRes.data);
     } catch {
       alert('Failed to submit application. Please try again.');
     } finally {
@@ -385,8 +539,21 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
               </Field>
             </div>
             <div className="col-md-4">
-              <Field label="Degree / Course" required>
-                <input className="form-control" style={{ fontSize: 14 }} value={f('course')} onChange={set('course')} placeholder="e.g. BS Computer Science" />
+              <Field
+                label={
+                  highestEducation?.level === 'Senior High School'
+                    ? 'Strand'
+                    : 'Degree / Course'
+                }
+                required
+              >
+              <input
+                className="form-control"
+                style={{ fontSize: 14 }}
+                value={f('course')}
+                onChange={set('course')}
+                placeholder="Enter degree / strand if unavailable"
+              />         
               </Field>
             </div>
             <div className="col-12">
@@ -427,15 +594,59 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
 
         <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-            Signature
+            ID Photo
           </div>
-          <Field label="Draw Your Signature">
-            <SignaturePad
-              value={f('signature')}
-              onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+          <Field label="Upload Your Photo">
+            <PhotoUpload
+              label="Click to upload a photo for your Alumni ID"
+              hint="PNG, JFIF, or JPEG, plain background preferred"
+              value={photoUpload}
+              onChange={setPhotoUpload}
             />
           </Field>
         </div>
+
+<div className="mb-4">
+  <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
+    E-Signature
+  </div>
+
+  <div className="d-flex gap-2 mb-3">
+    {['draw', 'upload'].map(mode => (
+      <button
+        key={mode}
+        type="button"
+        className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
+        style={{ fontSize: 12 }}
+        onClick={() => setSigMode(mode)}
+      >
+        <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
+        {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
+      </button>
+    ))}
+  </div>
+
+  <div className={sigMode === 'draw' ? '' : 'd-none'}>
+    <Field label="Draw Your Signature" key="sig-pad-field">
+      <SignaturePad
+        value={f('signature')}
+        onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+      />
+    </Field>
+  </div>
+
+  <div className={sigMode === 'upload' ? '' : 'd-none'}>
+    <Field label="Upload Signature Image" key="sig-upload-field">
+      <PhotoUpload
+        key="sig-upload-input"
+        label="Click to upload your e-signature image"
+        hint="PNG, JFIF, or JPEG with transparent or white background"
+        value={sigUpload}
+        onChange={sigUpload => setSigUpload(sigUpload)}
+      />
+    </Field>
+  </div>
+</div>
 
         <div className="d-flex justify-content-end">
           <button
@@ -465,6 +676,15 @@ export default function AlumniIdApplication() {
   const [loading, setLoading]         = useState(true);
   const [isRenewing, setIsRenewing]   = useState(false);
 
+  const fetchStatus = async () => {
+    try {
+      const appRes = await axios.get('/api/IdApplication/my', { headers });
+      setApplication(appRes.data[0] || null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     Promise.all([
       axios.get('/api/alumni/me', { headers }),
@@ -479,6 +699,17 @@ export default function AlumniIdApplication() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!application) return;
+
+    const shouldPoll = !['released', 'rejected'].includes(application.status);
+    
+    if (shouldPoll) {
+      const interval = setInterval(fetchStatus, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [application?.status, application?._id]);
 
   const handleRenew = (oldApplication) => {
     sessionStorage.setItem('previousApplicationId', oldApplication._id);
@@ -504,12 +735,8 @@ export default function AlumniIdApplication() {
       {application ? (
         <>
           <StatusTracker application={application} />
-          <ReceiptUpload
-            applicationId={application._id}
-            application={application}
-            onUpdated={setApplication}
-            token={token}
-          />
+          
+          <PaymentInstructions application={application} />
 
           {application.status === 'released' && (
             <RenewCard application={application} onRenew={handleRenew} />
@@ -519,13 +746,26 @@ export default function AlumniIdApplication() {
             <div className="card border-0 shadow-sm">
               <div className="card-body p-4">
                 <h6 className="fw-bold mb-2">Re-apply</h6>
-                <p className="text-muted mb-3" style={{ fontSize: 13 }}>
+                <p className="text-muted mb-4" style={{ fontSize: 13 }}>
                   Your previous application was rejected. You may contact the Alumni Relations Office for more information, or re-apply by submitting a new application.
                 </p>
                 <button
-                  className="btn btn-approve"
-                  onClick={() => setApplication(null)}
+                  className="btn d-inline-flex align-items-center shadow-sm"
+                  style={{ 
+                    backgroundColor: '#1e2d5e', 
+                    color: '#fff', 
+                    padding: '10px 20px', 
+                    fontSize: '14px', 
+                    fontWeight: '600',
+                    borderRadius: '8px',
+                    border: 'none'
+                  }}
+                  onClick={() => {
+                    setApplication(null);
+                    setIsRenewing(false);
+                  }}
                 >
+                  <i className="bi bi-plus-lg me-2"></i>
                   Submit New Application
                 </button>
               </div>
@@ -540,7 +780,7 @@ export default function AlumniIdApplication() {
           token={token}
           isRenewal={isRenewing}
         />      
-        )}
+      )}
     </div>
   );
 }

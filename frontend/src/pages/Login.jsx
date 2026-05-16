@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import aroLogo from '../assets/aro-logo.png';
 
 const ROLE_LABELS = {
   'xu-aro': 'XU-ARO Staff',
@@ -252,9 +253,7 @@ export default function Login() {
 
         <div className="login-dark-panel">
           <div className="login-panel-content">
-            <div className="login-panel-logo">
-              XU · ARO
-            </div>
+            <img src={aroLogo} alt="ARO Logo" className="login-panel-logo-img" />
 
             <div className="login-panel-divider" />
 

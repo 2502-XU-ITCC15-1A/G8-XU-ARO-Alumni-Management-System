@@ -152,6 +152,9 @@ export default function AlumniRecords() {
                         <button className="action-btn text-primary" onClick={() => setSelected(a)}>
                           <i className="bi bi-eye fs-6" />
                         </button>
+                        <button className="action-btn text-warning" onClick={() => navigate(`/edit-alumni-record/${a._id}`)} title="Edit">
+                          <i className="bi bi-pencil-square fs-6" />
+                        </button>
                         <button className="action-btn text-danger" onClick={() => setConfirmId(a._id)}>
                           <i className="bi bi-trash fs-6" />
                         </button>

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import aroLogo from '../assets/aro-logo.png';
 
 const ROLE_REDIRECTS = {
   'xu-aro':   '/dashboard',
@@ -35,16 +36,14 @@ export default function RoleSelection() {
       <div className="role-card">
 
         <div className="role-header">
-          <div className="role-logo">
-            <i className="bi bi-shield-fill-check" style={{ fontSize: 36, color: '#c9a030' }} />
-          </div>
+          <img src={aroLogo} alt="ARO Logo" className="role-logo-img" />
           <div>
             <div className="role-university">XAVIER UNIVERSITY – ATENEO DE CAGAYAN</div>
             <div className="role-office">Alumni Relations Office</div>
           </div>
         </div>
 
-        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, marginBottom: 32 }}>
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, marginBottom: 32, textAlign: 'center' }}>
           Select your role to continue
         </p>
 
