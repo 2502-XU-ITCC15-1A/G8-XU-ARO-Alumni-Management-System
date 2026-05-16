@@ -438,6 +438,7 @@ const [form, setForm] = useState({
     profile?.universityIdNumber || '',
 });
 
+
   const [sigMode,       setSigMode]       = useState('draw');
   const [sigUpload,     setSigUpload]     = useState(null);
   const [photoUpload,   setPhotoUpload]   = useState(null);
@@ -665,7 +666,6 @@ const [form, setForm] = useState({
   );
 }
 
-/* ─── Main Page ───────────────────────────────────────────────── */
 export default function AlumniIdApplication() {
   const token   = localStorage.getItem('token');
   const headers = { Authorization: `Bearer ${token}` };

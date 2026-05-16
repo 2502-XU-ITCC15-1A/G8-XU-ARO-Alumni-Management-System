@@ -294,7 +294,6 @@ export default function AlumniDashboard() {
               </div>
             </div>
 
-            {/* ID Application Status */}
             <div className="col-12 col-md-7">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body p-4">
@@ -321,7 +320,6 @@ export default function AlumniDashboard() {
 
                   {application ? (
                     <>
-                      {/* Step tracker */}
                       <div className="d-flex align-items-center gap-1 mb-3" style={{ overflowX: 'auto' }}>
                         {STEPS.map((step, i) => {
                           const isRejected = application.status === 'rejected';
@@ -393,7 +391,6 @@ export default function AlumniDashboard() {
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="card border-0 shadow-sm">
             <div className="card-body p-4">
               <h6 className="fw-bold mb-3">Quick Actions</h6>

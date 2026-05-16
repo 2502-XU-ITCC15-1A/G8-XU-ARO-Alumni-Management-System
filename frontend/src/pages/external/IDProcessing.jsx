@@ -14,13 +14,11 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         onClick={onClose}
         style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', zIndex: 1050 }}
       />
 
-      {/* Modal container */}
       <div
         style={{
           position: 'fixed', inset: 0, zIndex: 1055,
@@ -37,7 +35,6 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
             pointerEvents: 'all',
           }}
         >
-          {/* Modal header */}
           <div
             className="d-flex align-items-center justify-content-between px-4 py-3"
             style={{ backgroundColor: '#1e2d5e', borderRadius: '14px 14px 0 0' }}
@@ -50,14 +47,12 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
             </button>
           </div>
 
-          {/* ── ID Card ── */}
           <div style={{ padding: '1.25rem 1.25rem 0' }}>
             <div style={{
               background: 'linear-gradient(135deg, #1e2d5e 0%, #0f1e48 100%)',
               borderRadius: 10, overflow: 'hidden',
               boxShadow: '0 4px 16px rgba(30,45,94,0.25)',
             }}>
-              {/* Card header */}
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 12,
                 padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)',
@@ -83,9 +78,7 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
                 </div>
               </div>
 
-              {/* Card body */}
               <div style={{ display: 'flex', gap: 16, padding: '16px 18px' }}>
-                {/* Alumni photo */}
                 <div style={{
                   width: 76, height: 92, flexShrink: 0,
                   background: 'rgba(255,255,255,0.08)',
@@ -99,7 +92,6 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
                   }
                 </div>
 
-                {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 10, lineHeight: 1.2 }}>
                     {app.userId?.name || '—'}
@@ -120,7 +112,6 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
                 </div>
               </div>
 
-              {/* Signature + footer */}
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 18px 14px',
@@ -140,7 +131,6 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
             </div>
           </div>
 
-          {/* ── Details section ── */}
           <div style={{ padding: '1.25rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px', fontSize: 13, marginBottom: 16 }}>
               <div>
@@ -166,7 +156,6 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
               </div>
             </div>
 
-            {/* Payment receipt */}
             {app.receiptImage && (
               <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 14 }}>
                 <div style={{ fontSize: 10, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
@@ -184,7 +173,6 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
             )}
           </div>
 
-          {/* ── Footer actions ── */}
           <div
             className="d-flex justify-content-end gap-2 px-4 py-3"
             style={{ borderTop: '1px solid #f3f4f6' }}
@@ -262,7 +250,6 @@ export default function IDProcessing() {
         Process printing and release alumni IDs for payment-verified applications
       </p>
 
-      {/* Stats */}
       <div className="row g-3 mb-4">
         {[
           { label: 'Pending Verification', value: pendingCount,  cls: 'app-stat-pending'  },
@@ -278,7 +265,6 @@ export default function IDProcessing() {
         ))}
       </div>
 
-      {/* Table */}
       <div className="card border-0 shadow-sm">
         <div className="card-header bg-white border-bottom py-3 d-flex align-items-center gap-3 flex-wrap">
           <h6 className="mb-0 fw-semibold flex-grow-1">Processing Queue</h6>

@@ -343,6 +343,15 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
   const isSHS = form.level === 'Senior High School';
   const hideField = ['Grade School', 'Junior High School'].includes(form.level);
 
+  useEffect(() => {
+    if (editing) {
+      setForm(prev => ({
+        ...prev,
+        schoolName: prev.schoolName || "Xavier University - Ateneo de Cagayan"
+      }));
+    }
+  }, [editing]);
+
   const getPlaceholder = () => {
     if (isSHS) return "e.g. STEM, HUMSS, ABM";
     if (form.level === 'College') return "e.g. BS Psychology";
@@ -360,6 +369,16 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
       setStatus({ type: 'error', message: `Required: ${missing.join(', ')}` });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
+    }
+
+    const restrictedLevels = ['Grade School', 'Junior High School', 'Senior High School'];
+    if (restrictedLevels.includes(form.level)) {
+      const isDuplicate = records.some(r => r.level === form.level && r._id !== editing);
+      if (isDuplicate) {
+        setStatus({ type: 'error', message: `You can only add one record for ${form.level}.` });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
 
     setSaving(true);
@@ -398,11 +417,11 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
         <div className="card border p-4 mt-2">
           <div className="row g-3">
             <div className="col-md-4"><Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}><Select value={form.level} options={EDUCATION_LEVELS} onChange={v => setForm(f => ({ ...f, level: v, degree: ['Grade School', 'Junior High School'].includes(v) ? '' : f.degree }))} /></Field></div>
-              <div className="col-md-8">
+            <div className="col-md-8">
               <Field label={<>School <span style={{ color: '#dc2626' }}>*</span></>}>
                 <input
                   className="form-control"
-                  value="Xavier University - Ateneo de Cagayan"
+                  value={form.schoolName}
                   readOnly
                   tabIndex={-1}
                   style={{
