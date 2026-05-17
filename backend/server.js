@@ -7,15 +7,27 @@ const connectDB = require("./config/db");
 
 const app = express();
 
+const isMaintenanceMode = false;
+
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
     .catch(err => console.log(err));
 
 app.use(cors());
 app.use(express.json());
+
+app.use((req, res, next) => {
+    if (isMaintenanceMode) {
+        return res.status(503).json({ 
+            success: false, 
+            message: "The Alumni Management System is currently undergoing scheduled maintenance. Please try again later." 
+        });
+    }
+    next();
+});
+
 app.use('/uploads', require('express').static('uploads'));
 
-//routes
 const applicationsRoute = require('./routes/applications');
 app.use('/api/applications', applicationsRoute);
 
@@ -28,7 +40,6 @@ app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/bookcenter", require("./routes/bookCenterRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
-
 
 app.get("/", (req, res) => {
     res.send("Backend Running");
