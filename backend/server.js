@@ -10,7 +10,10 @@ const app = express();
 const isMaintenanceMode = false;
 
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
+    .then(() => {
+        console.log("MongoDB Connected");
+        require('./utils/logArchiver');
+    })
     .catch(err => console.log(err));
 
 app.use(cors());
