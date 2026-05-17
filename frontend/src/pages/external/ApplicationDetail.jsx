@@ -290,7 +290,7 @@ export default function ApplicationDetail() {
         </div>
       </div>
 
-      {app.status !== 'released' && (
+{app.status !== 'released' && (
         <div className="card border-0 shadow-sm mb-4">
           <div className="card-body p-4">
             <div className="fw-semibold mb-1" style={{ fontSize: 14 }}>
@@ -313,9 +313,19 @@ export default function ApplicationDetail() {
                 />
                 <div>
                   <div className="text-success fw-semibold" style={{ fontSize: 13 }}>
-                    <i className="bi bi-check-circle-fill me-1" />Photo on file
+                    <span><i className="bi bi-check-circle-fill me-1" />Photo on file</span>
+                    <div className="mt-1">
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-outline-primary px-2 py-0" 
+                        style={{ fontSize: 11 }}
+                        onClick={() => handleDownloadFile(`/${app.alumniPhoto.replace(/\\/g, '/')}`, `Alumni_Photo_${idSafeString}.png`)}
+                      >
+                        <i className="bi bi-download me-1" />Download Photo
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-muted" style={{ fontSize: 12 }}>Upload a new file to replace it</div>
+                  <div className="text-muted mt-1" style={{ fontSize: 12 }}>Upload a new file to replace it</div>
                 </div>
               </div>
             )}
