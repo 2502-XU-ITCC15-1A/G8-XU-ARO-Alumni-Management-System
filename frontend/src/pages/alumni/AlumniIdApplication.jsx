@@ -275,10 +275,17 @@ function PhotoUpload({ label, hint, value, onChange }) {
     const file = e.target.files[0];
     if (!file) return;
 
-  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/jfif'];
-    if (!allowedTypes.includes(file.type)) {
+const allowedExtensions = ['png', 'jpg', 'jpeg'];
+
+    const extension = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedExtensions.includes(extension)) {
       setError('Invalid file type. Please upload a PNG or JPG image.');
-      if (inputRef.current) inputRef.current.value = ''; 
+
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
+
       return;
     }
 
@@ -343,7 +350,7 @@ function PhotoUpload({ label, hint, value, onChange }) {
       <input 
         ref={inputRef} 
         type="file" 
-        accept=".png,.jpg,.jpeg,.jfif,image/png,image/jpeg,image/jfif" 
+        accept=".png,.jpg,.jpeg,image/png,image/jpeg"
         style={{ display: 'none' }} 
         onChange={handleFile} 
         />
@@ -600,7 +607,7 @@ const [form, setForm] = useState({
           <Field label="Upload Your Photo">
             <PhotoUpload
               label="Click to upload a photo for your Alumni ID"
-              hint="PNG, JFIF, or JPEG, plain background preferred"
+              hint="PNG or JPEG only, plain background preferred"
               value={photoUpload}
               onChange={setPhotoUpload}
             />
@@ -641,7 +648,7 @@ const [form, setForm] = useState({
       <PhotoUpload
         key="sig-upload-input"
         label="Click to upload your e-signature image"
-        hint="PNG, JFIF, or JPEG with transparent or white background"
+        hint="PNG or JPEG with transparent or white background"
         value={sigUpload}
         onChange={sigUpload => setSigUpload(sigUpload)}
       />
