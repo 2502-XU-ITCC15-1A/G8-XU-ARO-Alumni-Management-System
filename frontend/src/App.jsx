@@ -43,10 +43,60 @@ export default function App() {
 
   if (maintenanceMessage) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px', fontFamily: 'sans-serif', color: '#333' }}>
-        <h1 style={{ color: '#002855' }}>System Maintenance</h1>
-        <p style={{ fontSize: '18px' }}>{maintenanceMessage}</p>
-        <p style={{ color: '#666' }}>Thank you for your patience. — Alumni Relations Office</p>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh', 
+        width: '100vw',
+        backgroundColor: '#f4f6f9', 
+        fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        padding: '20px',
+        boxSizing: 'border-box',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 99999
+      }}>
+        <div style={{ 
+          backgroundColor: '#ffffff', 
+          padding: '40px 30px', 
+          borderRadius: '12px', 
+          boxShadow: '0 8px 24px rgba(0,0,0,0.08)', 
+          maxWidth: '550px', 
+          width: '100%', 
+          textAlign: 'center',
+          borderTop: '6px solid #002855',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ fontSize: '50px', marginBottom: '15px' }}>⚙️</div>
+          <h1 style={{ 
+            color: '#002855', 
+            fontSize: '28px', 
+            margin: '0 0 15px 0', 
+            fontWeight: '700',
+            lineHeight: '1.2'
+          }}>
+            System Maintenance
+          </h1>
+          <p style={{ 
+            fontSize: '16px', 
+            color: '#4a5568', 
+            lineHeight: '1.6', 
+            margin: '0 0 25px 0' 
+          }}>
+            {maintenanceMessage}
+          </p>
+          <div style={{ 
+            borderTop: '1px solid #e2e8f0', 
+            paddingTop: '20px', 
+            fontSize: '14px', 
+            color: '#718096',
+            fontWeight: '500'
+          }}>
+            Thank you for your patience. — Alumni Relations Office
+          </div>
+        </div>
       </div>
     );
   }
