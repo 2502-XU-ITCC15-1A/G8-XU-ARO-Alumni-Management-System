@@ -149,7 +149,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="Birthdate *">
+          <Field label={<>Birthdate <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')} />
           </Field>
         </div>
@@ -520,7 +520,8 @@ function WorkTab({ records, setRecords, token, setStatus, showConfirm }) {
         <div className="card border p-4 mt-2">
           <div className="row g-3">
             <div className="col-md-6">
-              <Field label="Company / Employer *"><Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} /></Field>
+            <Field label={<>Company / Business <span style={{ color: '#dc2626' }}>*</span></>}>
+            <Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} /></Field>
             </div>
             <div className="col-md-6">
               <Field label="Department"><Input value={form.department} onChange={v => setForm(f => ({ ...f, department: v }))} /></Field>
