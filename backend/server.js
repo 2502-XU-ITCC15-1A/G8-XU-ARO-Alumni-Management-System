@@ -7,7 +7,7 @@ const connectDB = require("./config/db");
 
 const app = express();
 
-const isMaintenanceMode = false;
+const isMaintenanceMode = true;
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
