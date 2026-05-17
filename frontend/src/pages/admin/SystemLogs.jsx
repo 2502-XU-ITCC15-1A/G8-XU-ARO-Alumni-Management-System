@@ -104,13 +104,27 @@ export default function SystemLogs() {
     }
   };
 
-  const filteredLogs = logs.filter((log) => {
+const filteredLogs = logs.filter((log) => {
+    const performerName = (log.performedBy?.name || '').toLowerCase();
+    const performerRole = (log.performedBy?.role || '').toLowerCase();
+    const logAction = (log.action || '').toUpperCase();
+
+    if (
+      performerName.includes('book center') || 
+      performerRole === 'external' ||
+      logAction.includes('PAYMENT') ||
+      logAction.includes('PRINT') ||
+      logAction.includes('RELEASE')
+    ) {
+      return false;
+    }
+
     const q = search.toLowerCase();
     return (
       (log.action || '').toLowerCase().includes(q) ||
       (log.target || '').toLowerCase().includes(q) ||
-      (log.performedBy?.name || '').toLowerCase().includes(q) ||
-      (log.performedBy?.role || '').toLowerCase().includes(q) ||
+      performerName.includes(q) ||
+      performerRole.includes(q) ||
       (log.details || '').toLowerCase().includes(q)
     );
   });
