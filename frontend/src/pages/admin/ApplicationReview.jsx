@@ -28,6 +28,9 @@ export default function ApplicationReview() {
   const [selected, setSelected] = useState(null);
   const [remarks, setRemarks]   = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  const [universityIdNumber, setUniversityIdNumber] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   const fetchApps = async (isSilent = false) => {
     try {
@@ -57,16 +60,47 @@ export default function ApplicationReview() {
   const openModal = (app) => {
     setSelected(app);
     setRemarks('');
+    setValidationError('');
+    setUniversityIdNumber(app.alumniProfile?.universityIdNumber || app.universityIdNumber || '');
   };
 
   const handleAction = async (id, status) => {
     if (isProcessing) return;
+
+    if (status === 'approved' && !universityIdNumber.trim()) {
+      setValidationError('XU University ID Number is required for approval.');
+      return;
+    }
+
     setIsProcessing(true);
+    setValidationError('');
     try {
-      const res = await axios.put(`/api/IdApplication/${id}`, { status, remarks });
-      setApps(prev => prev.map(a => a._id === id ? res.data : a));
+      const trimmedId = universityIdNumber.trim();
+      const res = await axios.put(`/api/IdApplication/${id}`, { 
+        status, 
+        remarks,
+        universityIdNumber: trimmedId
+      });
+      
+      setApps(prev => prev.map(a => {
+        if (a._id === id) {
+          return {
+            ...a,
+            ...res.data,
+            universityIdNumber: trimmedId,
+            alumniProfile: {
+              ...a.alumniProfile,
+              ...res.data?.alumniProfile,
+              universityIdNumber: trimmedId
+            }
+          };
+        }
+        return a;
+      }));
+
       setSelected(null);
       setRemarks('');
+      setUniversityIdNumber('');
     } catch (err) {
       console.error(err);
     } finally {
@@ -84,7 +118,7 @@ export default function ApplicationReview() {
   const filtered = filter === 'all' ? apps : apps.filter(a => a.status === filter);
 
   const STAT_CARDS = [
-    { label: 'Total Applications', value: counts.total,    cls: 'app-stat-plain',    valClass: 'text-dark'    },
+    { label: 'Total Applications', value: counts.total,   cls: 'app-stat-plain',    valClass: 'text-dark'    },
     { label: 'Pending',            value: counts.pending,  cls: 'app-stat-pending',  valClass: 'text-warning' },
     { label: 'Approved',           value: counts.approved, cls: 'app-stat-approved', valClass: 'text-success' },
     { label: 'Rejected',           value: counts.rejected, cls: 'app-stat-rejected', valClass: 'text-danger'  },
@@ -175,14 +209,14 @@ export default function ApplicationReview() {
                           <>
                             <button 
                               className="action-btn text-success" 
-                              onClick={() => handleAction(app._id, 'approved')}
+                              onClick={() => openModal(app)}
                               disabled={isProcessing}
                             >
                               <i className="bi bi-check-lg fs-6" />
                             </button>
                             <button 
                               className="action-btn text-danger" 
-                              onClick={() => handleAction(app._id, 'rejected')}
+                              onClick={() => openModal(app)}
                               disabled={isProcessing}
                             >
                               <i className="bi bi-x-lg fs-6" />
@@ -217,7 +251,6 @@ export default function ApplicationReview() {
                     {[
                       ['Full Name',         getFullName(selected)],
                       ['Email',             selected.userId?.email || '—'],
-                      ['Student Number',    selected.alumniProfile?.universityIdNumber || selected.universityIdNumber || '—'],
                       ['Program',           selected.course || '—'],
                       ['Home Address',      getAddress(selected)],
                       ['Application Date',  formatDate(selected.createdAt)],
@@ -232,8 +265,33 @@ export default function ApplicationReview() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Required Editable Field for University ID Number */}
+                  <div className="mt-4 pt-3 border-top">
+                    <label className="form-label fw-semibold small text-dark">
+                      XU University ID Number <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={`form-control ${validationError ? 'is-invalid' : ''}`}
+                      style={{ fontSize: 14 }}
+                      placeholder="e.g. 2019-XXXXX"
+                      value={universityIdNumber}
+                      onChange={e => {
+                        setUniversityIdNumber(e.target.value);
+                        if (e.target.value.trim()) setValidationError('');
+                      }}
+                      disabled={!(selected.status === 'pending' || selected.status === 'under_review')}
+                    />
+                    {validationError && (
+                      <div className="invalid-feedback small fw-medium mt-1">
+                        {validationError}
+                      </div>
+                    )}
+                  </div>
+
                   {(selected.status === 'pending' || selected.status === 'under_review') && (
-                    <div className="mt-4">
+                    <div className="mt-3">
                       <label className="form-label fw-semibold small">
                         Remarks <span className="text-muted">(required for rejection, optional for approval)</span>
                       </label>

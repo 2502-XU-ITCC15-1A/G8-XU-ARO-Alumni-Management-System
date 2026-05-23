@@ -79,13 +79,16 @@ exports.createIdApplication = async (req, res) => {
 exports.updateStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, remarks, paymentVerified } = req.body;
+        const { status, remarks, paymentVerified, universityIdNumber } = req.body;
 
         const fields = {};
         if (status !== undefined)          fields.status = status;
         if (remarks !== undefined)         fields.remarks = remarks;
         if (paymentVerified !== undefined) fields.paymentVerified = paymentVerified;
-        if (paymentVerified) {              fields.verifiedBy = "XU_BookCenter"; }
+        if (paymentVerified) {             fields.verifiedBy = "XU_BookCenter"; }
+        
+        if (universityIdNumber !== undefined) fields.universityIdNumber = universityIdNumber;
+
         if (status === 'released') {
             const THREE_YEARS_MS = 3 * 365.25 * 24 * 60 * 60 * 1000;
             fields.validUntil = new Date(Date.now() + THREE_YEARS_MS);
@@ -93,28 +96,36 @@ exports.updateStatus = async (req, res) => {
 
         const updated = await IdApplication.findByIdAndUpdate(id, fields, { returnDocument: 'after' }).populate('userId', 'name email');
         
-const logData = {
-    performedBy: {
-        userId: req.user._id,
-        name: req.user.name || "Unknown",
-        role: req.user.role || "unknown",
-    },
-    target: updated.userId?.name || "Unknown User",
-};
+        if (updated?.userId && universityIdNumber) {
+            await AlumniProfile.findOneAndUpdate(
+                { userId: updated.userId._id },
+                { universityIdNumber },
+                { upsert: false }
+            ).catch(err => console.error('Failed to sync ID to profile:', err));
+        }
 
-let statusAction = "UNKNOWN_ACTION";
-if (status === "approved") statusAction = "APPLICATION_APPROVED";
-if (status === "rejected") statusAction = "APPLICATION_REJECTED";
-if (status === "printing") statusAction = "ID_PRINTING_STARTED";
-if (status === "released") statusAction = "ID_RELEASED";
+        const logData = {
+            performedBy: {
+                userId: req.user._id,
+                name: req.user.name || "Unknown",
+                role: req.user.role || "unknown",
+            },
+            target: updated.userId?.name || "Unknown User",
+        };
 
-if (status) {
-    await SystemLog.create({
-        ...logData,
-        action: statusAction,
-        details: `Status changed to ${status}. Remarks: ${remarks || "None"}`
-    });
-}
+        let statusAction = "UNKNOWN_ACTION";
+        if (status === "approved") statusAction = "APPLICATION_APPROVED";
+        if (status === "rejected") statusAction = "APPLICATION_REJECTED";
+        if (status === "printing") statusAction = "ID_PRINTING_STARTED";
+        if (status === "released") statusAction = "ID_RELEASED";
+
+        if (status) {
+            await SystemLog.create({
+                ...logData,
+                action: statusAction,
+                details: `Status changed to ${status}. Remarks: ${remarks || "None"}. ID Number Assigned: ${universityIdNumber || "None"}`
+            });
+        }
 
         if (updated?.userId) {
             if (status) {

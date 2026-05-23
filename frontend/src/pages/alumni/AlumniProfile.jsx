@@ -106,11 +106,10 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
 
   const handleSave = () => {
     const missing = [];
-    if (!f('surname').trim())           missing.push('Last Name');
-    if (!f('firstName').trim())          missing.push('First Name');
-    if (!f('gender'))                    missing.push('Gender');
-    if (!f('birthdate'))                 missing.push('Birthdate');
-    if (!f('universityIdNumber').trim()) missing.push('XU University ID Number');
+    if (!f('surname').trim())   missing.push('Last Name');
+    if (!f('firstName').trim())  missing.push('First Name');
+    if (!f('gender'))           missing.push('Gender');
+    if (!f('birthdate'))         missing.push('Birthdate');
     
     if (missing.length > 0) {
       setStatus({ type: 'error', message: `Please fill in the required fields: ${missing.join(', ')}` });
@@ -169,7 +168,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label={<>XU University ID Number <span style={{ color: '#dc2626' }}>*</span></>}>
+          <Field label="XU University ID Number">
             <Input value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
           </Field>
         </div>

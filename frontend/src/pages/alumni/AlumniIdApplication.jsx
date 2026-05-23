@@ -225,8 +225,6 @@ function StatusTracker({ application }) {
   );
 }
 
-
-
 function PaymentInstructions({ application }) {
   if (application.paymentVerified && application.status === 'printing') {
     return (
@@ -275,17 +273,14 @@ function PhotoUpload({ label, hint, value, onChange }) {
     const file = e.target.files[0];
     if (!file) return;
 
-const allowedExtensions = ['png', 'jpg', 'jpeg'];
-
+    const allowedExtensions = ['png', 'jpg', 'jpeg'];
     const extension = file.name.split('.').pop().toLowerCase();
 
     if (!allowedExtensions.includes(extension)) {
       setError('Invalid file type. Please upload a PNG or JPG image.');
-
       if (inputRef.current) {
         inputRef.current.value = '';
       }
-
       return;
     }
 
@@ -353,98 +348,55 @@ const allowedExtensions = ['png', 'jpg', 'jpeg'];
         accept=".png,.jpg,.jpeg,image/png,image/jpeg"
         style={{ display: 'none' }} 
         onChange={handleFile} 
-        />
+      />
     </div>
   );
 }
 
 function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewal }) {
-
   const collegeRecord = education.find(edu => edu.level === 'College');
 
-const EDUCATION_PRIORITY = [
-  'Post-Graduate',
-  'College',
-  'Senior High School',
-  'Junior High School',
-  'Grade School',
-];
+  const EDUCATION_PRIORITY = [
+    'Post-Graduate',
+    'College',
+    'Senior High School',
+    'Junior High School',
+    'Grade School',
+  ];
 
-const highestEducation = [...education]
-  .sort(
-    (a, b) =>
-      EDUCATION_PRIORITY.indexOf(a.level) -
-      EDUCATION_PRIORITY.indexOf(b.level)
-  )[0];
+  const highestEducation = [...education]
+    .sort(
+      (a, b) =>
+        EDUCATION_PRIORITY.indexOf(a.level) -
+        EDUCATION_PRIORITY.indexOf(b.level)
+    )[0];
 
-const getCourseDisplay = (edu) => {
-  if (!edu) return '';
-
-  if (
-    edu.level === 'Grade School' ||
-    edu.level === 'Junior High School'
-  ) {
-    return;
-  }
-
-  if (edu.level === 'Senior High School') {
+  const getCourseDisplay = (edu) => {
+    if (!edu) return '';
+    if (edu.level === 'Grade School' || edu.level === 'Junior High School') return;
     return edu.degree || '';
-  }
+  };
 
-  if (
-    edu.level === 'College' ||
-    edu.level === 'Post-Graduate'
-  ) {
-    return edu.degree || '';
-  }
-
-  return edu.degree || '';
-};
-
-const [form, setForm] = useState({
-  ...BLANK_FORM,
-
-  lastName: profile?.surname || '',
-  firstName: profile?.firstName || '',
-  middleName: profile?.middleName || '',
-
-  bloodType: profile?.bloodType || '',
-
-  course: getCourseDisplay(highestEducation),
-
-  gradGradeSchool:
-    education.find(e => e.level === 'Grade School')
-      ?.yearGraduated || '',
-
-  gradJHS:
-    education.find(e => e.level === 'Junior High School')
-      ?.yearGraduated || '',
-
-  gradSHS:
-    education.find(e => e.level === 'Senior High School')
-      ?.yearGraduated || '',
-
-  gradCollege:
-    education.find(e => e.level === 'College')
-      ?.yearGraduated || '',
-
-  gradPostGrad:
-    education.find(e => e.level === 'Post-Graduate')
-      ?.yearGraduated || '',
-
-  homeAddress: [
-    profile?.address?.street,
-    profile?.address?.barangay,
-    profile?.address?.city,
-    profile?.address?.province
-  ]
-    .filter(Boolean)
-    .join(', '),
-
-  universityIdNumber:
-    profile?.universityIdNumber || '',
-});
-
+  const [form, setForm] = useState({
+    ...BLANK_FORM,
+    lastName: profile?.surname || '',
+    firstName: profile?.firstName || '',
+    middleName: profile?.middleName || '',
+    bloodType: profile?.bloodType || '',
+    course: getCourseDisplay(highestEducation),
+    gradGradeSchool: education.find(e => e.level === 'Grade School')?.yearGraduated || '',
+    gradJHS: education.find(e => e.level === 'Junior High School')?.yearGraduated || '',
+    gradSHS: education.find(e => e.level === 'Senior High School')?.yearGraduated || '',
+    gradCollege: education.find(e => e.level === 'College')?.yearGraduated || '',
+    gradPostGrad: education.find(e => e.level === 'Post-Graduate')?.yearGraduated || '',
+    homeAddress: [
+      profile?.address?.street,
+      profile?.address?.barangay,
+      profile?.address?.city,
+      profile?.address?.province
+    ].filter(Boolean).join(', '),
+    universityIdNumber: profile?.universityIdNumber || '',
+  });
 
   const [sigMode,       setSigMode]       = useState('draw');
   const [sigUpload,     setSigUpload]     = useState(null);
@@ -459,10 +411,10 @@ const [form, setForm] = useState({
 
   const submit = async () => {
     const missing = [];
-    if (!form.lastName.trim())            missing.push('Last Name');
-    if (!form.firstName.trim())           missing.push('First Name');
-    if (!form.course.trim())              missing.push('Degree / Course');
-    if (!form.universityIdNumber.trim())  missing.push('XU University ID Number');
+    if (!form.lastName.trim())  missing.push('Last Name');
+    if (!form.firstName.trim()) missing.push('First Name');
+    if (!form.course.trim())    missing.push('Degree / Course');
+    
     if (missing.length > 0) {
       return alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
     }
@@ -542,7 +494,7 @@ const [form, setForm] = useState({
               </Field>
             </div>
             <div className="col-md-5">
-              <Field label="XU ID Number" required>
+              <Field label="XU ID Number">
                 <input className="form-control" style={{ fontSize: 14 }} value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
               </Field>
             </div>
@@ -614,47 +566,47 @@ const [form, setForm] = useState({
           </Field>
         </div>
 
-<div className="mb-4">
-  <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-    E-Signature
-  </div>
+        <div className="mb-4">
+          <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
+            E-Signature
+          </div>
 
-  <div className="d-flex gap-2 mb-3">
-    {['draw', 'upload'].map(mode => (
-      <button
-        key={mode}
-        type="button"
-        className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
-        style={{ fontSize: 12 }}
-        onClick={() => setSigMode(mode)}
-      >
-        <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
-        {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
-      </button>
-    ))}
-  </div>
+          <div className="d-flex gap-2 mb-3">
+            {['draw', 'upload'].map(mode => (
+              <button
+                key={mode}
+                type="button"
+                className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
+                style={{ fontSize: 12 }}
+                onClick={() => setSigMode(mode)}
+              >
+                <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
+                {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
+              </button>
+            ))}
+          </div>
 
-  <div className={sigMode === 'draw' ? '' : 'd-none'}>
-    <Field label="Draw Your Signature" key="sig-pad-field">
-      <SignaturePad
-        value={f('signature')}
-        onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
-      />
-    </Field>
-  </div>
+          <div className={sigMode === 'draw' ? '' : 'd-none'}>
+            <Field label="Draw Your Signature" key="sig-pad-field">
+              <SignaturePad
+                value={f('signature')}
+                onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+              />
+            </Field>
+          </div>
 
-  <div className={sigMode === 'upload' ? '' : 'd-none'}>
-    <Field label="Upload Signature Image" key="sig-upload-field">
-      <PhotoUpload
-        key="sig-upload-input"
-        label="Click to upload your e-signature image"
-        hint="PNG or JPEG with transparent or white background"
-        value={sigUpload}
-        onChange={sigUpload => setSigUpload(sigUpload)}
-      />
-    </Field>
-  </div>
-</div>
+          <div className={sigMode === 'upload' ? '' : 'd-none'}>
+            <Field label="Upload Signature Image" key="sig-upload-field">
+              <PhotoUpload
+                key="sig-upload-input"
+                label="Click to upload your e-signature image"
+                hint="PNG or JPEG with transparent or white background"
+                value={sigUpload}
+                onChange={sigUpload => setSigUpload(sigUpload)}
+              />
+            </Field>
+          </div>
+        </div>
 
         <div className="d-flex justify-content-end">
           <button
