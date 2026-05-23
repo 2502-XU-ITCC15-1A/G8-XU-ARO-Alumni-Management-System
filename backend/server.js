@@ -4,33 +4,47 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const connectDB = require("./config/db");
+const cron = require("node-cron");
 
 const app = express();
 
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB Connected"))
 const isMaintenanceMode = false;
 
+const { executeSystemBackup } = require('./utils/dbBackup');
+
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => {
+    .then(async () => { 
         console.log("MongoDB Connected");
         require('./utils/logArchiver');
+        
+        console.log("[AUTOMATION] Server booted. Running immediate backup engine synchronization test...");
+        try {
+            await executeSystemBackup();
+        } catch (testError) {
+            console.error("[AUTOMATION] Startup backup test encountered an error:", testError);
+        }
+        
+        cron.schedule('55 11 * * *', async () => {
+            console.log("[AUTOMATION] Midnight clock struck! Initiating automatic cloud backup to Google Drive...");
+            try {
+                await executeSystemBackup();
+            } catch (backupError) {
+                console.error("[AUTOMATION] Automated backup job encountered an error:", backupError);
+            }
+        }, {
+            scheduled: true,
+            timezone: "Asia/Manila" 
+        });
     })
     .catch(err => console.log(err));
 
 app.use(cors());
 app.use(express.json());
-
-app.use((req, res, next) => {
-    if (isMaintenanceMode) {
-        return res.status(503).json({ 
-            success: false, 
-            message: "The Alumni Management System is currently undergoing scheduled maintenance. Please try again later." 
-        });
-    }
-    next();
-});
-
 app.use('/uploads', require('express').static('uploads'));
 
+//routes
 const applicationsRoute = require('./routes/applications');
 app.use('/api/applications', applicationsRoute);
 
@@ -43,6 +57,7 @@ app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/bookcenter", require("./routes/bookCenterRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+
 
 app.get("/", (req, res) => {
     res.send("Backend Running");
