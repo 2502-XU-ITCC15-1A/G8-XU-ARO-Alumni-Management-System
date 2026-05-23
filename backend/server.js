@@ -26,7 +26,7 @@ mongoose.connect(process.env.MONGO_URI)
             console.error("[AUTOMATION] Startup backup test encountered an error:", testError);
         }
         
-        cron.schedule('55 11 * * *', async () => {
+        cron.schedule('10 12 * * *', async () => {
             console.log("[AUTOMATION] Midnight clock struck! Initiating automatic cloud backup to Google Drive...");
             try {
                 await executeSystemBackup();
