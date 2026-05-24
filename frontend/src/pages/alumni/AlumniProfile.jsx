@@ -398,24 +398,55 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
 
   return (
     <div>
-      {!editing && records.map(r => (
-        <div key={r._id} className="card border-0 bg-light mb-2 p-3">
-          <div className="d-flex justify-content-between align-items-start">
-            <div>
-              <div className="fw-semibold">{r.schoolName}</div>
-              <div className="text-muted small">{r.level} {r.degree ? `• ${r.degree}` : ''} {r.yearGraduated && `(${r.yearGraduated})`}</div>
-            </div>
-            <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setEditing(r._id) || setForm(r)}><i className="bi bi-pencil" /></button>
-              <button className="btn btn-sm btn-outline-danger" onClick={() => showConfirm('Delete record?', () => axios.delete(`/api/education/${r._id}`, { headers }).then(() => setRecords(p => p.filter(x => x._id !== r._id))))}><i className="bi bi-trash3" /></button>
-            </div>
+      {!editing && EDUCATION_LEVELS.map(levelHeader => {
+        const levelRecords = records.filter(r => r.level === levelHeader);
+        
+        if (levelRecords.length === 0) return null;
+
+        return (
+          <div key={levelHeader} className="mb-4">
+            <h5 className="fw-bold mb-2 text-dark" style={{ fontSize: 15 }}>
+              {levelHeader}
+            </h5>
+            
+            {levelRecords.map(r => (
+              <div key={r._id} className="card border-0 bg-light mb-2 p-3">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div className="fw-semibold text-dark" style={{ fontSize: 14 }}>
+                      {r.schoolName}
+                    </div>
+                    <div className="text-muted small mt-1">
+                      {r.degree ? <div>{r.degree} {r.yearGraduated && `(${r.yearGraduated})`}</div> : r.yearGraduated && `(${r.yearGraduated})`}
+                    </div>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-sm btn-outline-secondary" onClick={() => setEditing(r._id) || setForm(r)}>
+                      <i className="bi bi-pencil" />
+                    </button>
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => showConfirm('Delete record?', () => axios.delete(`/api/education/${r._id}`, { headers }).then(() => setRecords(p => p.filter(x => x._id !== r._id))))}>
+                      <i className="bi bi-trash3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
+        );
+      })}
+
+      {!editing && records.length === 0 && (
+        <p className="text-muted small mb-3">No education records added yet.</p>
+      )}
+
       {editing ? (
         <div className="card border p-4 mt-2">
           <div className="row g-3">
-            <div className="col-md-4"><Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}><Select value={form.level} options={EDUCATION_LEVELS} onChange={v => setForm(f => ({ ...f, level: v, degree: ['Grade School', 'Junior High School'].includes(v) ? '' : f.degree }))} /></Field></div>
+            <div className="col-md-4">
+              <Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}>
+                <Select value={form.level} options={EDUCATION_LEVELS} onChange={v => setForm(f => ({ ...f, level: v, degree: ['Grade School', 'Junior High School'].includes(v) ? '' : f.degree }))} />
+              </Field>
+            </div>
             <div className="col-md-8">
               <Field label={<>School <span style={{ color: '#dc2626' }}>*</span></>}>
                 <input
@@ -443,11 +474,22 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
                 </Field>
               </div>
             )}
-            <div className="col-md-4"><Field label="Year Graduated"><Input type="number" value={form.yearGraduated} onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} placeholder="YYYY" /></Field></div>
+            <div className="col-md-4">
+              <Field label="Year Graduated">
+                <Input type="number" value={form.yearGraduated} onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} placeholder="YYYY" />
+              </Field>
+            </div>
           </div>
-          <div className="d-flex gap-2 mt-3"><SaveBtn saving={saving} onClick={save} /><button className="btn btn-outline-secondary" onClick={() => setEditing(null)}>Cancel</button></div>
+          <div className="d-flex gap-2 mt-3">
+            <SaveBtn saving={saving} onClick={save} />
+            <button className="btn btn-outline-secondary" onClick={() => setEditing(null)}>Cancel</button>
+          </div>
         </div>
-      ) : <button className="btn btn-outline-secondary btn-sm mt-2" onClick={() => setEditing('new') || setForm(BLANK_EDU)}>+ Add Education</button>}
+      ) : (
+        <button className="btn btn-outline-secondary btn-sm mt-2" onClick={() => setEditing('new') || setForm(BLANK_EDU)}>
+          + Add Education
+        </button>
+      )}
     </div>
   );
 }
