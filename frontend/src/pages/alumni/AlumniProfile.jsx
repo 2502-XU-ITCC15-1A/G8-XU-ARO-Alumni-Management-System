@@ -87,6 +87,16 @@ function Select({ value, onChange, options, placeholder = 'Select...' }) {
   );
 }
 
+const generateGraduationYears = () => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 1933;
+  const years = [];
+  for (let year = currentYear; year >= startYear; year--) {
+    years.push(year.toString());
+  }
+  return years;
+};
+
 function SaveBtn({ saving, onClick }) {
   return (
     <button
@@ -342,6 +352,8 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
   const isSHS = form.level === 'Senior High School';
   const hideField = ['Grade School', 'Junior High School'].includes(form.level);
 
+  const graduationYearOptions = generateGraduationYears();
+
   useEffect(() => {
     if (editing) {
       setForm(prev => ({
@@ -476,7 +488,12 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
             )}
             <div className="col-md-4">
               <Field label="Year Graduated">
-                <Input type="number" value={form.yearGraduated} onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} placeholder="YYYY" />
+                <Select 
+                  value={form.yearGraduated} 
+                  onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} 
+                  options={graduationYearOptions}
+                  placeholder="Select Year"
+                />
               </Field>
             </div>
           </div>
