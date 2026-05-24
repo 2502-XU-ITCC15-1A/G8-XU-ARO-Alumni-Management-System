@@ -9,8 +9,9 @@ const { executeSystemBackup } = require('./utils/dbBackup');
 const app = express();
 
 const allowedOrigins = [
-  'http://localhost:5173',                   
-  'https://aro-alumni-backend.onrender.com' 
+  'http://localhost:5173', 
+  'https://aro-alumni-backend.onrender.com',
+  'https://g8-xu-aro-alumni-management-system.vercel.app' 
 ];
 
 app.use(cors({

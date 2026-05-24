@@ -58,7 +58,9 @@ export default function Login() {
 
     try {
       if (isForgotPassword) {
-        await axios.post('/api/auth/forgot-password', { email, role });
+        const backendUrl = "https://aro-alumni-backend.onrender.com";
+        
+        await axios.post(`${backendUrl}/api/auth/forgot-password`, { email, role });
         
         setSuccess('Password reset link has been sent to your email.');
         setLoading(false);
