@@ -35,7 +35,7 @@ export default function ResetPassword() {
       return;
     }
 
-    loading(true);
+    setLoading(true);
 
     try {
       await axios.post(`/api/auth/reset-password/${token}`, {
@@ -86,7 +86,6 @@ export default function ResetPassword() {
           </p>
 
           <form onSubmit={handleSubmit}>
-            {/* NEW PASSWORD FIELD */}
             <div className="pw-wrapper">
               <input
                 className="login-input"
@@ -114,33 +113,16 @@ export default function ResetPassword() {
               </button>
             </div>
 
-            {/* CONFIRM NEW PASSWORD FIELD (WITH EYE TOGGLE) */}
-            <div className="pw-wrapper" style={{ marginBottom: 16 }}>
-              <input
-                className="login-input"
-                type={showPw ? 'text' : 'password'}
-                placeholder="Confirm New Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-
-              <button
-                type="button"
-                className="pw-toggle"
-                aria-label={
-                  showPw ? 'Hide password' : 'Show password'
-                }
-                onClick={() => setShowPw((v) => !v)}
-              >
-                <i
-                  aria-hidden="true"
-                  className={`bi bi-eye${
-                    showPw ? '-slash' : ''
-                  }`}
-                />
-              </button>
-            </div>
+            <input
+              className="login-input"
+              type={showPw ? 'text' : 'password'}
+              placeholder="Confirm New Password"
+              value={confirmPassword}
+              onChange={(e) =>
+                setConfirmPassword(e.target.value)
+              }
+              required
+            />
 
             <div
               style={{
