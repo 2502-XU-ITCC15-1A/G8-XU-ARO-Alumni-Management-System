@@ -140,6 +140,24 @@ export default function ApplicationReview() {
     return app.homeAddress || '—';
   };
 
+const formatEducation = (app) => {
+  if (!app.education?.length) return '—';
+
+  return [...app.education]
+    .sort((a, b) => {
+      const yearA = a.yearGraduated || 0;
+      const yearB = b.yearGraduated || 0;
+
+      return yearB - yearA;
+    })
+    .map(e => {
+      const degree = e.degree ? ` - ${e.degree}` : '';
+      const year = e.yearGraduated ? ` (${e.yearGraduated})` : '';
+      return `${e.level}${degree}${year}`;
+    })
+    .join('\n');
+};
+
   return (
     <div className="p-4 p-lg-5">
       <h4 className="page-title">Application Review</h4>
@@ -198,7 +216,9 @@ export default function ApplicationReview() {
                   {filtered.map(app => (
                     <tr key={app._id}>
                       <td className="text-primary fw-medium">{getFullName(app)}</td>
-                      <td>{app.course || '—'}</td>
+                      <td style={{ whiteSpace: 'pre-line' }}>
+                        {formatEducation(app)}
+                      </td>
                       <td>{formatDate(app.createdAt)}</td>
                       <td><StatusBadge status={app.status} /></td>
                       <td>
@@ -251,13 +271,17 @@ export default function ApplicationReview() {
                     {[
                       ['Full Name',         getFullName(selected)],
                       ['Email',             selected.userId?.email || '—'],
-                      ['Program',           selected.course || '—'],
+                      ['Program', (
+                        <div style={{ whiteSpace: 'pre-line', color: '#0d6efd' }}>
+                          {formatEducation(selected)}
+                        </div>
+                      ), 'full'],
                       ['Home Address',      getAddress(selected)],
                       ['Application Date',  formatDate(selected.createdAt)],
                       ['Current Status',    <StatusBadge status={selected.status} />],
                       ['Remarks',           selected.remarks || '—'],
-                    ].map(([label, value]) => (
-                      <div key={label} className="col-6">
+                    ].map(([label, value, size]) => (
+                        <div key={label} className={size === 'full' ? 'col-12' : 'col-6'}>
                         <div className="fw-semibold text-dark small mb-1">{label}</div>
                         <div className={typeof value !== 'object' ? 'text-primary' : ''} style={{ fontSize: 14 }}>
                           {value}
