@@ -19,6 +19,7 @@ function RoleBadge({ role }) {
   );
 }
 
+// 1. Kept the password field in the empty form state
 const EMPTY_FORM = { name: '', email: '', password: '', role: 'xu-aro' };
 
 export default function UserManagement() {
@@ -66,10 +67,26 @@ export default function UserManagement() {
   const handleAdd = async e => {
     e.preventDefault();
     setFormError('');
+
+    // 2. Enforce all fields are filled out
     if (!form.name || !form.email || !form.password) {
-      setFormError('Name, email, and password are required.');
+      setFormError('Name, email, and a temporary password are required.');
       return;
     }
+
+    // 3. Strict Domain Validation Filter (Gmail or XU Institutional Email)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|xu\.edu\.ph)$/i;
+    if (!emailRegex.test(form.email)) {
+      setFormError('Please enter a valid Gmail address (@gmail.com) or XU email (@xu.edu.ph).');
+      return;
+    }
+
+    // 4. Temporary Password Length Check
+    if (form.password.length < 6) {
+      setFormError('Temporary password must be at least 6 characters long.');
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await axios.post('/api/users', form, authHeader);
@@ -182,8 +199,8 @@ export default function UserManagement() {
           <div className="modal show d-block" tabIndex="-1" style={{ zIndex: 1050 }}>
             <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 460 }}>
               <div className="modal-content border-0 rounded-3 overflow-hidden">
-                <div className="modal-header-dark">
-                  <h5 className="text-white fw-bold mb-0">Add Staff User</h5>
+                <div className="modal-header-dark py-3 px-4">
+                  <h5 className="text-white fw-bold mb-0" style={{ fontSize: 16 }}>Add Staff User</h5>
                 </div>
                 <form onSubmit={handleAdd}>
                   <div className="modal-body p-4">
@@ -212,22 +229,25 @@ export default function UserManagement() {
                         name="email"
                         value={form.email}
                         onChange={handleFormChange}
-                        placeholder="e.g. staff@xu.edu.ph"
+                        placeholder="e.g. staff@gmail.com"
                         style={{ fontSize: 13 }}
                       />
                     </div>
+                    
+                    {/* 5. Kept input element for Password mapping */}
                     <div className="mb-3">
-                      <label className="form-label fw-semibold small">Password</label>
+                      <label className="form-label fw-semibold small">Temporary Password</label>
                       <input
                         type="password"
                         className="form-control"
                         name="password"
                         value={form.password}
                         onChange={handleFormChange}
-                        placeholder="Temporary password"
+                        placeholder="Assign temporary password"
                         style={{ fontSize: 13 }}
                       />
                     </div>
+                    
                     <div className="mb-1">
                       <label className="form-label fw-semibold small">Role</label>
                       <select
@@ -237,7 +257,7 @@ export default function UserManagement() {
                         onChange={handleFormChange}
                         style={{ fontSize: 13 }}
                       >
-                        <option value="xu-aro">ARO Staff — can view and manage alumni records &amp; applications</option>
+                        <option value="xu-aro">ARO Staff — can view and manage alumni records</option>
                         <option value="external">Book Center — can view approved applications</option>
                       </select>
                     </div>

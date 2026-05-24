@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
 import RoleSelection from './pages/RoleSelection';
 import PrivateRoute from './components/PrivateRoute';
+import ResetPassword from './pages/ResetPassword';
 
 import Dashboard from './pages/admin/Dashboard';
 import AlumniRecords from './pages/admin/AlumniRecords';
@@ -108,6 +109,7 @@ export default function App() {
         <Route path="/" element={<RoleSelection />} />
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         <Route element={<PrivateRoute allowedRole="xu-aro" />}>
           <Route element={<AdminLayout />}>

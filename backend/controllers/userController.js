@@ -13,23 +13,26 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.createUser = async (req, res) => {
-    try {
-        const { name, email, password, role } = req.body;
+  try {
+    const { name, email, password, role } = req.body;
 
-        if (!["xu-aro", "external"].includes(role)) {
-            return res.status(400).json({ message: "Invalid role" });
-        }
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(400).json({ message: "Email already registered" });
 
-        const exists = await User.findOne({ email });
-        if (exists) return res.status(400).json({ message: "Email already registered" });
+    // Hash the temporary password assigned by the Admin
+    const hashed = await bcrypt.hash(password, 10);
+    
+    const user = await User.create({
+      name,
+      email: email.toLowerCase().trim(),
+      password: hashed,
+      role
+    });
 
-        const hashed = await bcrypt.hash(password, 10);
-        const user = await User.create({ name, email, password: hashed, role });
-
-        res.status(201).json({ ...user.toObject(), password: undefined });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 exports.updateUser = async (req, res) => {
