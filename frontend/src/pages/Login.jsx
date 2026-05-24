@@ -57,13 +57,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-if (isForgotPassword) {
-  await axios.post('http://localhost:5000/api/auth/forgot-password', { email, role });
-  
-  setSuccess('Password reset link has been sent to your email.');
-  setLoading(false);
-  return;
-}
+      if (isForgotPassword) {
+        await axios.post('/api/auth/forgot-password', { email, role });
+        
+        setSuccess('Password reset link has been sent to your email.');
+        setLoading(false);
+        return;
+      }
 
       if (isSignUp) {
         const passwordRegex = /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;

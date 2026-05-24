@@ -3,20 +3,36 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const connectDB = require("./config/db");
 const cron = require("node-cron");
+const { executeSystemBackup } = require('./utils/dbBackup');
 
 const app = express();
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
-const isMaintenanceMode = false;
+const allowedOrigins = [
+  'http://localhost:5173',                   
+  'https://aro-alumni-backend.onrender.com' 
+];
 
-const { executeSystemBackup } = require('./utils/dbBackup');
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
+app.use(express.json());
+app.use('/uploads', express.static('uploads'));
+
+const isMaintenanceMode = false;
 
 mongoose.connect(process.env.MONGO_URI)
     .then(async () => { 
-        console.log("MongoDB Connected");
+        console.log("MongoDB Connected Successfully");
         require('./utils/logArchiver');
         
         console.log("[AUTOMATION] Server booted. Running immediate backup engine synchronization test...");
@@ -38,26 +54,18 @@ mongoose.connect(process.env.MONGO_URI)
             timezone: "Asia/Manila" 
         });
     })
-    .catch(err => console.log(err));
+    .catch(err => console.error("Database connection failure:", err));
 
-app.use(cors());
-app.use(express.json());
-app.use('/uploads', require('express').static('uploads'));
-
-//routes
-const applicationsRoute = require('./routes/applications');
-app.use('/api/applications', applicationsRoute);
-
-app.use("/api/system-logs", require("./routes/systemLogsRoutes"));
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/alumni", require("./routes/alumniRoutes"));
-app.use("/api/education", require("./routes/educationRoutes"));
-app.use("/api/work", require("./routes/workRoutes"));
-app.use("/api/IdApplication", require("./routes/IdApplicationRoutes"));
-app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/bookcenter", require("./routes/bookCenterRoutes"));
-app.use("/api/notifications", require("./routes/notificationRoutes"));
-
+app.use('/api/applications', require('./routes/applications'));
+app.use("/api/system-logs",  require("./routes/systemLogsRoutes"));
+app.use("/api/auth",         require("./routes/authRoutes"));
+app.use("/api/alumni",       require("./routes/alumniRoutes"));
+app.use("/api/education",    require("./routes/educationRoutes"));
+app.use("/api/work",         require("./routes/workRoutes"));
+app.use("/api/IdApplication",require("./routes/IdApplicationRoutes"));
+app.use("/api/users",        require("./routes/userRoutes"));
+app.use("/api/bookcenter",   require("./routes/bookCenterRoutes"));
+app.use("/api/notifications",require("./routes/notificationRoutes"));
 
 app.get("/", (req, res) => {
     res.send("Backend Running");
