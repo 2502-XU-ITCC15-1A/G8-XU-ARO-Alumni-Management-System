@@ -2,6 +2,7 @@ const SystemLog = require("../models/SystemLog");
 const IdApplication = require("../models/IdApplication");
 const AlumniProfile = require("../models/AlumniProfile");
 const Notification = require("../models/Notification");
+const Education = require("../models/Education");
 const { sendStatusEmail } = require("../utils/emailService");
 
 
@@ -31,23 +32,47 @@ exports.getMyApplications = async (req, res) => {
 };
 
 exports.getIdApplications = async (req, res) => {
-    try {
-        const apps = await IdApplication.find()
-            .populate('userId', 'name email')
-            .sort({ createdAt: -1 });
+  try {
+    const apps = await IdApplication.find()
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 })
+      .lean();
 
-        const appsWithProfile = await Promise.all(apps.map(async (app) => {
-            const profile = await AlumniProfile.findOne({ userId: app.userId?._id });
-            return {
-                ...app.toObject(),
-                alumniProfile: profile || null,
-            };
-        }));
+    const userIds = apps.map(a => a.userId?._id).filter(Boolean);
 
-        res.json(appsWithProfile);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    const [educations, profiles] = await Promise.all([
+      Education.find({ userId: { $in: userIds } }).lean(),
+      AlumniProfile.find({ userId: { $in: userIds } }).lean()
+    ]);
+
+    const eduMap = new Map();
+    const profileMap = new Map();
+
+    for (const e of educations) {
+      const id = e.userId.toString();
+      if (!eduMap.has(id)) eduMap.set(id, []);
+      eduMap.get(id).push(e);
     }
+
+    for (const p of profiles) {
+      profileMap.set(p.userId.toString(), p);
+    }
+
+    const merged = apps.map(app => {
+      const id = app.userId?._id?.toString();
+
+      return {
+        ...app,
+        education: eduMap.get(id) || [],
+        alumniProfile: profileMap.get(id) || null
+      };
+    });
+
+    res.json(merged);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
 };
 
 exports.getIdApplication = async (req, res) => {
