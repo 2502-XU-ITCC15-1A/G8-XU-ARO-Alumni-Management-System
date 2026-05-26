@@ -40,20 +40,11 @@ exports.getIdApplications = async (req, res) => {
 
     const userIds = apps.map(a => a.userId?._id).filter(Boolean);
 
-    const [educations, profiles] = await Promise.all([
-      Education.find({ userId: { $in: userIds } }).lean(),
+    const [profiles] = await Promise.all([
       AlumniProfile.find({ userId: { $in: userIds } }).lean()
     ]);
 
-    const eduMap = new Map();
     const profileMap = new Map();
-
-    for (const e of educations) {
-      const id = e.userId.toString();
-      if (!eduMap.has(id)) eduMap.set(id, []);
-      eduMap.get(id).push(e);
-    }
-
     for (const p of profiles) {
       profileMap.set(p.userId.toString(), p);
     }
@@ -63,7 +54,7 @@ exports.getIdApplications = async (req, res) => {
 
       return {
         ...app,
-        education: eduMap.get(id) || [],
+        education: app.educationSnapshot || [], 
         alumniProfile: profileMap.get(id) || null
       };
     });
@@ -77,20 +68,42 @@ exports.getIdApplications = async (req, res) => {
 
 exports.getIdApplication = async (req, res) => {
     try {
+
         const app = await IdApplication.findById(req.params.id)
-            .populate('userId', 'name email');
-        if (!app) return res.status(404).json({ message: 'Not found' });
+            .populate('userId', 'name email')
+            .lean();
+
+        if (!app) {
+            return res.status(404).json({
+                message: 'Not found'
+            });
+        }
+
+        app.education = app.educationSnapshot || [];
+
+        const alumniProfile = await AlumniProfile.findOne({
+            userId: app.userId?._id
+        }).lean();
+
+        app.alumniProfile = alumniProfile || null;
+
         res.json(app);
+
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error(err);
+
+        res.status(500).json({
+            message: err.message
+        });
     }
 };
 
 exports.createIdApplication = async (req, res) => {
     try {
         const app = await IdApplication.create({
-            ...req.body,
-            userId: req.user._id
+        ...req.body,
+        userId: req.user._id,
+        educationSnapshot: req.body.educationSnapshot || []
         });
         const populated = await IdApplication.findById(app._id)
             .populate('userId', 'name email');

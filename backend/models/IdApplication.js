@@ -36,6 +36,14 @@ const applicationSchema = new mongoose.Schema({
     // Alumni photo (uploaded by Book Center for ID printing)
     alumniPhoto: String,
 
+    educationSnapshot: [
+  {
+    level: String,
+    degree: String,
+    yearGraduated: String
+  }
+],
+
     status: {
         type: String,
         enum: ["pending", "under_review", "approved", "payment_pending", "payment", "rejected", "printing", "released"],
