@@ -9,7 +9,8 @@ export default function ResetPassword() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -89,7 +90,7 @@ export default function ResetPassword() {
             <div className="pw-wrapper">
               <input
                 className="login-input"
-                type={showPw ? 'text' : 'password'}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="New Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -100,38 +101,54 @@ export default function ResetPassword() {
                 type="button"
                 className="pw-toggle"
                 aria-label={
-                  showPw ? 'Hide password' : 'Show password'
+                  showPassword ? 'Hide password' : 'Show password'
                 }
-                onClick={() => setShowPw((v) => !v)}
+                onClick={() =>
+                  setShowPassword((prev) => !prev)
+                }
               >
                 <i
-                  aria-hidden="true"
                   className={`bi bi-eye${
-                    showPw ? '-slash' : ''
+                    showPassword ? '-slash' : ''
                   }`}
                 />
               </button>
             </div>
 
-            <input
-              className="login-input"
-              type={showPw ? 'text' : 'password'}
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
-              }
-              required
-            />
+            <div className="pw-wrapper">
+              <input
+                className="login-input"
+                type={ showConfirmPassword ? 'text' : 'password'  }
+                placeholder="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) =>
+                  setConfirmPassword(e.target.value)
+                }
+                required
+              />
+
+              <button
+                type="button"
+                className="pw-toggle"
+                aria-label={
+                  showConfirmPassword
+                    ? 'Hide password'
+                    : 'Show password'
+                }
+                onClick={() =>
+                  setShowConfirmPassword((prev) => !prev)
+                }
+              >
+                <i
+                  className={`bi bi-eye${
+                    showConfirmPassword ? '-slash' : ''
+                  }`}
+                />
+              </button>
+            </div>
 
             <div
-              style={{
-                fontSize: 11,
-                color: '#6b7280',
-                marginBottom: 8,
-                marginTop: -4,
-              }}
-            >
+              style={{  fontSize: 11,  color: '#6b7280',  marginBottom: 8,  marginTop: -4,  }} >
               Password must be at least 6 characters and
               include a special character (e.g. @, #, !).
             </div>
