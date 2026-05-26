@@ -77,10 +77,28 @@ exports.getIdApplications = async (req, res) => {
 
 exports.getIdApplication = async (req, res) => {
     try {
+
         const app = await IdApplication.findById(req.params.id)
-            .populate('userId', 'name email');
-        if (!app) return res.status(404).json({ message: 'Not found' });
-        res.json(app);
+            .populate('userId', 'name email')
+            .lean();
+
+        if (!app) {
+            return res.status(404).json({ message: 'Not found' });
+        }
+
+        const [education, alumniProfile] = await Promise.all([
+            Education.find({ userId: app.userId._id }).lean(),
+            AlumniProfile.findOne({ userId: app.userId._id }).lean()
+        ]);
+
+        const merged = {
+            ...app,
+            education: education || [],
+            alumniProfile: alumniProfile || null
+        };
+
+        res.json(merged);
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
