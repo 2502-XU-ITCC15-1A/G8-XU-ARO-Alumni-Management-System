@@ -63,9 +63,9 @@ function getActionBadge(action) {
 
   if (act.includes('create') || act.includes('add') || act.includes('upload')) {
     bg = '#dcfce7'; color = '#15803d';
-  } else if (act.includes('update') || act.includes('edit') || act.includes('verify')) {
+  } else if (act.includes('update') || act.includes('edit') || act.includes('verify') || act.includes('backup')) {
     bg = '#e0f2fe'; color = '#0369a1';
-  } else if (act.includes('delete') || act.includes('remove') || act.includes('reject')) {
+  } else if (act.includes('delete') || act.includes('remove') || act.includes('reject') || act.includes('fail')) {
     bg = '#fee2e2'; color = '#b91c1c';
   } else if (act.includes('release') || act.includes('print')) {
     bg = '#f3e8ff'; color = '#6b21a8';
@@ -82,6 +82,7 @@ export default function SystemLogs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('system');
 
   const token = localStorage.getItem('token');
 
@@ -104,7 +105,20 @@ export default function SystemLogs() {
     }
   };
 
-const filteredLogs = logs.filter((log) => {
+  const tabFilteredLogs = logs.filter((log) => {
+    const logAction = (log.action || '').toUpperCase();
+    const performerRole = (log.performedBy?.role || '').toLowerCase();
+
+    const isMaintenanceAction = logAction.includes('BACKUP') || performerRole === 'system';
+
+    if (activeTab === 'maintenance') {
+      return isMaintenanceAction;
+    } else {
+      return !isMaintenanceAction;
+    }
+  });
+
+  const filteredLogs = tabFilteredLogs.filter((log) => {
     const performerName = (log.performedBy?.name || '').toLowerCase();
     const performerRole = (log.performedBy?.role || '').toLowerCase();
     const logAction = (log.action || '').toUpperCase();
@@ -120,33 +134,45 @@ const filteredLogs = logs.filter((log) => {
       }
     }
 
-    const isTargetedAdminAction = 
-      logAction.includes('BACKUP') || 
-      logAction.includes('USER') || 
-      logAction.includes('ACCOUNT') ||
-      logAction.includes('ADMIN');
-
     const q = search.toLowerCase();
-    const matchesSearch = 
+    return (
       (log.action || '').toLowerCase().includes(q) ||
       (log.target || '').toLowerCase().includes(q) ||
       performerName.includes(q) ||
       performerRole.includes(q) ||
-      (log.details || '').toLowerCase().includes(q);
-
-    if (isTargetedAdminAction) {
-      return matchesSearch;
-    }
-
-    return matchesSearch;
-});
+      (log.details || '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="p-4 p-lg-5">
-      <h4 className="page-title">System Logs</h4>
+      <h4 className="page-title">System &amp; Maintenance Logs</h4>
       <p className="text-muted mb-4" style={{ fontSize: 14 }}>
-        Monitor all admin and staff actions across the system
+        Monitor administrative staff workflow operations and automated cloud engine backups
       </p>
+
+      <ul className="nav nav-tabs border-bottom mb-4" style={{ gap: '4px' }}>
+        <li className="nav-item">
+          <button 
+            className={`nav-link border-0 px-4 py-2 fw-semibold ${activeTab === 'system' ? 'active text-primary border-bottom border-primary border-3' : 'text-secondary'}`}
+            onClick={() => { setActiveTab('system'); setSearch(''); }}
+            style={{ fontSize: 14, background: 'none', transition: 'all 0.2s' }}
+          >
+            <i className="bi bi-person-gear me-2" />
+            System Action Logs
+          </button>
+        </li>
+        <li className="nav-item">
+          <button 
+            className={`nav-link border-0 px-4 py-2 fw-semibold ${activeTab === 'maintenance' ? 'active text-primary border-bottom border-primary border-3' : 'text-secondary'}`}
+            onClick={() => { setActiveTab('maintenance'); setSearch(''); }}
+            style={{ fontSize: 14, background: 'none', transition: 'all 0.2s' }}
+          >
+            <i className="bi bi-cloud-check me-2" />
+            Cloud Maintenance Logs
+          </button>
+        </li>
+      </ul>
 
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body p-3">
@@ -157,7 +183,7 @@ const filteredLogs = logs.filter((log) => {
             <input
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Search logs (action, admin, role, target, details...)"
+              placeholder={activeTab === 'system' ? "Search actions, handlers, roles..." : "Search backup files, statuses, details..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ fontSize: 13 }}
@@ -170,47 +196,47 @@ const filteredLogs = logs.filter((log) => {
         <div className="card-body p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h6 className="fw-bold mb-0">
-              Activity Logs ({filteredLogs.length})
+              {activeTab === 'system' ? 'Staff & Operational Records' : 'Automated Cloud Snapshots'} ({filteredLogs.length})
             </h6>
           </div>
 
           {loading ? (
             <div className="text-center py-4 text-muted small">
-              Loading logs...
+              Loading transaction records...
             </div>
           ) : filteredLogs.length === 0 ? (
             <div className="text-center py-4 text-muted small">
-              No system logs found.
+              No index modifications match your query parameters.
             </div>
           ) : (
             <div className="table-responsive">
               <table className="table mb-0" style={{ fontSize: 14 }}>
                 <thead>
                   <tr>
-                    <th className="fw-semibold text-dark border-top-0">Date & Time</th>
-                    <th className="fw-semibold text-dark border-top-0">Admin</th>
+                    <th className="fw-semibold text-dark border-top-0">Date &amp; Time</th>
+                    <th className="fw-semibold text-dark border-top-0">{activeTab === 'system' ? 'Operator' : 'Trigger Agent'}</th>
                     <th className="fw-semibold text-dark border-top-0">Role</th>
-                    <th className="fw-semibold text-dark border-top-0">Action</th>
-                    <th className="fw-semibold text-dark border-top-0">Target</th>
+                    <th className="fw-semibold text-dark border-top-0">Action Type</th>
+                    <th className="fw-semibold text-dark border-top-0">{activeTab === 'system' ? 'Target Space' : 'Backup Identifier'}</th>
                     <th className="fw-semibold text-dark border-top-0">Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredLogs.map((log) => (
                     <tr key={log._id}>
-                      <td className="text-secondary">
+                      <td className="text-secondary" style={{ whiteSpace: 'nowrap' }}>
                         {fmtDate(log.createdAt)}
                       </td>
                       <td className="text-primary fw-medium">
                         {log.performedBy?.name || '—'}
                       </td>
-                      <td className="text-secondary">
+                      <td className="text-secondary text-uppercase" style={{ fontSize: 12 }}>
                         {log.performedBy?.role || '—'}
                       </td>
                       <td>
                         {getActionBadge(log.action)}
                       </td>
-                      <td className="text-secondary">
+                      <td className="text-secondary fw-mono" style={{ fontSize: 13 }}>
                         {log.target || '—'}
                       </td>
                       <td className="text-muted small" style={{ whiteSpace: 'pre-wrap' }}>

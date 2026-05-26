@@ -7,12 +7,14 @@ exports.getSystemLogs = async (req, res) => {
         const logs = await SystemLog.find({
             $or: [
                 { "performedBy.role": role },
-                { "performedBy.role": "system" },     // Allows background automated/cron engine events to stream
+                { "performedBy.role": "system" },     
                 { action: "PAYMENT_VERIFIED" },
-                { action: "USER_CREATED" },          // Let staff creation logs pass through
-                { action: "USER_DELETED" },          // Let staff deletion logs pass through
-                { action: "DATABASE_BACKUP" },       // Whitelists successful Google Drive backup events
-                { action: "DATABASE_BACKUP_FAILED" } // Whitelists critical backup alert snapshots
+                { action: "USER_CREATED" },        
+                { action: "USER_DELETED" },         
+                { action: "DATABASE_BACKUP" },       
+                { action: "DATABASE_BACKUP_FAILED" }, 
+                { action: "DATA_ARCHIVED" },     
+                { action: "DATA_ARCHIVE_FAILED" }
             ]
         })
         .sort({ createdAt: -1 })
