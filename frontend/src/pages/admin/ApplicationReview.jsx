@@ -141,11 +141,9 @@ export default function ApplicationReview() {
   };
 
 const formatEducation = (app) => {
-  const educationHistory = app?.education || app?.alumniProfile?.education;
+  if (!app.education?.length) return <div className="text-muted small">—</div>;
 
-  if (!educationHistory?.length) return <div className="text-muted small">—</div>;
-
-  return [...educationHistory]
+  return [...app.education]
     .sort((a, b) => (b.yearGraduated || 0) - (a.yearGraduated || 0))
     .map((e, index) => {
       const mainTitle = e.degree || e.level; 
