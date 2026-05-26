@@ -499,6 +499,7 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
       const userId = user.id || user._id;
       const payload = {
         ...form,
+        educationSnapshot: education,
         signature: sigMode === 'draw' ? form.signature : '',
         userId,
         isRenewal: isRenewal || false,
@@ -869,7 +870,10 @@ export default function AlumniIdApplication() {
 
       {application ? (
         <>
-          <StatusTracker application={application} education={education} />
+          <StatusTracker
+  application={application}
+  education={application.educationSnapshot || []}
+/>
           
           <PaymentInstructions application={application} />
 

@@ -193,24 +193,200 @@ export default function ApplicationDetail() {
             </div>
           </div>
 
-          <div className="xu-form-section mb-3">
-            <div className="xu-section-title">YEAR OF GRADUATION AT XAVIER UNIVERSITY</div>
-            <div className="row g-0">
-              {GRAD_LEVELS.map((l, i) => (
-                <div key={l.key} className={`col xu-cell ${i > 0 ? 'xu-cell-border-l' : ''}`}>
-                  <div className="xu-label">{l.label.toUpperCase()}</div>
-                  <div className="xu-value">{f(app[l.key])}</div>
-                </div>
-              ))}
-            </div>
+          {/* YEAR OF GRADUATION */}
+<div className="xu-form-section mb-3">
+  <div className="xu-section-title">
+    YEAR OF GRADUATION AT XAVIER UNIVERSITY
+  </div>
+
+  <div className="row g-0">
+    {GRAD_LEVELS.map((l, i) => {
+
+      const years = (app.education || [])
+        .filter(e => {
+
+          const level = (e.level || '').toLowerCase();
+
+          const isCollege =
+            level.includes('college') ||
+            level.includes('undergraduate');
+
+          const isPostGrad =
+            level.includes('post') ||
+            level.includes('master') ||
+            level.includes('mba') ||
+            level.includes('doctor') ||
+            level.includes('phd');
+
+          switch (l.key) {
+
+            case 'gradGradeSchool':
+              return (
+                level.includes('grade') ||
+                level.includes('elementary')
+              );
+
+            case 'gradJHS':
+              return (
+                level.includes('jhs') ||
+                level.includes('junior')
+              );
+
+            case 'gradSHS':
+              return (
+                level.includes('shs') ||
+                level.includes('senior')
+              );
+
+            case 'gradCollege':
+              return isCollege;
+
+            case 'gradPostGrad':
+              return isPostGrad;
+
+            default:
+              return false;
+          }
+        })
+        .map(e => e.yearGraduated)
+        .filter(Boolean);
+
+      const uniqueYears = [...new Set(years)]
+        .sort((a, b) => a - b)
+        .join(', ');
+
+      return (
+        <div
+          key={l.key}
+          className={`col xu-cell ${i > 0 ? 'xu-cell-border-l' : ''}`}
+        >
+          <div className="xu-label">
+            {l.label.toUpperCase()}
           </div>
 
-          <div className="xu-form-section mb-3">
-            <div className="xu-cell">
-              <div className="xu-label">COURSE</div>
-              <div className="xu-value">{f(app.course)}</div>
-            </div>
+          <div className="xu-value">
+            {uniqueYears || '—'}
           </div>
+        </div>
+      );
+
+    })}
+  </div>
+</div>
+
+<div className="xu-form-section mb-3">
+  <div className="xu-cell">
+
+    <div className="xu-label">
+      COURSE
+    </div>
+
+    <div
+      className="xu-value"
+      style={{
+        whiteSpace: 'pre-line',
+        lineHeight: 1.5
+      }}
+    >
+
+      {(() => {
+
+        const education = app.education || [];
+
+        const courseLines = [];
+
+        const collegeRecords = education.filter(ed => {
+          const lvl = (ed.level || '').toLowerCase();
+
+          return (
+            lvl.includes('college') ||
+            lvl.includes('undergraduate')
+          );
+        });
+
+        const postGradRecords = education.filter(ed => {
+          const lvl = (ed.level || '').toLowerCase();
+
+          return (
+            lvl.includes('post') ||
+            lvl.includes('master') ||
+            lvl.includes('mba') ||
+            lvl.includes('doctor') ||
+            lvl.includes('phd')
+          );
+        });
+
+        const multipleCollege = collegeRecords.length > 1;
+        const multiplePostGrad = postGradRecords.length > 1;
+
+        education.forEach((e) => {
+
+          const level = (e.level || '').toLowerCase();
+
+          const isCollege =
+            level.includes('college') ||
+            level.includes('undergraduate');
+
+          const isPostGrad =
+            level.includes('post') ||
+            level.includes('master') ||
+            level.includes('mba') ||
+            level.includes('doctor') ||
+            level.includes('phd');
+
+          const isSHS =
+            level.includes('shs') ||
+            level.includes('senior high') ||
+            level.includes('senior high school');
+
+          if (isSHS) {
+            const shsValue =
+              e.strand ||
+              e.track ||
+              e.course ||
+              e.program ||
+              e.degree ||
+              '';
+
+            if (shsValue) {
+              courseLines.push(shsValue);
+            }
+
+            return;
+          }
+
+          if (e.degree) {
+
+            if (
+              ((isCollege && multipleCollege) ||
+              (isPostGrad && multiplePostGrad))
+              && e.yearGraduated
+            ) {
+
+              courseLines.push(
+                `${e.degree} (${e.yearGraduated})`
+              );
+
+            } else {
+
+              courseLines.push(e.degree);
+
+            }
+          }
+
+        });
+
+        const uniqueLines = [...new Set(courseLines)];
+
+        return uniqueLines.length
+          ? uniqueLines.filter(Boolean).join('\n')
+          : f(app.course) || '—';
+
+      })()}
+
+    </div>
+  </div>
+</div>
 
           <div className="xu-form-section mb-3">
             <div className="xu-cell">
