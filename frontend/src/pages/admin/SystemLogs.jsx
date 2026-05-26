@@ -110,24 +110,36 @@ const filteredLogs = logs.filter((log) => {
     const logAction = (log.action || '').toUpperCase();
 
     if (
-      performerName.includes('book center') || 
       performerRole === 'external' ||
-      logAction.includes('PAYMENT') ||
+      performerName.includes('book center') || 
       logAction.includes('PRINT') ||
       logAction.includes('RELEASE')
     ) {
-      return false;
+      if (!logAction.includes('BACKUP') && !logAction.includes('USER')) {
+        return false; 
+      }
     }
 
+    const isTargetedAdminAction = 
+      logAction.includes('BACKUP') || 
+      logAction.includes('USER') || 
+      logAction.includes('ACCOUNT') ||
+      logAction.includes('ADMIN');
+
     const q = search.toLowerCase();
-    return (
+    const matchesSearch = 
       (log.action || '').toLowerCase().includes(q) ||
       (log.target || '').toLowerCase().includes(q) ||
       performerName.includes(q) ||
       performerRole.includes(q) ||
-      (log.details || '').toLowerCase().includes(q)
-    );
-  });
+      (log.details || '').toLowerCase().includes(q);
+
+    if (isTargetedAdminAction) {
+      return matchesSearch;
+    }
+
+    return matchesSearch;
+});
 
   return (
     <div className="p-4 p-lg-5">
