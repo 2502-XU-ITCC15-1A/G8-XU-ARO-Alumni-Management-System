@@ -141,21 +141,27 @@ export default function ApplicationReview() {
   };
 
 const formatEducation = (app) => {
-  if (!app.education?.length) return '—';
+  if (!app.education?.length) return <div className="text-muted small">—</div>;
 
   return [...app.education]
-    .sort((a, b) => {
-      const yearA = a.yearGraduated || 0;
-      const yearB = b.yearGraduated || 0;
+    .sort((a, b) => (b.yearGraduated || 0) - (a.yearGraduated || 0))
+    .map((e, index) => {
+      const mainTitle = e.degree || e.level; 
+      const subTitle = e.degree ? `${e.level} • Graduated ${e.yearGraduated || '—'}` : (e.yearGraduated ? `Graduated ${e.yearGraduated}` : '');
 
-      return yearB - yearA;
-    })
-    .map(e => {
-      const degree = e.degree ? ` - ${e.degree}` : '';
-      const year = e.yearGraduated ? ` (${e.yearGraduated})` : '';
-      return `${e.level}${degree}${year}`;
-    })
-    .join('\n');
+      return (
+        <div key={index} className="mb-2 pb-2 border-bottom border-light style-education-item">
+          <div className="fw-semibold text-dark" style={{ fontSize: 14 }}>
+            {mainTitle}
+          </div>
+          {subTitle && (
+            <div className="text-muted small mt-0.5" style={{ fontSize: 12 }}>
+              {subTitle}
+            </div>
+          )}
+        </div>
+      );
+    });
 };
 
   return (
@@ -204,24 +210,23 @@ const formatEducation = (app) => {
             <div className="text-center py-4 text-muted small">No applications found.</div>
           ) : (
             <div className="table-responsive">
-              <table className="table mb-0" style={{ fontSize: 14 }}>
-                <thead>
-                  <tr>
-                    {['Name', 'Program', 'Applied Date', 'Status', 'Actions'].map(h => (
-                      <th key={h} className="fw-semibold text-dark border-top-0">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(app => (
-                    <tr key={app._id}>
-                      <td className="text-primary fw-medium">{getFullName(app)}</td>
-                      <td style={{ whiteSpace: 'pre-line' }}>
-                        {formatEducation(app)}
-                      </td>
-                      <td>{formatDate(app.createdAt)}</td>
-                      <td><StatusBadge status={app.status} /></td>
-                      <td>
+              <table className="table mb-0" style={{ fontSize: 14, tableLayout: 'fixed', width: '100%' }}>
+              <thead>
+                <tr>
+                  <th className="fw-semibold text-dark border-top-0 ps-2">Name</th>
+                  <th className="fw-semibold text-dark border-top-0 text-end">Applied Date</th>
+                  <th className="fw-semibold text-dark border-top-0 text-end">Status</th>
+                  <th className="fw-semibold text-dark border-top-0 text-end pe-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(app => (
+                  <tr key={app._id}>
+                    <td className="text-primary fw-medium ps-2">{getFullName(app)}</td>
+                    <td className="text-secondary text-end">{formatDate(app.createdAt)}</td>
+                    <td className="text-end"><StatusBadge status={app.status} /></td>
+                    <td className="pe-3">
+                      <div className="d-flex justify-content-end gap-1">
                         <button className="action-btn text-primary" onClick={() => openModal(app)}>
                           <i className="bi bi-eye fs-6" />
                         </button>
@@ -243,10 +248,11 @@ const formatEducation = (app) => {
                             </button>
                           </>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
               </table>
             </div>
           )}
@@ -272,7 +278,10 @@ const formatEducation = (app) => {
                       ['Full Name',         getFullName(selected)],
                       ['Email',             selected.userId?.email || '—'],
                       ['Program', (
-                        <div style={{ whiteSpace: 'pre-line', color: '#0d6efd' }}>
+                        <div 
+                          className="mt-1 p-3 bg-light border border-light-subtle rounded-3 style-education-container" 
+                          style={{ maxHeight: '250px', overflowY: 'auto' }}
+                        >
                           {formatEducation(selected)}
                         </div>
                       ), 'full'],
