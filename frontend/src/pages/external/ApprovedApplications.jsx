@@ -139,8 +139,7 @@ export default function ApprovedApplications() {
     const q = search.toLowerCase();
     const matchSearch =
       (a.userId?.name || '').toLowerCase().includes(q) ||
-      (a.universityIdNumber || '').toLowerCase().includes(q) ||
-      (a.course || '').toLowerCase().includes(q);
+      (a.universityIdNumber || '').toLowerCase().includes(q);
     return matchSearch && appFilter(a, filter);
   });
 
@@ -192,7 +191,7 @@ export default function ApprovedApplications() {
           <input
             className="form-control form-control-sm"
             style={{ maxWidth: 220 }}
-            placeholder="Search name, ID, course…"
+            placeholder="Search name, ID....."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -202,17 +201,17 @@ export default function ApprovedApplications() {
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
-                {['APPLICANT', 'ID NUMBER', 'COURSE', 'DATE APPLIED', 'PAYMENT STATUS', 'ACTIONS'].map(h => (
+                {['APPLICANT', 'ID NUMBER', 'DATE APPLIED', 'PAYMENT STATUS', 'ACTIONS'].map(h => (
                   <th key={h} style={{ fontSize: 12 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={6} className="text-center py-4 text-muted">Loading…</td></tr>
+                <tr><td colSpan={5} className="text-center py-4 text-muted">Loading…</td></tr>
               )}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-4 text-muted">No records found.</td></tr>
+                <tr><td colSpan={5} className="text-center py-4 text-muted">No records found.</td></tr>
               )}
               {filtered.map(app => {
                 const b = paymentBadge(app);
@@ -223,7 +222,6 @@ export default function ApprovedApplications() {
                       <div className="text-muted" style={{ fontSize: 11 }}>{app.userId?.email || ''}</div>
                     </td>
                     <td style={{ fontSize: 13 }}>{app.universityIdNumber || '—'}</td>
-                    <td style={{ fontSize: 13 }}>{app.course || '—'}</td>
                     <td style={{ fontSize: 12, color: '#6b7280' }}>
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>

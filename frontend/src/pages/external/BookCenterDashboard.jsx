@@ -84,17 +84,16 @@ export default function BookCenterDashboard() {
               <tr>
                 <th style={{ fontSize: 12 }}>APPLICANT</th>
                 <th style={{ fontSize: 12 }}>ID NUMBER</th>
-                <th style={{ fontSize: 12 }}>COURSE</th>
                 <th style={{ fontSize: 12 }}>APPLIED</th>
                 <th style={{ fontSize: 12 }}>PAYMENT</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={5} className="text-center py-4 text-muted">Loading…</td></tr>
+                <tr><td colSpan={4} className="text-center py-4 text-muted">Loading…</td></tr>
               )}
               {!loading && recent.length === 0 && (
-                <tr><td colSpan={5} className="text-center py-4 text-muted">No approved applications yet.</td></tr>
+                <tr><td colSpan={4} className="text-center py-4 text-muted">No approved applications yet.</td></tr>
               )}
               {recent.map(app => {
                 const b = paymentBadge(app);
@@ -109,7 +108,6 @@ export default function BookCenterDashboard() {
                       <div className="text-muted" style={{ fontSize: 11 }}>{app.userId?.email || ''}</div>
                     </td>
                     <td style={{ fontSize: 13 }}>{app.universityIdNumber || '—'}</td>
-                    <td style={{ fontSize: 13 }}>{app.course || '—'}</td>
                     <td style={{ fontSize: 12, color: '#6b7280' }}>
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>

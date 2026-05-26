@@ -102,25 +102,33 @@ export default function Dashboard() {
           ) : (
             <div className="table-responsive">
               <table className="table mb-0" style={{ fontSize: 14 }}>
-                <thead>
-                  <tr>
-                    {['Name', 'Program', 'Date', 'Status'].map(h => (
-                      <th key={h} className="fw-semibold text-dark border-top-0">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentApps.map(app => (
-                    <tr key={app._id}>
-                      <td className="text-primary fw-medium">
-                        {[app.firstName, app.lastName].filter(Boolean).join(' ') || app.userId?.name || '—'}
-                      </td>
-                      <td>{app.course || '—'}</td>
-                      <td>{formatDate(app.createdAt)}</td>
-                      <td><StatusBadge status={app.status} /></td>
-                    </tr>
+              <thead>
+                <tr>
+                  {['Name', 'Date', 'Status'].map(h => (
+                    <th key={h} className="fw-semibold text-dark border-top-0">
+                      {h}
+                    </th>
                   ))}
-                </tbody>
+                </tr>
+              </thead>
+
+              <tbody>
+                {recentApps.map(app => (
+                  <tr key={app._id}>
+                    <td className="text-primary fw-medium">
+                      {[app.firstName, app.lastName]
+                        .filter(Boolean)
+                        .join(' ') || app.userId?.name || '—'}
+                    </td>
+
+                    <td>{formatDate(app.createdAt)}</td>
+
+                    <td>
+                      <StatusBadge status={app.status} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
               </table>
             </div>
           )}
