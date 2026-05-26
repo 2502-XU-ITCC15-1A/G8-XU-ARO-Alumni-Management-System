@@ -285,17 +285,17 @@ export default function IDProcessing() {
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
-                {['APPLICANT', 'ID NUMBER', 'COURSE', 'DATE APPLIED', 'PROCESSING STATUS', 'ACTIONS'].map(h => (
+                {['APPLICANT', 'ID NUMBER', 'DATE APPLIED', 'PROCESSING STATUS', 'ACTIONS'].map(h => (
                   <th key={h} style={{ fontSize: 12 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={6} className="text-center py-4 text-muted">Loading…</td></tr>
+                <tr><td colSpan={5} className="text-center py-4 text-muted">Loading…</td></tr>
               )}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-4 text-muted">No records found.</td></tr>
+                <tr><td colSpan={5} className="text-center py-4 text-muted">No records found.</td></tr>
               )}
               {filtered.map(app => {
                 const sc = STATUS_CONFIG[app.status] || STATUS_CONFIG.printing;
@@ -306,7 +306,6 @@ export default function IDProcessing() {
                       <div className="text-muted" style={{ fontSize: 11 }}>{app.userId?.email || ''}</div>
                     </td>
                     <td style={{ fontSize: 13 }}>{app.universityIdNumber || '—'}</td>
-                    <td style={{ fontSize: 13 }}>{app.course || '—'}</td>
                     <td style={{ fontSize: 12, color: '#6b7280' }}>
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>
