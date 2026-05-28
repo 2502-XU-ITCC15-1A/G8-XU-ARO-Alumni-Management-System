@@ -119,25 +119,40 @@ exports.googleAuthCallback = async (req, res) => {
     const { code, state: role, error } = req.query;
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
+    console.log('🔐 Google Callback Received');
+    console.log('  - Code:', code ? 'Present' : 'MISSING');
+    console.log('  - State (role):', role || 'MISSING');
+    console.log('  - Error from Google:', error);
+    console.log('  - Frontend URL:', frontendUrl);
+
     if (error || !code) {
+        console.log('❌ Returning cancelled callback');
         return res.redirect(`${frontendUrl}/auth/callback?error=cancelled`);
     }
 
     try {
         const tokenData = await exchangeCodeForToken(code);
+        console.log('  - Token exchange result:', tokenData.error ? 'ERROR' : 'SUCCESS');
+        
         if (tokenData.error) {
+            console.log('    - Error details:', tokenData.error, tokenData.error_description);
             return res.redirect(`${frontendUrl}/auth/callback?error=token_failed`);
         }
 
         const googleUser = await fetchGoogleUser(tokenData.access_token);
+        console.log('  - Google user:', googleUser.email);
+        
         if (!googleUser.email) {
+            console.log('❌ No email in Google response');
             return res.redirect(`${frontendUrl}/auth/callback?error=no_email`);
         }
 
         let user = await User.findOne({ email: googleUser.email });
+        console.log('  - DB User found:', user ? 'YES' : 'NO');
 
         if (!user) {
             if (role !== "alumni") {
+                console.log('❌ Non-alumni cannot auto-create account');
                 return res.redirect(`${frontendUrl}/auth/callback?error=no_account`);
             }
             user = await User.create({
@@ -145,18 +160,33 @@ exports.googleAuthCallback = async (req, res) => {
                 email: googleUser.email,
                 role: "alumni",
             });
+            console.log('  - New user created:', user.email);
         }
 
         if (role && user.role !== role) {
+            console.log('❌ Role mismatch. Expected:', role, 'Got:', user.role);
             return res.redirect(`${frontendUrl}/auth/callback?error=wrong_role`);
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        const userData = encodeURIComponent(JSON.stringify({
-            id: user._id, name: user.name, email: user.email, role: user.role,
-        }));
-        res.redirect(`${frontendUrl}/auth/callback?token=${token}&user=${userData}`);
+        const userDataObj = {
+            id: user._id.toString(), 
+            name: user.name, 
+            email: user.email, 
+            role: user.role,
+        };
+        console.log('  - User object:', userDataObj);
+        const userData = encodeURIComponent(JSON.stringify(userDataObj));
+        
+        const redirectUrl = `${frontendUrl}/auth/callback?token=${token}&user=${userData}`;
+        console.log('✅ Redirect URL construction:');
+        console.log('   Token:', token.substring(0, 50) + '...');
+        console.log('   User data (encoded):', userData.substring(0, 100) + '...');
+        console.log('   Full URL:', redirectUrl);
+        console.log('   URL length:', redirectUrl.length);
+        res.redirect(redirectUrl);
     } catch (err) {
+        console.error('❌ Callback error:', err.message);
         res.redirect(`${frontendUrl}/auth/callback?error=server_error`);
     }
 };

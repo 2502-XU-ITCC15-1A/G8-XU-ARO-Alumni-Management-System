@@ -114,7 +114,11 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `/api/auth/google?role=${role}`;
+    console.log('🔐 Starting Google login for role:', role);
+    // Use the actual backend URL for OAuth redirect (not proxied since it's a full page navigation)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    console.log('  - Backend URL:', backendUrl);
+    window.location.href = `${backendUrl}/api/auth/google?role=${role}`;
   };
 
   return (

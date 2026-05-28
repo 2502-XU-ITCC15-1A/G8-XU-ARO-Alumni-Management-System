@@ -21,11 +21,23 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const token = params.get('token');
+    const token = params.get('token') || '';  // URLSearchParams already decodes
     const userParam = params.get('user');
     const error = params.get('error');
+    
+    console.log('AuthCallback URL:', window.location.href);
+    console.log('Token from params:', token.substring(0, 50) + '...');
+    console.log('User param:', userParam ? userParam.substring(0, 50) + '...' : 'MISSING');
+    console.log('Error:', error);
+
+    // If there's no error and no token params, this page was loaded incorrectly - do nothing
+    if (!error && !token && !userParam) {
+      console.log('⚠️ No OAuth parameters found - component should not be rendering here');
+      return;
+    }
 
     if (error || !token) {
+      console.log('❌ Error or no token detected. Error:', error, 'Token exists:', !!token);
       navigate('/login', {
         state: {
           role: 'alumni',
@@ -37,18 +49,38 @@ export default function AuthCallback() {
     }
 
     try {
-      const user = JSON.parse(decodeURIComponent(userParam));
+      console.log('✅ Token exists, parsing user data...');
+      if (!userParam) {
+        throw new Error('userParam is missing from URL');
+      }
+      console.log('  - Raw userParam:', userParam.substring(0, 100) + '...');
+      const decodedUserParam = decodeURIComponent(userParam);
+      console.log('  - Decoded userParam:', decodedUserParam);
+      const user = JSON.parse(decodedUserParam);
+      console.log('  - Parsed user:', JSON.stringify(user));
+      
+      if (!user.role) {
+        throw new Error('User role is missing from response');
+      }
+      
+      console.log('  - Setting localStorage with role:', user.role);
+      
       localStorage.setItem('token', token);
       localStorage.setItem('role', user.role);
       localStorage.setItem('user', JSON.stringify(user));
-      navigate(ROLE_REDIRECTS[user.role] || '/dashboard', { replace: true });
-    } catch {
+      
+      const redirectPath = ROLE_REDIRECTS[user.role] || '/dashboard';
+      console.log('✅ Login successful! Redirecting to:', redirectPath);
+      navigate(redirectPath, { replace: true });
+    } catch (err) {
+      console.error('❌ Error in AuthCallback:', err.message);
+      console.error('  - Stack:', err.stack);
       navigate('/login', {
-        state: { role: 'alumni', googleError: 'Google sign-in failed.' },
+        state: { role: 'alumni', googleError: 'Google sign-in failed: ' + err.message },
         replace: true,
       });
     }
-  }, [navigate]);
+  }, []);  // Empty dependency array - only run once on mount
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#283971' }}>
