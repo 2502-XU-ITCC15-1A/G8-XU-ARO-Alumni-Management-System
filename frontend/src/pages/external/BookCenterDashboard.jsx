@@ -4,6 +4,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const getFullName = (app) => {
+  if (app.alumniProfile?.firstName || app.alumniProfile?.surname) {
+    return `${app.alumniProfile.firstName || ''} ${app.alumniProfile.surname || ''}`.trim();
+  }
+
+  return app.userId?.name || '—';
+};
+
 export default function BookCenterDashboard() {
   const [apps, setApps]       = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +114,7 @@ export default function BookCenterDashboard() {
                     onClick={() => navigate(`/external-portal/applications/${app._id}`)}
                   >
                     <td>
-                      <div className="fw-semibold" style={{ fontSize: 13 }}>{app.userId?.name || '—'}</div>
+                      <div className="fw-semibold" style={{ fontSize: 13 }}>{getFullName(app)}</div>
                       <div className="text-muted" style={{ fontSize: 11 }}>{app.userId?.email || ''}</div>
                     </td>
                     <td style={{ fontSize: 13 }}>{app.universityIdNumber || '—'}</td>
