@@ -110,7 +110,7 @@ function SaveBtn({ saving, onClick }) {
 }
 
 
-function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
+function BasicTab({ profile, onChange, onSave, onSaveAndContinue, saving, setStatus }) {
   const f = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
@@ -126,7 +126,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    onSave();
+    onSaveAndContinue();
   };
 
   return (
@@ -190,7 +190,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
   );
 }
 
-function FamilyTab({ profile, onChange, onSave, saving }) {
+function FamilyTab({ profile, onChange, onSave,  onSaveAndContinue, saving }) {
   const spouseName = profile.spouseName ?? '';
   const children   = profile.childrenNames ?? [];
 
@@ -236,13 +236,13 @@ function FamilyTab({ profile, onChange, onSave, saving }) {
       </button>
 
       <div className="d-flex justify-content-end">
-        <SaveBtn saving={saving} onClick={onSave} />
+        <SaveBtn saving={saving} onClick={onSaveAndContinue} />
       </div>
     </div>
   );
 }
 
-function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
+function ContactTab({ profile, onChange, onSave, onSaveAndContinue, saving, setStatus }) {
   const f   = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
@@ -255,7 +255,7 @@ function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    onSave();
+    onSaveAndContinue();
   };
 
   return (
@@ -284,13 +284,13 @@ function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
   );
 }
 
-function AddressTab({ profile, onChange, onSave, saving, setStatus }) {
+function AddressTab({ profile, onChange, onSave, onSaveAndContinue, saving, setStatus }) {
   const addr = profile.address ?? {};
   const setAddr = (field) => (val) => onChange({ ...profile, address: { ...addr, [field]: val } });
 
   const handleSave = () => {
     const missing = [];
-    if (!addr.street?.trim())  missing.push('Street / House No.');
+    if (!addr.street?.trim())  missing.push('House No. / Street / Subdivision');
     if (!addr.city?.trim())    missing.push('City / Municipality');
     if (!addr.country?.trim()) missing.push('Country');
     if (missing.length > 0) {
@@ -298,14 +298,14 @@ function AddressTab({ profile, onChange, onSave, saving, setStatus }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    onSave();
+    onSaveAndContinue();
   };
 
   return (
     <div>
       <div className="row g-3">
         <div className="col-md-6">
-          <Field label={<>Street / House No. <span style={{ color: '#dc2626' }}>*</span></>}>
+          <Field label={<>House No. / Street / Subdivision  <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={addr.street ?? ''} onChange={setAddr('street')} placeholder="Street address" />
           </Field>
         </div>
@@ -620,6 +620,14 @@ export default function AlumniProfile() {
   const [status, setStatus] = useState(null); 
   const [confirmModal, setConfirmModal] = useState(null);
 
+  const goToNextTab = useCallback(() => {
+  const currentIndex = TABS.findIndex(tab => tab.id === activeTab);
+
+  if (currentIndex < TABS.length - 1) {
+    setActiveTab(TABS[currentIndex + 1].id);
+  }
+}, [activeTab]);
+
   const showConfirm = useCallback((message, onConfirm) => {
     setConfirmModal({
       message,
@@ -650,7 +658,7 @@ export default function AlumniProfile() {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveProfile = useCallback(async () => {
+  const saveProfile = useCallback(async (moveNext = false) => {
     const isUnchanged = JSON.stringify(profile) === JSON.stringify(originalProfile);
     
     if (isUnchanged) {
@@ -667,7 +675,10 @@ export default function AlumniProfile() {
       const res = await axios.put('/api/alumni/me', profile, { headers });
       setProfile(res.data);
       setOriginalProfile(res.data);
-      setStatus({ type: 'success', message: 'Profile changes saved successfully!' });
+      setStatus({
+      type: 'success',
+      message: 'Profile changes saved successfully!'});
+      if (moveNext) {goToNextTab(); }
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       setStatus({ type: 'error', message: 'Failed to save profile. Please check your connection and try again.' });
@@ -675,7 +686,7 @@ export default function AlumniProfile() {
       setSaving(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [profile, originalProfile]);
+  }, [profile, originalProfile, goToNextTab]);
 
   if (loading) {
     return (
@@ -685,7 +696,7 @@ export default function AlumniProfile() {
     );
   }
 
-  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving, setStatus };
+  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, onSaveAndContinue: () => saveProfile(true), saving, setStatus };
 
   const getStatusStyles = () => {
     if (status?.type === 'success') return { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a', icon: 'bi-check-circle-fill' };
