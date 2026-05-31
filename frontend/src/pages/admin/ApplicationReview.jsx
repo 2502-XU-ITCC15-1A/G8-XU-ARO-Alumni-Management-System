@@ -127,20 +127,30 @@ export default function ApplicationReview() {
     }
   };
 
-  const counts = {
-    total: apps.length,
-    pending: apps.filter((a) => a.status === 'pending').length,
-    approved: apps.filter((a) => a.status === 'approved').length,
-    rejected: apps.filter((a) => a.status === 'rejected').length,
-  };
+  const APPROVED_STATUSES = [
+  'approved',
+  'payment_pending',
+  'payment',
+  'printing',
+  'released',
+];
 
-  // FILTERED DATA
+const counts = {
+  total: apps.length,
+  pending: apps.filter((a) => a.status === 'pending').length,
+
+  approved: apps.filter((a) =>
+    APPROVED_STATUSES.includes(a.status)
+  ).length,
+
+  rejected: apps.filter((a) => a.status === 'rejected').length,
+};
+
   const filtered =
     filter === 'all'
       ? apps
       : apps.filter((a) => a.status === filter);
 
-  // PAGINATED DATA
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
 
   const paginatedApps = filtered.slice(
@@ -175,18 +185,14 @@ export default function ApplicationReview() {
     },
   ];
 
-  const getFullName = (app) => {
-    if (
-      app.alumniProfile?.firstName ||
-      app.alumniProfile?.surname
-    ) {
-      return `${app.alumniProfile.firstName || ''} ${
-        app.alumniProfile.surname || ''
-      }`.trim();
-    }
+const getFullName = (app) => {
+  const first = app.alumniProfile?.firstName;
+  const last = app.alumniProfile?.surname;
 
-    return app.userId?.name || '—';
-  };
+  const fullName = `${first || ''} ${last || ''}`.trim();
+
+  return fullName || '—';
+};
 
   const getAddress = (app) => {
     const addr = app.alumniProfile?.address;

@@ -125,7 +125,9 @@ export default function AlumniDashboard() {
 
       <div className="d-flex align-items-start justify-content-between mb-1">
         <div>
-          <h4 className="page-title mb-0">Welcome back, {user.name?.split(' ')[0] || 'Alumni'}</h4>
+          <h4 className="page-title mb-0">
+            Welcome back, {profile?.firstName || user.name?.split(' ')[0] || 'Alumni'}
+          </h4>
           <p className="text-muted mt-1" style={{ fontSize: 14 }}>
             Xavier University — Alumni Self-Service Portal
           </p>
