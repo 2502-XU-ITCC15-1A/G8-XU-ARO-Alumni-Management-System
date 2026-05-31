@@ -79,7 +79,6 @@ export default function Login() {
           email,
           password,
           role,
-          name: email.split('@')[0],
         });
 
         setSuccess('Account created! Please sign in.');

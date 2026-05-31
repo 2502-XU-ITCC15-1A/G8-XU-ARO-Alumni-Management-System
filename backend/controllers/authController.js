@@ -72,7 +72,7 @@ exports.register = async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 10);
         const user = await User.create({
-            name: name || email.split("@")[0],
+            name: name || null,
             email,
             password: hashed,
             role: role || "alumni",
@@ -141,7 +141,7 @@ exports.googleAuthCallback = async (req, res) => {
                 return res.redirect(`${frontendUrl}/auth/callback?error=no_account`);
             }
             user = await User.create({
-                name: googleUser.name || googleUser.email.split("@")[0],
+                name: googleUser.name || null,
                 email: googleUser.email,
                 role: "alumni",
             });

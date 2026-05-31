@@ -127,20 +127,30 @@ export default function ApplicationReview() {
     }
   };
 
-  const counts = {
-    total: apps.length,
-    pending: apps.filter((a) => a.status === 'pending').length,
-    approved: apps.filter((a) => a.status === 'approved').length,
-    rejected: apps.filter((a) => a.status === 'rejected').length,
-  };
+  const APPROVED_STATUSES = [
+  'approved',
+  'payment_pending',
+  'payment',
+  'printing',
+  'released',
+];
 
-  // FILTERED DATA
+const counts = {
+  total: apps.length,
+  pending: apps.filter((a) => a.status === 'pending').length,
+
+  approved: apps.filter((a) =>
+    APPROVED_STATUSES.includes(a.status)
+  ).length,
+
+  rejected: apps.filter((a) => a.status === 'rejected').length,
+};
+
   const filtered =
     filter === 'all'
       ? apps
       : apps.filter((a) => a.status === filter);
 
-  // PAGINATED DATA
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
 
   const paginatedApps = filtered.slice(
