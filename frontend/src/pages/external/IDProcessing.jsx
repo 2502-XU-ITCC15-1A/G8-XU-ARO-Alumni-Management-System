@@ -8,6 +8,14 @@ const STATUS_CONFIG = {
   released:        { text: 'Released',             cls: 'status-released',        icon: 'bi-bag-check-fill' },
 };
 
+const getFullName = (app) => {
+  if (app.alumniProfile?.firstName || app.alumniProfile?.surname) {
+    return `${app.alumniProfile.firstName || ''} ${app.alumniProfile.surname || ''}`.trim();
+  }
+
+  return app.userId?.name || '—';
+};
+
 function IDInfoModal({ app, onClose, onAction, acting }) {
   if (!app) return null;
   const sc = STATUS_CONFIG[app.status] || STATUS_CONFIG.printing;
@@ -94,7 +102,7 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 10, lineHeight: 1.2 }}>
-                    {app.userId?.name || '—'}
+                    {getFullName(app)}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
                     {[
@@ -302,7 +310,7 @@ export default function IDProcessing() {
                 return (
                   <tr key={app._id}>
                     <td>
-                      <div className="fw-semibold" style={{ fontSize: 13 }}>{app.userId?.name || '—'}</div>
+                      <div className="fw-semibold" style={{ fontSize: 13 }}>{getFullName(app)}</div>
                       <div className="text-muted" style={{ fontSize: 11 }}>{app.userId?.email || ''}</div>
                     </td>
                     <td style={{ fontSize: 13 }}>{app.universityIdNumber || '—'}</td>
