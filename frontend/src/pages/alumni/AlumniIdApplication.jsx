@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const STATUS_STEPS = [
   { key: 'pending',      label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
-  { key: 'under_review', label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
   { key: 'approved',     label: 'Approved',    icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please visit the XU Book Center to pay the ₱150 Alumni ID fee.' },
   { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment has been confirmed by the Book Center.' },
   { key: 'printing',     label: 'Printing',    icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
@@ -488,8 +487,7 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
     const missing = [];
     if (!form.lastName.trim())  missing.push('Last Name');
     if (!form.firstName.trim()) missing.push('First Name');
-    if (!form.course.trim())    missing.push('Degree / Course');
-    
+    if (!form.homeAddress.trim()) missing.push('Home Address');
     if (missing.length > 0) {
       return alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
     }
@@ -548,17 +546,17 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
           <div className="row g-3">
             <div className="col-md-4">
               <Field label="Last Name" required>
-                <input className="form-control" style={{ fontSize: 14 }} value={f('lastName')} onChange={set('lastName')} />
+                <input className="form-control" style={{ fontSize: 14 }} value={f('lastName')} placeholder="N/A" readOnly />
               </Field>
             </div>
             <div className="col-md-4">
               <Field label="First Name" required>
-                <input className="form-control" style={{ fontSize: 14 }} value={f('firstName')} onChange={set('firstName')} />
+                <input className="form-control" style={{ fontSize: 14 }} value={f('firstName')} placeholder="N/A" readOnly />
               </Field>
             </div>
             <div className="col-md-4">
               <Field label="Middle Name">
-                <input className="form-control" style={{ fontSize: 14 }} value={f('middleName')} onChange={set('middleName')} />
+                <input className="form-control" style={{ fontSize: 14 }} value={f('middleName')} placeholder="N/A" readOnly />
               </Field>
             </div>
             <div className="col-md-3">
@@ -581,7 +579,6 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
                     ? 'Strand'
                     : 'Degree / Course'
                 }
-                required
               >
                 {(education.filter(e => e.level === 'College').length > 1 || 
                   education.filter(e => e.level === 'Post-Graduate').length > 1) ? (
@@ -606,14 +603,15 @@ function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewa
                     style={{ fontSize: 14 }}
                     value={f('course')}
                     onChange={set('course')}
-                    placeholder="Enter degree / strand if unavailable"
+                    placeholder="N/A"
+                    readOnly
                   />         
                 )}
               </Field>
             </div>
             <div className="col-12">
-              <Field label="Home Address">
-                <input className="form-control" style={{ fontSize: 14 }} value={f('homeAddress')} onChange={set('homeAddress')} />
+              <Field label="Home Address" required>
+                <input className="form-control" style={{ fontSize: 14 }} value={f('homeAddress')} onChange={set('homeAddress')}/>
               </Field>
             </div>
           </div>
