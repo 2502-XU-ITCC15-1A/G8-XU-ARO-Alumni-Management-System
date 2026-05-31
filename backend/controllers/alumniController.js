@@ -37,7 +37,25 @@ exports.saveMyProfile = async (req, res) => {
 
 exports.getProfiles = async (req, res) => {
     try {
-        const data = await Alumni.find();
+        const data = await Alumni.aggregate([
+            {
+                $lookup: {
+                    from: "educations",       
+                    localField: "userId",     
+                    foreignField: "userId",   
+                    as: "education"         
+                }
+            },
+            {
+                $lookup: {
+                    from: "works",            
+                    localField: "userId",     
+                    foreignField: "userId",   
+                    as: "work"                
+                }
+            }
+        ]);
+        
         res.json(data);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -46,19 +64,36 @@ exports.getProfiles = async (req, res) => {
 
 exports.getProfileById = async (req, res) => {
     try {
-        const profile = await Alumni.findById(req.params.id);
+        const mongoose = require("mongoose");
+        const profileId = new mongoose.Types.ObjectId(req.params.id);
 
-        if (!profile) {
-            return res.status(404).json({
-                message: "Alumni not found"
-            });
+        const data = await Alumni.aggregate([
+            { $match: { _id: profileId } },
+            {
+                $lookup: {
+                    from: "educations",
+                    localField: "userId",
+                    foreignField: "userId",
+                    as: "education"
+                }
+            },
+            {
+                $lookup: {
+                    from: "works",
+                    localField: "userId",
+                    foreignField: "userId",
+                    as: "work"
+                }
+            }
+        ]);
+
+        if (!data || data.length === 0) {
+            return res.status(404).json({ message: "Alumni not found" });
         }
 
-        res.json(profile);
+        res.json(data[0]);
     } catch (err) {
-        res.status(500).json({
-            message: err.message
-        });
+        res.status(500).json({ message: err.message });
     }
 };
 

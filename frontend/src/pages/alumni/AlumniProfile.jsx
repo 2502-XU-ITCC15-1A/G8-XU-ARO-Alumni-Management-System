@@ -87,6 +87,16 @@ function Select({ value, onChange, options, placeholder = 'Select...' }) {
   );
 }
 
+const generateGraduationYears = () => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 1933;
+  const years = [];
+  for (let year = currentYear; year >= startYear; year--) {
+    years.push(year.toString());
+  }
+  return years;
+};
+
 function SaveBtn({ saving, onClick }) {
   return (
     <button
@@ -100,24 +110,23 @@ function SaveBtn({ saving, onClick }) {
 }
 
 
-function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
+function BasicTab({ profile, onChange, onSave, onSaveAndContinue, saving, setStatus }) {
   const f = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
   const handleSave = () => {
     const missing = [];
-    if (!f('surname').trim())           missing.push('Last Name');
-    if (!f('firstName').trim())          missing.push('First Name');
-    if (!f('gender'))                    missing.push('Gender');
-    if (!f('birthdate'))                 missing.push('Birthdate');
-    if (!f('universityIdNumber').trim()) missing.push('XU University ID Number');
+    if (!f('surname').trim())   missing.push('Last Name');
+    if (!f('firstName').trim())  missing.push('First Name');
+    if (!f('gender'))           missing.push('Gender');
+    if (!f('birthdate'))         missing.push('Birthdate');
     
     if (missing.length > 0) {
       setStatus({ type: 'error', message: `Please fill in the required fields: ${missing.join(', ')}` });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    onSave();
+    onSaveAndContinue();
   };
 
   return (
@@ -149,7 +158,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label="Birthdate *">
+          <Field label={<>Birthdate <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input type="date" max={new Date(Date.now() - 86400000).toISOString().split("T")[0]} value={f('birthdate') ? f('birthdate').slice(0, 10) : ''} onChange={set('birthdate')} />
           </Field>
         </div>
@@ -169,7 +178,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
           </Field>
         </div>
         <div className="col-md-4">
-          <Field label={<>XU University ID Number <span style={{ color: '#dc2626' }}>*</span></>}>
+          <Field label="XU University ID Number">
             <Input value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
           </Field>
         </div>
@@ -181,7 +190,7 @@ function BasicTab({ profile, onChange, onSave, saving, setStatus }) {
   );
 }
 
-function FamilyTab({ profile, onChange, onSave, saving }) {
+function FamilyTab({ profile, onChange, onSave,  onSaveAndContinue, saving }) {
   const spouseName = profile.spouseName ?? '';
   const children   = profile.childrenNames ?? [];
 
@@ -227,13 +236,13 @@ function FamilyTab({ profile, onChange, onSave, saving }) {
       </button>
 
       <div className="d-flex justify-content-end">
-        <SaveBtn saving={saving} onClick={onSave} />
+        <SaveBtn saving={saving} onClick={onSaveAndContinue} />
       </div>
     </div>
   );
 }
 
-function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
+function ContactTab({ profile, onChange, onSave, onSaveAndContinue, saving, setStatus }) {
   const f   = (field) => profile[field] ?? '';
   const set = (field) => (val) => onChange({ ...profile, [field]: val });
 
@@ -246,7 +255,7 @@ function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    onSave();
+    onSaveAndContinue();
   };
 
   return (
@@ -275,13 +284,13 @@ function ContactTab({ profile, onChange, onSave, saving, setStatus }) {
   );
 }
 
-function AddressTab({ profile, onChange, onSave, saving, setStatus }) {
+function AddressTab({ profile, onChange, onSave, onSaveAndContinue, saving, setStatus }) {
   const addr = profile.address ?? {};
   const setAddr = (field) => (val) => onChange({ ...profile, address: { ...addr, [field]: val } });
 
   const handleSave = () => {
     const missing = [];
-    if (!addr.street?.trim())  missing.push('Street / House No.');
+    if (!addr.street?.trim())  missing.push('House No. / Street / Subdivision');
     if (!addr.city?.trim())    missing.push('City / Municipality');
     if (!addr.country?.trim()) missing.push('Country');
     if (missing.length > 0) {
@@ -289,14 +298,14 @@ function AddressTab({ profile, onChange, onSave, saving, setStatus }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    onSave();
+    onSaveAndContinue();
   };
 
   return (
     <div>
       <div className="row g-3">
         <div className="col-md-6">
-          <Field label={<>Street / House No. <span style={{ color: '#dc2626' }}>*</span></>}>
+          <Field label={<>House No. / Street / Subdivision  <span style={{ color: '#dc2626' }}>*</span></>}>
             <Input value={addr.street ?? ''} onChange={setAddr('street')} placeholder="Street address" />
           </Field>
         </div>
@@ -342,6 +351,8 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
   const isHigherEd = ['College', 'Post-Graduate'].includes(form.level);
   const isSHS = form.level === 'Senior High School';
   const hideField = ['Grade School', 'Junior High School'].includes(form.level);
+
+  const graduationYearOptions = generateGraduationYears();
 
   useEffect(() => {
     if (editing) {
@@ -399,24 +410,55 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
 
   return (
     <div>
-      {!editing && records.map(r => (
-        <div key={r._id} className="card border-0 bg-light mb-2 p-3">
-          <div className="d-flex justify-content-between align-items-start">
-            <div>
-              <div className="fw-semibold">{r.schoolName}</div>
-              <div className="text-muted small">{r.level} {r.degree ? `• ${r.degree}` : ''} {r.yearGraduated && `(${r.yearGraduated})`}</div>
-            </div>
-            <div className="d-flex gap-2">
-              <button className="btn btn-sm btn-outline-secondary" onClick={() => setEditing(r._id) || setForm(r)}><i className="bi bi-pencil" /></button>
-              <button className="btn btn-sm btn-outline-danger" onClick={() => showConfirm('Delete record?', () => axios.delete(`/api/education/${r._id}`, { headers }).then(() => setRecords(p => p.filter(x => x._id !== r._id))))}><i className="bi bi-trash3" /></button>
-            </div>
+      {!editing && EDUCATION_LEVELS.map(levelHeader => {
+        const levelRecords = records.filter(r => r.level === levelHeader);
+        
+        if (levelRecords.length === 0) return null;
+
+        return (
+          <div key={levelHeader} className="mb-4">
+            <h5 className="fw-bold mb-2 text-dark" style={{ fontSize: 15 }}>
+              {levelHeader}
+            </h5>
+            
+            {levelRecords.map(r => (
+              <div key={r._id} className="card border-0 bg-light mb-2 p-3">
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div className="fw-semibold text-dark" style={{ fontSize: 14 }}>
+                      {r.schoolName}
+                    </div>
+                    <div className="text-muted small mt-1">
+                      {r.degree ? <div>{r.degree} {r.yearGraduated && `(${r.yearGraduated})`}</div> : r.yearGraduated && `(${r.yearGraduated})`}
+                    </div>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-sm btn-outline-secondary" onClick={() => setEditing(r._id) || setForm(r)}>
+                      <i className="bi bi-pencil" />
+                    </button>
+                    <button className="btn btn-sm btn-outline-danger" onClick={() => showConfirm('Delete record?', () => axios.delete(`/api/education/${r._id}`, { headers }).then(() => setRecords(p => p.filter(x => x._id !== r._id))))}>
+                      <i className="bi bi-trash3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
+        );
+      })}
+
+      {!editing && records.length === 0 && (
+        <p className="text-muted small mb-3">No education records added yet.</p>
+      )}
+
       {editing ? (
         <div className="card border p-4 mt-2">
           <div className="row g-3">
-            <div className="col-md-4"><Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}><Select value={form.level} options={EDUCATION_LEVELS} onChange={v => setForm(f => ({ ...f, level: v, degree: ['Grade School', 'Junior High School'].includes(v) ? '' : f.degree }))} /></Field></div>
+            <div className="col-md-4">
+              <Field label={<>Level <span style={{ color: '#dc2626' }}>*</span></>}>
+                <Select value={form.level} options={EDUCATION_LEVELS} onChange={v => setForm(f => ({ ...f, level: v, degree: ['Grade School', 'Junior High School'].includes(v) ? '' : f.degree }))} />
+              </Field>
+            </div>
             <div className="col-md-8">
               <Field label={<>School <span style={{ color: '#dc2626' }}>*</span></>}>
                 <input
@@ -444,11 +486,27 @@ function EducationTab({ records, setRecords, token, setStatus, showConfirm }) {
                 </Field>
               </div>
             )}
-            <div className="col-md-4"><Field label="Year Graduated"><Input type="number" value={form.yearGraduated} onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} placeholder="YYYY" /></Field></div>
+            <div className="col-md-4">
+              <Field label="Year Graduated">
+                <Select 
+                  value={form.yearGraduated} 
+                  onChange={v => setForm(f => ({ ...f, yearGraduated: v }))} 
+                  options={graduationYearOptions}
+                  placeholder="Select Year"
+                />
+              </Field>
+            </div>
           </div>
-          <div className="d-flex gap-2 mt-3"><SaveBtn saving={saving} onClick={save} /><button className="btn btn-outline-secondary" onClick={() => setEditing(null)}>Cancel</button></div>
+          <div className="d-flex gap-2 mt-3">
+            <SaveBtn saving={saving} onClick={save} />
+            <button className="btn btn-outline-secondary" onClick={() => setEditing(null)}>Cancel</button>
+          </div>
         </div>
-      ) : <button className="btn btn-outline-secondary btn-sm mt-2" onClick={() => setEditing('new') || setForm(BLANK_EDU)}>+ Add Education</button>}
+      ) : (
+        <button className="btn btn-outline-secondary btn-sm mt-2" onClick={() => setEditing('new') || setForm(BLANK_EDU)}>
+          + Add Education
+        </button>
+      )}
     </div>
   );
 }
@@ -520,7 +578,8 @@ function WorkTab({ records, setRecords, token, setStatus, showConfirm }) {
         <div className="card border p-4 mt-2">
           <div className="row g-3">
             <div className="col-md-6">
-              <Field label="Company / Employer *"><Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} /></Field>
+            <Field label={<>Company / Business <span style={{ color: '#dc2626' }}>*</span></>}>
+            <Input value={form.company} onChange={v => setForm(f => ({ ...f, company: v }))} /></Field>
             </div>
             <div className="col-md-6">
               <Field label="Department"><Input value={form.department} onChange={v => setForm(f => ({ ...f, department: v }))} /></Field>
@@ -561,6 +620,14 @@ export default function AlumniProfile() {
   const [status, setStatus] = useState(null); 
   const [confirmModal, setConfirmModal] = useState(null);
 
+  const goToNextTab = useCallback(() => {
+  const currentIndex = TABS.findIndex(tab => tab.id === activeTab);
+
+  if (currentIndex < TABS.length - 1) {
+    setActiveTab(TABS[currentIndex + 1].id);
+  }
+}, [activeTab]);
+
   const showConfirm = useCallback((message, onConfirm) => {
     setConfirmModal({
       message,
@@ -591,7 +658,7 @@ export default function AlumniProfile() {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveProfile = useCallback(async () => {
+  const saveProfile = useCallback(async (moveNext = false) => {
     const isUnchanged = JSON.stringify(profile) === JSON.stringify(originalProfile);
     
     if (isUnchanged) {
@@ -608,7 +675,10 @@ export default function AlumniProfile() {
       const res = await axios.put('/api/alumni/me', profile, { headers });
       setProfile(res.data);
       setOriginalProfile(res.data);
-      setStatus({ type: 'success', message: 'Profile changes saved successfully!' });
+      setStatus({
+      type: 'success',
+      message: 'Profile changes saved successfully!'});
+      if (moveNext) {goToNextTab(); }
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       setStatus({ type: 'error', message: 'Failed to save profile. Please check your connection and try again.' });
@@ -616,7 +686,7 @@ export default function AlumniProfile() {
       setSaving(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [profile, originalProfile]);
+  }, [profile, originalProfile, goToNextTab]);
 
   if (loading) {
     return (
@@ -626,7 +696,7 @@ export default function AlumniProfile() {
     );
   }
 
-  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, saving, setStatus };
+  const profileTabProps = { profile, onChange: setProfile, onSave: saveProfile, onSaveAndContinue: () => saveProfile(true), saving, setStatus };
 
   const getStatusStyles = () => {
     if (status?.type === 'success') return { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a', icon: 'bi-check-circle-fill' };

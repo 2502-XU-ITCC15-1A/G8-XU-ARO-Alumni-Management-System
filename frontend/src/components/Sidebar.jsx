@@ -6,7 +6,7 @@ const navItems = [
   { path: '/alumni-records',     label: 'Alumni Records',     icon: 'bi-people' },
   { path: '/application-review', label: 'Application Review', icon: 'bi-file-earmark-text' },
   { path: '/user-management',    label: 'User Management',    icon: 'bi-person-gear' },
-  { path: '/admin/system-logs',  label: 'System Logs',        icon: 'bi-journal-text' },
+  { path: '/admin/system-logs',  label: 'System & Maintenance Logs',        icon: 'bi-journal-text' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

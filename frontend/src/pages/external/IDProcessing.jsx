@@ -8,6 +8,14 @@ const STATUS_CONFIG = {
   released:        { text: 'Released',             cls: 'status-released',        icon: 'bi-bag-check-fill' },
 };
 
+const getFullName = (app) => {
+  if (app.alumniProfile?.firstName || app.alumniProfile?.surname) {
+    return `${app.alumniProfile.firstName || ''} ${app.alumniProfile.surname || ''}`.trim();
+  }
+
+  return app.userId?.name || '—';
+};
+
 function IDInfoModal({ app, onClose, onAction, acting }) {
   if (!app) return null;
   const sc = STATUS_CONFIG[app.status] || STATUS_CONFIG.printing;
@@ -94,7 +102,7 @@ function IDInfoModal({ app, onClose, onAction, acting }) {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 10, lineHeight: 1.2 }}>
-                    {app.userId?.name || '—'}
+                    {getFullName(app)}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
                     {[
@@ -285,28 +293,27 @@ export default function IDProcessing() {
           <table className="table table-hover align-middle mb-0">
             <thead className="table-light">
               <tr>
-                {['APPLICANT', 'ID NUMBER', 'COURSE', 'DATE APPLIED', 'PROCESSING STATUS', 'ACTIONS'].map(h => (
+                {['APPLICANT', 'ID NUMBER', 'DATE APPLIED', 'PROCESSING STATUS', 'ACTIONS'].map(h => (
                   <th key={h} style={{ fontSize: 12 }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={6} className="text-center py-4 text-muted">Loading…</td></tr>
+                <tr><td colSpan={5} className="text-center py-4 text-muted">Loading…</td></tr>
               )}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-4 text-muted">No records found.</td></tr>
+                <tr><td colSpan={5} className="text-center py-4 text-muted">No records found.</td></tr>
               )}
               {filtered.map(app => {
                 const sc = STATUS_CONFIG[app.status] || STATUS_CONFIG.printing;
                 return (
                   <tr key={app._id}>
                     <td>
-                      <div className="fw-semibold" style={{ fontSize: 13 }}>{app.userId?.name || '—'}</div>
+                      <div className="fw-semibold" style={{ fontSize: 13 }}>{getFullName(app)}</div>
                       <div className="text-muted" style={{ fontSize: 11 }}>{app.userId?.email || ''}</div>
                     </td>
                     <td style={{ fontSize: 13 }}>{app.universityIdNumber || '—'}</td>
-                    <td style={{ fontSize: 13 }}>{app.course || '—'}</td>
                     <td style={{ fontSize: 12, color: '#6b7280' }}>
                       {new Date(app.createdAt).toLocaleDateString()}
                     </td>

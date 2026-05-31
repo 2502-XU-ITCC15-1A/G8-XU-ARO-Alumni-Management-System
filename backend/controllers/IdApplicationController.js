@@ -2,6 +2,7 @@ const SystemLog = require("../models/SystemLog");
 const IdApplication = require("../models/IdApplication");
 const AlumniProfile = require("../models/AlumniProfile");
 const Notification = require("../models/Notification");
+const Education = require("../models/Education");
 const { sendStatusEmail } = require("../utils/emailService");
 
 
@@ -31,31 +32,73 @@ exports.getMyApplications = async (req, res) => {
 };
 
 exports.getIdApplications = async (req, res) => {
-    try {
-        const apps = await IdApplication.find()
-            .populate('userId', 'name email')
-            .sort({ createdAt: -1 });
+  try {
+    const apps = await IdApplication.find()
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 })
+      .lean();
 
-        const appsWithProfile = await Promise.all(apps.map(async (app) => {
-            const profile = await AlumniProfile.findOne({ userId: app.userId?._id });
-            return {
-                ...app.toObject(),
-                alumniProfile: profile || null,
-            };
-        }));
+    const userIds = apps.map(a => a.userId?._id).filter(Boolean);
 
-        res.json(appsWithProfile);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    const [educations, profiles] = await Promise.all([
+      Education.find({ userId: { $in: userIds } }).lean(),
+      AlumniProfile.find({ userId: { $in: userIds } }).lean()
+    ]);
+
+    const eduMap = new Map();
+    const profileMap = new Map();
+
+    for (const e of educations) {
+      const id = e.userId.toString();
+      if (!eduMap.has(id)) eduMap.set(id, []);
+      eduMap.get(id).push(e);
     }
+
+    for (const p of profiles) {
+      profileMap.set(p.userId.toString(), p);
+    }
+
+    const merged = apps.map(app => {
+      const id = app.userId?._id?.toString();
+
+      return {
+        ...app,
+        education: eduMap.get(id) || [],
+        alumniProfile: profileMap.get(id) || null
+      };
+    });
+
+    res.json(merged);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
 };
 
 exports.getIdApplication = async (req, res) => {
     try {
+
         const app = await IdApplication.findById(req.params.id)
-            .populate('userId', 'name email');
-        if (!app) return res.status(404).json({ message: 'Not found' });
-        res.json(app);
+            .populate('userId', 'name email')
+            .lean();
+
+        if (!app) {
+            return res.status(404).json({ message: 'Not found' });
+        }
+
+        const [education, alumniProfile] = await Promise.all([
+            Education.find({ userId: app.userId._id }).lean(),
+            AlumniProfile.findOne({ userId: app.userId._id }).lean()
+        ]);
+
+        const merged = {
+            ...app,
+            education: education || [],
+            alumniProfile: alumniProfile || null
+        };
+
+        res.json(merged);
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -79,13 +122,16 @@ exports.createIdApplication = async (req, res) => {
 exports.updateStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status, remarks, paymentVerified } = req.body;
+        const { status, remarks, paymentVerified, universityIdNumber } = req.body;
 
         const fields = {};
         if (status !== undefined)          fields.status = status;
         if (remarks !== undefined)         fields.remarks = remarks;
         if (paymentVerified !== undefined) fields.paymentVerified = paymentVerified;
-        if (paymentVerified) {              fields.verifiedBy = "XU_BookCenter"; }
+        if (paymentVerified) {             fields.verifiedBy = "XU_BookCenter"; }
+        
+        if (universityIdNumber !== undefined) fields.universityIdNumber = universityIdNumber;
+
         if (status === 'released') {
             const THREE_YEARS_MS = 3 * 365.25 * 24 * 60 * 60 * 1000;
             fields.validUntil = new Date(Date.now() + THREE_YEARS_MS);
@@ -93,28 +139,36 @@ exports.updateStatus = async (req, res) => {
 
         const updated = await IdApplication.findByIdAndUpdate(id, fields, { returnDocument: 'after' }).populate('userId', 'name email');
         
-const logData = {
-    performedBy: {
-        userId: req.user._id,
-        name: req.user.name || "Unknown",
-        role: req.user.role || "unknown",
-    },
-    target: updated.userId?.name || "Unknown User",
-};
+        if (updated?.userId && universityIdNumber) {
+            await AlumniProfile.findOneAndUpdate(
+                { userId: updated.userId._id },
+                { universityIdNumber },
+                { upsert: false }
+            ).catch(err => console.error('Failed to sync ID to profile:', err));
+        }
 
-let statusAction = "UNKNOWN_ACTION";
-if (status === "approved") statusAction = "APPLICATION_APPROVED";
-if (status === "rejected") statusAction = "APPLICATION_REJECTED";
-if (status === "printing") statusAction = "ID_PRINTING_STARTED";
-if (status === "released") statusAction = "ID_RELEASED";
+        const logData = {
+            performedBy: {
+                userId: req.user._id,
+                name: req.user.name || "Unknown",
+                role: req.user.role || "unknown",
+            },
+            target: updated.userId?.name || "Unknown User",
+        };
 
-if (status) {
-    await SystemLog.create({
-        ...logData,
-        action: statusAction,
-        details: `Status changed to ${status}. Remarks: ${remarks || "None"}`
-    });
-}
+        let statusAction = "UNKNOWN_ACTION";
+        if (status === "approved") statusAction = "APPLICATION_APPROVED";
+        if (status === "rejected") statusAction = "APPLICATION_REJECTED";
+        if (status === "printing") statusAction = "ID_PRINTING_STARTED";
+        if (status === "released") statusAction = "ID_RELEASED";
+
+        if (status) {
+            await SystemLog.create({
+                ...logData,
+                action: statusAction,
+                details: `Status changed to ${status}. Remarks: ${remarks || "None"}. ID Number Assigned: ${universityIdNumber || "None"}`
+            });
+        }
 
         if (updated?.userId) {
             if (status) {

@@ -15,7 +15,6 @@ const ROLE_REDIRECTS = {
   'external': '/external-portal',
 };
 
-// only the alumni can register
 const CAN_REGISTER = ['alumni'];
 
 export default function Login() {
@@ -26,6 +25,7 @@ export default function Login() {
   const isStaff = !CAN_REGISTER.includes(role);
 
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false); 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -38,7 +38,6 @@ export default function Login() {
   const saveAndRedirect = (data, expectedRole) => {
     const userRole = data.user.role;
 
-    // Role enforcement
     if (expectedRole && userRole !== expectedRole) {
       setError("You are not allowed to access this portal.");
       return;
@@ -55,28 +54,31 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setSuccess('');
-
-    if (isSignUp) {
-      const passwordRegex =
-        /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
-
-      if (!passwordRegex.test(password)) {
-        setError(
-          'Password must be at least 6 characters and include at least one special character (e.g. @, #, !).'
-        );
-        return;
-      }
-    }
-
     setLoading(true);
 
     try {
-      if (isSignUp && !isStaff) {
+      if (isForgotPassword) {
+        const backendUrl = "https://aro-alumni-backend.onrender.com";
+        
+        await axios.post(`${backendUrl}/api/auth/forgot-password`, { email, role });
+        
+        setSuccess('Password reset link has been sent to your email.');
+        setLoading(false);
+        return;
+      }
+
+      if (isSignUp) {
+        const passwordRegex = /^(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{6,}$/;
+        if (!passwordRegex.test(password)) {
+          setError('Password must be at least 6 characters and include at least one special character (e.g. @, #, !).');
+          setLoading(false);
+          return;
+        }
+
         await axios.post('/api/auth/register', {
           email,
           password,
           role,
-          name: email.split('@')[0],
         });
 
         setSuccess('Account created! Please sign in.');
@@ -102,6 +104,14 @@ export default function Login() {
     }
   };
 
+  const resetFormState = (forgotMode, signUpMode) => {
+    setError('');
+    setSuccess('');
+    setPassword('');
+    setIsForgotPassword(forgotMode);
+    setIsSignUp(signUpMode);
+  };
+
   const handleGoogleLogin = () => {
     window.location.href = `/api/auth/google?role=${role}`;
   };
@@ -118,21 +128,15 @@ export default function Login() {
             className="fw-bold mb-1 mt-3"
             style={{ color: '#283971', fontSize: 22 }}
           >
-            {isSignUp ? 'Create account' : 'Sign in'}
+            {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create account' : 'Sign in'}
           </h4>
 
-          <p
-            style={{
-              color: '#6b7280',
-              fontSize: 13,
-              marginBottom: 24,
-            }}
-          >
-            Please{' '}
-            {isSignUp
-              ? 'fill in your details'
-              : 'login to continue to your account'}
-            .
+          <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 24 }}>
+            {isForgotPassword 
+              ? 'Enter your email address and we will send you a link to reset your password.' 
+              : isSignUp 
+              ? 'Please fill in your details.' 
+              : 'Please login to continue to your account.'}
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -145,58 +149,59 @@ export default function Login() {
               required
             />
 
-            <div className="pw-wrapper">
-              <input
-                className="login-input"
-                type={showPw ? 'text' : 'password'}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+            {!isForgotPassword && (
+              <>
+                <div className="pw-wrapper">
+                  <input
+                    className="login-input"
+                    type={showPw ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
 
-              <button
-                type="button"
-                className="pw-toggle"
-                aria-label={showPw ? 'Hide password' : 'Show password'}
-                onClick={() => setShowPw((v) => !v)}
-              >
-                <i
-                  aria-hidden="true"
-                  className={`bi bi-eye${
-                    showPw ? '-slash' : ''
-                  }`}
-                />
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    className="pw-toggle"
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowPw((v) => !v)}
+                  >
+                    <i
+                      aria-hidden="true"
+                      className={`bi bi-eye${showPw ? '-slash' : ''}`}
+                    />
+                  </button>
+                </div>
+
+                {!isSignUp && (
+                  <div className="d-flex justify-content-end mb-3" style={{ marginTop: -12 }}>
+                    <button
+                      type="button"
+                      style={{ background: 'none', border: 'none', padding: 0, color: '#283971', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}
+                      onClick={() => resetFormState(true, false)}
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
 
             {isSignUp && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: '#6b7280',
-                  marginBottom: 8,
-                }}
-              >
-                Password must be at least 6 characters and
-                include a special character (e.g. @, #, !).
+              <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8 }}>
+                Password must be at least 6 characters and include a special character (e.g. @, #, !).
               </div>
             )}
 
             {error && (
-              <div
-                className="text-danger mb-2"
-                style={{ fontSize: 13 }}
-              >
+              <div className="text-danger mb-2" style={{ fontSize: 13 }}>
                 {error}
               </div>
             )}
 
             {success && (
-              <div
-                className="text-success mb-2"
-                style={{ fontSize: 13 }}
-              >
+              <div className="text-success mb-2" style={{ fontSize: 13 }}>
                 {success}
               </div>
             )}
@@ -208,13 +213,15 @@ export default function Login() {
             >
               {loading
                 ? 'Loading...'
+                : isForgotPassword
+                ? 'Send Reset Link'
                 : isSignUp
                 ? 'Create account'
                 : 'Sign in'}
             </button>
           </form>
 
-          {role === 'alumni' && (
+          {!isForgotPassword && !isSignUp && role === 'alumni' && (
             <>
               <div className="login-or">or</div>
 
@@ -224,24 +231,38 @@ export default function Login() {
                 onClick={() => handleGoogleLogin()}
                 disabled={loading}
               >
-                <i className="bi bi-google" />
-                {isSignUp ? 'Sign up with Google' : 'Sign in with Google'}
+                <i className="bi bi-google" /> Sign in with Google
               </button>
             </>
           )}
 
-          {!isStaff && (
-            <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', marginTop: 16 }}>
-              {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
-              <button
-                type="button"
-                style={{ background: 'none', border: 'none', padding: 0, color: '#283971', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
-                onClick={() => { setIsSignUp(v => !v); setError(''); setSuccess(''); }}
-              >
-                {isSignUp ? 'Sign in' : 'Create one'}
-              </button>
-            </p>
-          )}
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            {isForgotPassword ? (
+              <p style={{ fontSize: 13, color: '#6b7280' }}>
+                Remember your password?{' '}
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', padding: 0, color: '#283971', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
+                  onClick={() => resetFormState(false, false)}
+                >
+                  Sign in
+                </button>
+              </p>
+            ) : (
+              !isStaff && (
+                <p style={{ fontSize: 13, color: '#6b7280' }}>
+                  {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', padding: 0, color: '#283971', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
+                    onClick={() => resetFormState(false, !isSignUp)}
+                  >
+                    {isSignUp ? 'Sign in' : 'Create one'}
+                  </button>
+                </p>
+              )
+            )}
+          </div>
 
           <button
             className="back-btn"
@@ -254,20 +275,10 @@ export default function Login() {
         <div className="login-dark-panel">
           <div className="login-panel-content">
             <img src={aroLogo} alt="ARO Logo" className="login-panel-logo-img" />
-
             <div className="login-panel-divider" />
-
-            <div className="login-panel-university">
-              Xavier University
-            </div>
-
-            <div className="login-panel-subtitle">
-              Ateneo de Cagayan
-            </div>
-
-            <div className="login-panel-office">
-              Alumni Relations Office
-            </div>
+            <div className="login-panel-university">Xavier University</div>
+            <div className="login-panel-subtitle">Ateneo de Cagayan</div>
+            <div className="login-panel-office">Alumni Relations Office</div>
           </div>
         </div>
       </div>

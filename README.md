@@ -1,6 +1,6 @@
 # XU-ARO Alumni Management System
 
-**Version:** 1.0.0-alpha.1
+**Version:** 1.0.0-beta.1
 
 A full-stack web application for Xavier University - Ateneo de Cagayan's Alumni Relations Office (XU-ARO). It provides alumni profile management, educational and work history tracking, alumni ID card application processing, and role-based portals for alumni, XU-ARO staff, and external book center personnel.
 
@@ -81,58 +81,128 @@ G8-XU-ARO-Alumni-Management-System/
 
 ### Prerequisites
 
-- Node.js 20+
-- npm
-- A MongoDB Atlas cluster (or local MongoDB instance)
-- A Google Cloud project with OAuth 2.0 credentials
-- Docker & Docker Compose (optional)
+- [Node.js 20+](https://nodejs.org/) and npm
+- A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (free tier works) or a local MongoDB instance
+- A [Google Cloud](https://console.cloud.google.com/) project with OAuth 2.0 credentials configured for **Web application**
+- Docker & Docker Compose (optional, for containerized setup)
 
 ### Environment Variables
 
+Create `.env` files in both `backend/` and `frontend/` before starting the app.
+
 **`backend/.env`**
 ```env
-MONGO_URI=your_mongodb_connection_string
+# Database
+MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
+
+# JWT
 JWT_SECRET=your_jwt_secret_key
-EMAIL_USER=your_gmail_address
-EMAIL_PASS=your_gmail_app_password
+
+# Server (optional — defaults to 5000)
+PORT=5000
+FRONTEND_URL=http://localhost:5173
+
+# Google OAuth (for alumni/staff login via Google)
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:5000/api/auth/google/callback
+
+# Gmail OAuth (for email notifications — uses OAuth2, not app passwords)
+GMAIL_CLIENT_ID=your_gmail_oauth_client_id
+GMAIL_CLIENT_SECRET=your_gmail_oauth_client_secret
+GMAIL_REFRESH_TOKEN=your_gmail_oauth_refresh_token
+EMAIL_USER=your_gmail_address@gmail.com
+
+# Google Drive Backup (optional — enables automated daily database snapshots)
+DRIVE_CLIENT_ID=your_drive_oauth_client_id
+DRIVE_CLIENT_SECRET=your_drive_oauth_client_secret
+DRIVE_REFRESH_TOKEN=your_drive_oauth_refresh_token
+GOOGLE_DRIVE_FOLDER_ID=your_google_drive_folder_id
 ```
+
+> **Note:** `GMAIL_*` and `DRIVE_*` credentials can be the same Google Cloud project credentials. The Google Drive backup feature is optional — the server will log a warning on startup if the credentials are missing but will still function normally.
 
 **`frontend/.env`**
-```env
-VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
-```
 
-### Local Development
+The frontend does not require any environment variables for local development. All API calls are proxied through the backend.
+
+---
+
+### Local Development (Step-by-Step)
+
+#### 1. Clone the repository
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/2502-XU-ITCC15-1A/G8-XU-ARO-Alumni-Management-System.git
 cd G8-XU-ARO-Alumni-Management-System
+```
 
-# 2. Install and start the backend (runs on http://localhost:5000)
+#### 2. Set up the backend
+
+```bash
 cd backend
 npm install
-npm run dev
+```
 
-# 3. In a separate terminal, install and start the frontend (runs on http://localhost:5173)
+Create `backend/.env` using the template above, then start the development server:
+
+```bash
+npm run dev
+```
+
+The backend will start at **http://localhost:5000**. You should see `MongoDB Connected Successfully` in the console.
+
+#### 3. Seed the initial staff accounts
+
+In a new terminal, while the backend is running (or with `MONGO_URI` available):
+
+```bash
+cd backend
+node seedStaff.js
+```
+
+This creates the two default staff accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| XU-ARO Staff | `aro@xu.edu.ph` | `aro@2026` |
+| Book Center | `bookcenter@xu.edu.ph` | `bookcenter@2026` |
+
+> Change these credentials after first login in a production environment.
+
+#### 4. Set up the frontend
+
+In a separate terminal:
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
+The frontend will start at **http://localhost:5173**.
+
+#### 5. Access the application
+
+Open **http://localhost:5173** in your browser. You can log in with the seeded staff accounts or register a new alumni account.
+
+---
+
 ### Docker
 
-**Development**
+**Development** (mounts source for live reload)
 ```bash
 docker-compose up
 ```
 
-**Production**
+**Production** (multi-stage build, served by Nginx)
 ```bash
 docker-compose -f docker-compose.prod.yml up
 ```
 
 The production setup uses a multi-stage frontend build served by Nginx, which also reverse-proxies API requests to the backend.
+
+> Both Docker setups require the `.env` files in `backend/` and `frontend/` to be present before running.
 
 ---
 

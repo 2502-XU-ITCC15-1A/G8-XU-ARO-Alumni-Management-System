@@ -3,6 +3,8 @@ const querystring = require("querystring");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const { google } = require("googleapis");
 
 function fetchGoogleUser(accessToken) {
     return new Promise((resolve, reject) => {
@@ -70,7 +72,7 @@ exports.register = async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 10);
         const user = await User.create({
-            name: name || email.split("@")[0],
+            name: name || null,
             email,
             password: hashed,
             role: role || "alumni",
@@ -139,7 +141,7 @@ exports.googleAuthCallback = async (req, res) => {
                 return res.redirect(`${frontendUrl}/auth/callback?error=no_account`);
             }
             user = await User.create({
-                name: googleUser.name || googleUser.email.split("@")[0],
+                name: googleUser.name || null,
                 email: googleUser.email,
                 role: "alumni",
             });
@@ -157,4 +159,112 @@ exports.googleAuthCallback = async (req, res) => {
     } catch (err) {
         res.redirect(`${frontendUrl}/auth/callback?error=server_error`);
     }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: new Date() } 
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+    }
+
+    const bcrypt = require("bcryptjs");
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    return res.status(200).json({ message: 'Password reset successful.' });
+  } catch (error) {
+    console.error('Reset password handler error:', error);
+    return res.status(500).json({ message: 'Internal server error processing password reset.' });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    if (!email || !role) {
+      return res.status(400).json({ message: 'Email and portal role are required.' });
+    }
+
+    const normalizedRole = role.toLowerCase().trim();
+
+    const user = await User.findOne({ 
+      email: email.toLowerCase().trim(), 
+      role: normalizedRole 
+    });
+    
+if (!user) {
+  return res.status(404).json({ 
+    message: `No account found with that email registered under the ${role} portal.` 
+  });
+}
+
+    const resetToken = require("crypto").randomBytes(20).toString('hex');
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; 
+    await user.save();
+
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GMAIL_CLIENT_ID,
+      process.env.GMAIL_CLIENT_SECRET
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: process.env.GMAIL_REFRESH_TOKEN, 
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    const emailLines = [
+      `From: "XU Alumni Relations Office" <${process.env.EMAIL_USER}>`,
+      `To: ${user.email}`,
+      `Subject: Password Reset Request - Alumni Management System`,
+      `Content-Type: text/html; charset=utf-8`,
+      `MIME-Version: 1.0`,
+      ``,
+      `<div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">`,
+      `  <h2 style="color: #283971;">Password Reset Request</h2>`,
+      `  <p>Hello ${user.name || 'User'},</p>`,
+      `  <p>You requested a password reset for your account on the Xavier University Alumni Management System portal.</p>`,
+      `  <p>Please click the button below to set up a new password. This link will expire in 1 hour:</p>`,
+      `  <div style="margin: 24px 0;">`,
+      `    <a href="${resetUrl}" style="background-color: #283971; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 4px;">Reset Password</a>`,
+      `  </div>`,
+      `  <p style="font-size: 11px; color: #6b7280;">If you didn't request this, you can safely ignore this email.</p>`,
+      `</div>`
+    ];
+
+    const rawEmail = emailLines.join('\r\n');
+
+    const encodedEmail = Buffer.from(rawEmail)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedEmail,
+      },
+    });
+
+    return res.status(200).json({ message: 'Password reset link has been sent to your email.' });
+  } catch (error) {
+    console.error('Gmail API Forgot password error:', error);
+    return res.status(500).json({ message: 'Internal server error processing email.' });
+  }
 };

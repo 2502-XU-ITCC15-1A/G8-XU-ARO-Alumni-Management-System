@@ -3,11 +3,10 @@ import axios from 'axios';
 
 const STATUS_STEPS = [
   { key: 'pending',      label: 'Submitted',   icon: 'bi-send-fill',         desc: 'Your application has been submitted for review.' },
-  { key: 'under_review', label: 'Under Review', icon: 'bi-search',            desc: 'ARO staff is reviewing your application.' },
-  { key: 'approved',     label: 'Approved',     icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please visit the XU Book Center to pay the ₱150 Alumni ID fee.' },
+  { key: 'approved',     label: 'Approved',    icon: 'bi-check-circle-fill', desc: 'Your application has been approved. Please visit the XU Book Center to pay the ₱150 Alumni ID fee.' },
   { key: 'payment',      label: 'Payment',      icon: 'bi-receipt',           desc: 'Your payment has been confirmed by the Book Center.' },
-  { key: 'printing',     label: 'Printing',     icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
-  { key: 'released',     label: 'Released',     icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
+  { key: 'printing',     label: 'Printing',    icon: 'bi-printer-fill',      desc: 'Your ID card is being printed.' },
+  { key: 'released',     label: 'Released',    icon: 'bi-patch-check-fill',  desc: 'Your Alumni ID is ready for pick-up.' },
 ];
 
 const STEP_KEY_MAP = { payment_pending: 'payment' };
@@ -140,10 +139,81 @@ function Field({ label, children, required }) {
   );
 }
 
-function StatusTracker({ application }) {
+function StatusTracker({ application, education = [] }) {
   const isRejected  = application.status === 'rejected';
   const mappedKey   = STEP_KEY_MAP[application.status] || application.status;
   const stepIdx     = STATUS_STEPS.findIndex(s => s.key === mappedKey);
+
+  const renderTrackerEducation = () => {
+    const stack = [];
+
+    if (Array.isArray(education) && education.length > 0) {
+      education.forEach((edu) => {
+        const rawLevel = edu.level || '';
+        const displayLevel = rawLevel.toLowerCase() === 'undergraduate' ? 'College' : rawLevel;
+        const displayDegree = edu.degree ? ` - ${edu.degree}` : '';
+        const displayYear = edu.yearGraduated ? ` (${edu.yearGraduated})` : '';
+        
+        stack.push({
+          level: displayLevel,
+          text: `${displayLevel}${displayDegree}${displayYear}`
+        });
+      });
+    }
+
+    if (application.gradGradeSchool && !stack.some(e => e.level === 'Grade School')) {
+      stack.push({ level: 'Grade School', text: `Grade School (${application.gradGradeSchool})` });
+    }
+    if (application.gradJHS && !stack.some(e => e.level === 'Junior High School')) {
+      stack.push({ level: 'Junior High School', text: `Junior High School (${application.gradJHS})` });
+    }
+    if (application.gradSHS && !stack.some(e => e.level === 'Senior High School')) {
+      stack.push({ level: 'Senior High School', text: `Senior High School (${application.gradSHS})` });
+    }
+
+    if (application.course) {
+      const degrees = application.course.split(',').map(d => d.trim()).filter(Boolean);
+
+      degrees.forEach((degree) => {
+        const lowerDegree = degree.toLowerCase();
+        const isPostGradText = lowerDegree.includes('master') || lowerDegree.includes('doctor') || lowerDegree.includes('phd') || lowerDegree.includes('juris');
+
+        if (isPostGradText) {
+          if (!stack.some(e => e.text.includes(degree))) {
+            const pgYear = application.gradPostGrad && application.gradPostGrad !== 'N/A' ? ` (${application.gradPostGrad})` : '';
+            stack.push({ level: 'Post-Graduate', text: `Post-Graduate - ${degree}${pgYear}` });
+          }
+        } else {
+          if (!stack.some(e => e.text.includes(degree))) {
+            const collYear = application.gradCollege && application.gradCollege !== 'N/A' ? ` (${application.gradCollege})` : '';
+            stack.push({ level: 'College', text: `College - ${degree}${collYear}` });
+          }
+        }
+      });
+    }
+
+    if (application.gradCollege && application.gradCollege !== 'N/A' && !stack.some(e => e.level === 'College')) {
+      stack.push({ level: 'College', text: `College (${application.gradCollege})` });
+    }
+    if (application.gradPostGrad && application.gradPostGrad !== 'N/A' && !stack.some(e => e.level === 'Post-Graduate')) {
+      stack.push({ level: 'Post-Graduate', text: `Post-Graduate (${application.gradPostGrad})` });
+    }
+
+    if (stack.length === 0) return <div className="text-muted fst-italic">—</div>;
+
+    const PRIORITY = ['Grade School', 'Junior High School', 'Senior High School', 'College', 'Post-Graduate'];
+    const sortedStack = [...stack].sort((a, b) => PRIORITY.indexOf(a.level) - PRIORITY.indexOf(b.level));
+
+    return (
+      <div className="d-flex flex-column gap-1">
+        {sortedStack.map((item, idx) => (
+          <div key={idx} className="fw-semibold text-dark" style={{ fontSize: '13px' }}>
+            {item.text}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="card border-0 shadow-sm mb-4">
@@ -179,7 +249,8 @@ function StatusTracker({ application }) {
                         boxShadow: active ? '0 0 0 4px rgba(123,107,36,0.2)' : 'none',
                       }}
                     >
-                      <i className={`bi ${done ? step.icon : 'bi-circle'}`} />
+                      <i className="bi bi-check" style={{ display: done && !active ? 'block' : 'none' }} />
+                      <i className={`bi ${step.icon}`} style={{ display: active || !done ? 'block' : 'none' }} />
                     </div>
                     {i < STATUS_STEPS.length - 1 && (
                       <div style={{ flex: 1, height: 3, backgroundColor: i < stepIdx ? '#1e2d5e' : '#e5e7eb' }} />
@@ -201,22 +272,23 @@ function StatusTracker({ application }) {
         )}
 
         <div className="border-top pt-3 mt-2">
-          <div className="row g-2" style={{ fontSize: 13 }}>
-            <div className="col-6 col-md-3">
-              <div className="text-muted" style={{ fontSize: 11 }}>Full Name</div>
-              <div className="fw-semibold">{[application.firstName, application.lastName].filter(Boolean).join(' ') || '—'}</div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="text-muted" style={{ fontSize: 11 }}>Course</div>
-              <div className="fw-semibold">{application.course || '—'}</div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="text-muted" style={{ fontSize: 11 }}>XU ID Number</div>
+          <div className="row g-3" style={{ fontSize: 13 }}>
+            <div className="col-12 col-md-4">
+              <div className="text-muted mb-1" style={{ fontSize: 11 }}>Full Name</div>
+              <div className="fw-semibold text-primary">{[application.firstName, application.lastName].filter(Boolean).join(' ') || '—'}</div>
+              
+              <div className="text-muted mt-3 mb-1" style={{ fontSize: 11 }}>XU ID Number</div>
               <div className="fw-semibold">{application.universityIdNumber || '—'}</div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div className="text-muted" style={{ fontSize: 11 }}>Date Applied</div>
+
+              <div className="text-muted mt-3 mb-1" style={{ fontSize: 11 }}>Date Applied</div>
               <div className="fw-semibold">{application.createdAt?.slice(0, 10) || '—'}</div>
+            </div>
+            
+            <div className="col-12 col-md-8">
+              <div className="text-muted mb-1" style={{ fontSize: 11 }}>Education Background</div>
+              <div className="p-3 bg-light rounded border border-light">
+                {renderTrackerEducation()}
+              </div>
             </div>
           </div>
         </div>
@@ -224,8 +296,6 @@ function StatusTracker({ application }) {
     </div>
   );
 }
-
-
 
 function PaymentInstructions({ application }) {
   if (application.paymentVerified && application.status === 'printing') {
@@ -275,10 +345,14 @@ function PhotoUpload({ label, hint, value, onChange }) {
     const file = e.target.files[0];
     if (!file) return;
 
-  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/jfif'];
-    if (!allowedTypes.includes(file.type)) {
+    const allowedExtensions = ['png', 'jpg', 'jpeg'];
+    const extension = file.name.split('.').pop().toLowerCase();
+
+    if (!allowedExtensions.includes(extension)) {
       setError('Invalid file type. Please upload a PNG or JPG image.');
-      if (inputRef.current) inputRef.current.value = ''; 
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
       return;
     }
 
@@ -343,101 +417,60 @@ function PhotoUpload({ label, hint, value, onChange }) {
       <input 
         ref={inputRef} 
         type="file" 
-        accept=".png,.jpg,.jpeg,.jfif,image/png,image/jpeg,image/jfif" 
+        accept=".png,.jpg,.jpeg,image/png,image/jpeg"
         style={{ display: 'none' }} 
         onChange={handleFile} 
-        />
+      />
     </div>
   );
 }
 
 function ApplicationForm({ profile, education = [], onSubmitted, token, isRenewal }) {
+  const collegeEntries = education.filter(edu => edu.level === 'College');
+  const postGradEntries = education.filter(edu => edu.level === 'Post-Graduate');
 
-  const collegeRecord = education.find(edu => edu.level === 'College');
+  const EDUCATION_PRIORITY = [
+    'Post-Graduate',
+    'College',
+    'Senior High School',
+    'Junior High School',
+    'Grade School',
+  ];
 
-const EDUCATION_PRIORITY = [
-  'Post-Graduate',
-  'College',
-  'Senior High School',
-  'Junior High School',
-  'Grade School',
-];
+  const highestEducation = [...education]
+    .sort(
+      (a, b) =>
+        EDUCATION_PRIORITY.indexOf(a.level) -
+        EDUCATION_PRIORITY.indexOf(b.level)
+    )[0];
 
-const highestEducation = [...education]
-  .sort(
-    (a, b) =>
-      EDUCATION_PRIORITY.indexOf(a.level) -
-      EDUCATION_PRIORITY.indexOf(b.level)
-  )[0];
-
-const getCourseDisplay = (edu) => {
-  if (!edu) return '';
-
-  if (
-    edu.level === 'Grade School' ||
-    edu.level === 'Junior High School'
-  ) {
-    return;
-  }
-
-  if (edu.level === 'Senior High School') {
+  const getCourseDisplay = (edu) => {
+    if (!edu) return '';
+    if (edu.level === 'Grade School' || edu.level === 'Junior High School') return '';
     return edu.degree || '';
-  }
+  };
 
-  if (
-    edu.level === 'College' ||
-    edu.level === 'Post-Graduate'
-  ) {
-    return edu.degree || '';
-  }
-
-  return edu.degree || '';
-};
-
-const [form, setForm] = useState({
-  ...BLANK_FORM,
-
-  lastName: profile?.surname || '',
-  firstName: profile?.firstName || '',
-  middleName: profile?.middleName || '',
-
-  bloodType: profile?.bloodType || '',
-
-  course: getCourseDisplay(highestEducation),
-
-  gradGradeSchool:
-    education.find(e => e.level === 'Grade School')
-      ?.yearGraduated || '',
-
-  gradJHS:
-    education.find(e => e.level === 'Junior High School')
-      ?.yearGraduated || '',
-
-  gradSHS:
-    education.find(e => e.level === 'Senior High School')
-      ?.yearGraduated || '',
-
-  gradCollege:
-    education.find(e => e.level === 'College')
-      ?.yearGraduated || '',
-
-  gradPostGrad:
-    education.find(e => e.level === 'Post-Graduate')
-      ?.yearGraduated || '',
-
-  homeAddress: [
-    profile?.address?.street,
-    profile?.address?.barangay,
-    profile?.address?.city,
-    profile?.address?.province
-  ]
-    .filter(Boolean)
-    .join(', '),
-
-  universityIdNumber:
-    profile?.universityIdNumber || '',
-});
-
+  const [form, setForm] = useState({
+    ...BLANK_FORM,
+    lastName: profile?.surname || '',
+    firstName: profile?.firstName || '',
+    middleName: profile?.middleName || '',
+    bloodType: profile?.bloodType || '',
+    course: getCourseDisplay(highestEducation),
+    gradGradeSchool: education.find(e => e.level === 'Grade School')?.yearGraduated || '',
+    gradJHS: education.find(e => e.level === 'Junior High School')?.yearGraduated || '',
+    gradSHS: education.find(e => e.level === 'Senior High School')?.yearGraduated || '',
+    gradCollege: collegeEntries[0]?.yearGraduated || '',
+    gradPostGrad: postGradEntries[0]?.yearGraduated || '',
+    
+    homeAddress: [
+      profile?.address?.street,
+      profile?.address?.barangay,
+      profile?.address?.city,
+      profile?.address?.province
+    ].filter(Boolean).join(', '),
+    universityIdNumber: profile?.universityIdNumber || '',
+  });
 
   const [sigMode,       setSigMode]       = useState('draw');
   const [sigUpload,     setSigUpload]     = useState(null);
@@ -452,10 +485,9 @@ const [form, setForm] = useState({
 
   const submit = async () => {
     const missing = [];
-    if (!form.lastName.trim())            missing.push('Last Name');
-    if (!form.firstName.trim())           missing.push('First Name');
-    if (!form.course.trim())              missing.push('Degree / Course');
-    if (!form.universityIdNumber.trim())  missing.push('XU University ID Number');
+    if (!form.lastName.trim())  missing.push('Last Name');
+    if (!form.firstName.trim()) missing.push('First Name');
+    if (!form.homeAddress.trim()) missing.push('Home Address');
     if (missing.length > 0) {
       return alert(`Please fill in the required fields:\n• ${missing.join('\n• ')}`);
     }
@@ -465,6 +497,7 @@ const [form, setForm] = useState({
       const userId = user.id || user._id;
       const payload = {
         ...form,
+        educationSnapshot: education,
         signature: sigMode === 'draw' ? form.signature : '',
         userId,
         isRenewal: isRenewal || false,
@@ -513,17 +546,17 @@ const [form, setForm] = useState({
           <div className="row g-3">
             <div className="col-md-4">
               <Field label="Last Name" required>
-                <input className="form-control" style={{ fontSize: 14 }} value={f('lastName')} onChange={set('lastName')} />
+                <input className="form-control" style={{ fontSize: 14 }} value={f('lastName')} placeholder="N/A" readOnly />
               </Field>
             </div>
             <div className="col-md-4">
               <Field label="First Name" required>
-                <input className="form-control" style={{ fontSize: 14 }} value={f('firstName')} onChange={set('firstName')} />
+                <input className="form-control" style={{ fontSize: 14 }} value={f('firstName')} placeholder="N/A" readOnly />
               </Field>
             </div>
             <div className="col-md-4">
               <Field label="Middle Name">
-                <input className="form-control" style={{ fontSize: 14 }} value={f('middleName')} onChange={set('middleName')} />
+                <input className="form-control" style={{ fontSize: 14 }} value={f('middleName')} placeholder="N/A" readOnly />
               </Field>
             </div>
             <div className="col-md-3">
@@ -535,7 +568,7 @@ const [form, setForm] = useState({
               </Field>
             </div>
             <div className="col-md-5">
-              <Field label="XU ID Number" required>
+              <Field label="XU ID Number">
                 <input className="form-control" style={{ fontSize: 14 }} value={f('universityIdNumber')} onChange={set('universityIdNumber')} placeholder="e.g. 2019-XXXXX" />
               </Field>
             </div>
@@ -546,50 +579,151 @@ const [form, setForm] = useState({
                     ? 'Strand'
                     : 'Degree / Course'
                 }
-                required
               >
-              <input
-                className="form-control"
-                style={{ fontSize: 14 }}
-                value={f('course')}
-                onChange={set('course')}
-                placeholder="Enter degree / strand if unavailable"
-              />         
+                {(education.filter(e => e.level === 'College').length > 1 || 
+                  education.filter(e => e.level === 'Post-Graduate').length > 1) ? (
+                  <div 
+                    className="form-control bg-light text-muted text-truncate" 
+                    style={{ fontSize: 14, minHeight: '38px', lineHeight: '24px' }}
+                    title={education
+                      .filter(e => e.level === 'College' || e.level === 'Post-Graduate')
+                      .map(e => e.degree)
+                      .filter(Boolean)
+                      .join(', ')}
+                  >
+                    {education
+                      .filter(e => e.level === 'College' || e.level === 'Post-Graduate')
+                      .map(e => e.degree)
+                      .filter(Boolean)
+                      .join(', ')}
+                  </div>
+                ) : (
+                  <input
+                    className="form-control"
+                    style={{ fontSize: 14 }}
+                    value={f('course')}
+                    onChange={set('course')}
+                    placeholder="N/A"
+                    readOnly
+                  />         
+                )}
               </Field>
             </div>
             <div className="col-12">
-              <Field label="Home Address">
-                <input className="form-control" style={{ fontSize: 14 }} value={f('homeAddress')} onChange={set('homeAddress')} />
+              <Field label="Home Address" required>
+                <input className="form-control" style={{ fontSize: 14 }} value={f('homeAddress')} onChange={set('homeAddress')}/>
               </Field>
             </div>
           </div>
         </div>
 
-        <div className="mb-4">
+ <div className="mb-4">
           <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
             Year of Graduation
           </div>
-          <div className="row g-3">
+          
+          <div className="row g-3 mb-3">
             {[
               { field: 'gradGradeSchool', label: 'Grade School' },
               { field: 'gradJHS',         label: 'Junior High School' },
               { field: 'gradSHS',         label: 'Senior High School' },
-              { field: 'gradCollege',     label: 'College' },
-              { field: 'gradPostGrad',    label: 'Post-Graduate' },
             ].map(({ field, label }) => (
-              <div key={field} className="col-6 col-md">
+              <div key={field} className="col-6 col-md-4">
                 <Field label={label}>
                   <input
-                    className="form-control"
+                    className="form-control bg-light"
                     style={{ fontSize: 14 }}
                     value={f(field)}
                     onChange={set(field)}
-                    placeholder="YYYY"
+                    placeholder="N/A"
                     maxLength={4}
+                    readOnly 
                   />
                 </Field>
               </div>
             ))}
+          </div>
+
+          <div className="row g-3 align-items-start">
+            
+            <div className="col-md-6">
+              <label className="form-label fw-bold mb-2" style={{ fontSize: 12, color: '#374151' }}>
+                College 
+              </label>
+              
+              <div 
+                className="border rounded p-2 bg-white" 
+                style={{ 
+                  minHeight: '84px', 
+                  maxHeight: '110px', 
+                  overflowY: 'auto',
+                  borderColor: '#dee2e6'
+                }}
+              >
+                {collegeEntries && collegeEntries.length > 0 ? (
+                  collegeEntries.map((edu, index) => (
+                    <div 
+                      key={index} 
+                      className={`d-flex justify-content-between align-items-center py-1 ${
+                        index !== collegeEntries.length - 1 ? 'border-bottom mb-1' : ''
+                      }`}
+                    >
+                      <span className="text-secondary text-truncate me-2" style={{ fontSize: 14 }} title={edu.degree}>
+                        {edu.degree || 'College Degree'}
+                      </span>
+                      <span 
+                        className="badge rounded text-white px-2 py-1" 
+                        style={{ backgroundColor: '#1e2d5e', fontSize: 12, minWidth: '45px', textAlign: 'center' }}
+                      >
+                        {edu.yearGraduated || 'YYYY'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted pt-2 ps-1 fst-italic" style={{ fontSize: 13 }}>No college records found</div>
+                )}
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <label className="form-label fw-bold mb-2" style={{ fontSize: 12, color: '#374151' }}>
+                Post-Graduate
+              </label>
+              
+              <div 
+                className="border rounded p-2 bg-white" 
+                style={{ 
+                  minHeight: '84px', 
+                  maxHeight: '110px', 
+                  overflowY: 'auto',
+                  borderColor: '#dee2e6'
+                }}
+              >
+                {postGradEntries && postGradEntries.length > 0 ? (
+                  postGradEntries.map((edu, index) => (
+                    <div 
+                      key={index} 
+                      className={`d-flex justify-content-between align-items-center py-1 ${
+                        index !== postGradEntries.length - 1 ? 'border-bottom mb-1' : ''
+                      }`}
+                    >
+                      <span className="text-secondary text-truncate me-2" style={{ fontSize: 14 }} title={edu.degree}>
+                        {edu.degree || 'Post-Grad Degree'}
+                      </span>
+                      <span 
+                        className="badge rounded text-white px-2 py-1" 
+                        style={{ backgroundColor: '#7b6b24', fontSize: 12, minWidth: '45px', textAlign: 'center' }}
+                      >
+                        {edu.yearGraduated || 'YYYY'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-muted pt-2 ps-1 fst-italic" style={{ fontSize: 13 }}>No post-grad records found</div>
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -600,54 +734,54 @@ const [form, setForm] = useState({
           <Field label="Upload Your Photo">
             <PhotoUpload
               label="Click to upload a photo for your Alumni ID"
-              hint="PNG, JFIF, or JPEG, plain background preferred"
+              hint="PNG or JPEG only, plain background preferred"
               value={photoUpload}
               onChange={setPhotoUpload}
             />
           </Field>
         </div>
 
-<div className="mb-4">
-  <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
-    E-Signature
-  </div>
+        <div className="mb-4">
+          <div className="fw-bold mb-3 pb-2 border-bottom" style={{ fontSize: 13, color: '#1e2d5e' }}>
+            E-Signature
+          </div>
 
-  <div className="d-flex gap-2 mb-3">
-    {['draw', 'upload'].map(mode => (
-      <button
-        key={mode}
-        type="button"
-        className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
-        style={{ fontSize: 12 }}
-        onClick={() => setSigMode(mode)}
-      >
-        <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
-        {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
-      </button>
-    ))}
-  </div>
+          <div className="d-flex gap-2 mb-3">
+            {['draw', 'upload'].map(mode => (
+              <button
+                key={mode}
+                type="button"
+                className={`btn btn-sm ${sigMode === mode ? 'btn-approve' : 'btn-outline-secondary'}`}
+                style={{ fontSize: 12 }}
+                onClick={() => setSigMode(mode)}
+              >
+                <i className={`bi ${mode === 'draw' ? 'bi-pencil-fill' : 'bi-upload'} me-1`} />
+                {mode === 'draw' ? 'Draw Signature' : 'Upload Image'}
+              </button>
+            ))}
+          </div>
 
-  <div className={sigMode === 'draw' ? '' : 'd-none'}>
-    <Field label="Draw Your Signature" key="sig-pad-field">
-      <SignaturePad
-        value={f('signature')}
-        onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
-      />
-    </Field>
-  </div>
+          <div className={sigMode === 'draw' ? '' : 'd-none'}>
+            <Field label="Draw Your Signature" key="sig-pad-field">
+              <SignaturePad
+                value={f('signature')}
+                onChange={(data) => setForm(prev => ({ ...prev, signature: data }))}
+              />
+            </Field>
+          </div>
 
-  <div className={sigMode === 'upload' ? '' : 'd-none'}>
-    <Field label="Upload Signature Image" key="sig-upload-field">
-      <PhotoUpload
-        key="sig-upload-input"
-        label="Click to upload your e-signature image"
-        hint="PNG, JFIF, or JPEG with transparent or white background"
-        value={sigUpload}
-        onChange={sigUpload => setSigUpload(sigUpload)}
-      />
-    </Field>
-  </div>
-</div>
+          <div className={sigMode === 'upload' ? '' : 'd-none'}>
+            <Field label="Upload Signature Image" key="sig-upload-field">
+              <PhotoUpload
+                key="sig-upload-input"
+                label="Click to upload your e-signature image"
+                hint="PNG or JPEG with transparent or white background"
+                value={sigUpload}
+                onChange={sigUpload => setSigUpload(sigUpload)}
+              />
+            </Field>
+          </div>
+        </div>
 
         <div className="d-flex justify-content-end">
           <button
@@ -734,7 +868,10 @@ export default function AlumniIdApplication() {
 
       {application ? (
         <>
-          <StatusTracker application={application} />
+          <StatusTracker
+  application={application}
+  education={application.educationSnapshot || []}
+/>
           
           <PaymentInstructions application={application} />
 
