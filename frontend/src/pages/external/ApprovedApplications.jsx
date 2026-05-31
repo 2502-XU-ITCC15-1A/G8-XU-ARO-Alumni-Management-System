@@ -22,6 +22,14 @@ const FILTER_OPTIONS = [
   },
 ];
 
+const getFullName = (app) => {
+  if (app.alumniProfile?.firstName || app.alumniProfile?.surname) {
+    return `${app.alumniProfile.firstName || ''} ${app.alumniProfile.surname || ''}`.trim();
+  }
+
+  return app.userId?.name || '—';
+};
+
 function paymentBadge(app) {
   if (app.status === 'released') {
     return {
@@ -185,8 +193,7 @@ function ConfirmPaymentModal({
                   color: '#111827',
                 }}
               >
-                {app.userId?.name ||
-                  '—'}
+                {getFullName(app)}
               </div>
 
               <div
@@ -222,8 +229,7 @@ function ConfirmPaymentModal({
               <div>
                 Confirm that{' '}
                 <strong>
-                  {app.userId?.name ||
-                    'this alumni'}
+                  {getFullName(app) || 'this alumni'}
                 </strong>{' '}
                 has paid the{' '}
                 <strong>
@@ -292,7 +298,6 @@ export default function ApprovedApplications() {
   const [deleting, setDeleting] =
     useState(false);
 
-  // PAGINATION
   const [currentPage, setCurrentPage] =
     useState(1);
 
@@ -413,9 +418,7 @@ export default function ApprovedApplications() {
         search.toLowerCase();
 
       const matchSearch =
-        (
-          a.userId?.name || ''
-        )
+        (getFullName(a) || '')
           .toLowerCase()
           .includes(q) ||
         (
@@ -655,9 +658,7 @@ export default function ApprovedApplications() {
                             fontSize: 13,
                           }}
                         >
-                          {app.userId
-                            ?.name ||
-                            '—'}
+                          {getFullName(app)}
                         </div>
 
                         <div
