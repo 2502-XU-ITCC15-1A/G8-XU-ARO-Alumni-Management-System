@@ -185,18 +185,14 @@ const counts = {
     },
   ];
 
-  const getFullName = (app) => {
-    if (
-      app.alumniProfile?.firstName ||
-      app.alumniProfile?.surname
-    ) {
-      return `${app.alumniProfile.firstName || ''} ${
-        app.alumniProfile.surname || ''
-      }`.trim();
-    }
+const getFullName = (app) => {
+  const first = app.alumniProfile?.firstName;
+  const last = app.alumniProfile?.surname;
 
-    return app.userId?.name || '—';
-  };
+  const fullName = `${first || ''} ${last || ''}`.trim();
+
+  return fullName || '—';
+};
 
   const getAddress = (app) => {
     const addr = app.alumniProfile?.address;
